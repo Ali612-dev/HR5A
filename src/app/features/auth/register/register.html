@@ -1,0 +1,63 @@
+<div class="register-container">
+  <div class="container my-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-10 col-lg-8">
+        <div class="glass-card">
+          <div class="glass-body">
+            <div class="text-center mb-4">
+              <img src="assets/logo.svg" alt="HR5A Logo" class="logo" />
+              <h2 class="title">{{ 'EmployeeRegistration' | translate }}</h2>
+              <p class="subtitle">{{ 'FillDetailsToRegister' | translate }}</p>
+            </div>
+
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="needs-validation" novalidate>
+              <div class="form-group">
+                <label for="fullName" class="form-label">{{ 'FullName' | translate }}</label>
+                <input id="fullName" type="text" formControlName="fullName" class="form-control" placeholder="{{ 'JohnDoe' | translate }}" required />
+                <div *ngIf="registerForm.get('fullName')?.invalid && (registerForm.get('fullName')?.dirty || registerForm.get('fullName')?.touched)" class="text-danger">
+                  <div *ngIf="registerForm.get('fullName')?.errors?.['required']">{{ 'FullNameRequired' | translate }}</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="phoneNumber" class="form-label">{{ 'WhatsAppNumber' | translate }}</label>
+                <input id="phoneNumber" type="text" formControlName="phoneNumber" class="form-control" placeholder="{{ '201234567890' | translate }}" required />
+                <small class="text-muted">{{ 'WhatsAppNumberHint' | translate }}</small>
+                <div *ngIf="registerForm.get('phoneNumber')?.invalid && (registerForm.get('phoneNumber')?.dirty || registerForm.get('phoneNumber')?.touched)" class="text-danger">
+                  <div *ngIf="registerForm.get('phoneNumber')?.errors?.['required']">{{ 'WhatsAppNumberRequired' | translate }}</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="cardNumber" class="form-label">{{ 'CardNumber' | translate }}</label>
+                <input id="cardNumber" type="text" formControlName="cardNumber" class="form-control" placeholder="{{ 'EnterCardNumber' | translate }}" required />
+                <div *ngIf="registerForm.get('cardNumber')?.invalid && (registerForm.get('cardNumber')?.dirty || registerForm.get('cardNumber')?.touched)" class="text-danger">
+                  <div *ngIf="registerForm.get('cardNumber')?.errors?.['required']">{{ 'CardNumberRequired' | translate }}</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="email" class="form-label">{{ 'EmailOptional' | translate }}</label>
+                <input id="email" type="email" formControlName="email" class="form-control" placeholder="example@domain.com" />
+                <div *ngIf="registerForm.get('email')?.invalid && (registerForm.get('email')?.dirty || registerForm.get('email')?.touched)" class="text-danger">
+                  <div *ngIf="registerForm.get('email')?.errors?.['email']">{{ 'InvalidEmail' | translate }}</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="department" class="form-label">{{ 'DepartmentOptional' | translate }}</label>
+                <input id="department" type="text" formControlName="department" class="form-control" placeholder="{{ 'e.g., IT, HR, Finance' | translate }}" />
+              </div>
+
+              <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="registerForm.invalid">
+                  <i class="bi bi-person-plus-fill me-2"></i>{{ 'RegisterNow' | translate }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

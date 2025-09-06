@@ -1,0 +1,19 @@
+
+
+<div class="dialog-header">
+  <h2 class="dialog-title">
+    {{ 'RejectConfirmation_pre' | translate }} 
+    <span class="employee-name">{{ data.fullName }}</span>
+    {{ 'RejectConfirmation_post' | translate }}
+  </h2>
+</div>
+<div class="dialog-content">
+  <p>{{ 'PleaseProvideRejectionReason' | translate }}</p>
+  <textarea [(ngModel)]="rejectionReason" rows="4" class="form-control" placeholder="{{ 'EnterRejectionReason' | translate }}"></textarea>
+</div>
+<div class="dialog-actions">
+  <button class="btn btn-secondary" (click)="onCancel()">{{ 'Cancel' | translate }}</button>
+  <button class="btn btn-primary" (click)="onConfirm()" [disabled]="!rejectionReason.trim()">{{ 'Confirm' | translate }}</button>
+</div>
+
+

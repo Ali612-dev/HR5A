@@ -1,0 +1,73 @@
+<div class="view-attendance-container">
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+      <a routerLink="/attendance" class="back-button">
+        <fa-icon [icon]="faArrowLeft"></fa-icon>
+      </a>
+    </div>
+
+    <!-- Attendance Details -->
+    <div class="card">
+      <div *ngIf="store.isLoading()">
+        <app-shimmer></app-shimmer>
+      </div>
+      <div *ngIf="store.error()">
+        <app-error [errorMessage]="store.error()!" (retry)="onRetry()"></app-error>
+      </div>
+      <div *ngIf="!store.isLoading() && store.attendance() as attendance">
+        <div class="attendance-header">
+          <fa-icon [icon]="faUserCircle" class="attendance-avatar"></fa-icon>
+          <h2 class="attendance-name">{{ attendance.employeeName }}</h2>
+          <div class="status-badge" [ngClass]="attendance.status === 'Present' ? 'active' : 'inactive'">
+            {{ attendance.status }}
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="detail-item">
+            <fa-icon [icon]="faCalendarAlt" class="detail-icon"></fa-icon>
+            <div class="detail-content">
+              <span class="label">{{ 'Date' | translate }}</span>
+              <span class="value">{{ attendance.date | date: 'longDate' }}</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <fa-icon [icon]="faClock" class="detail-icon"></fa-icon>
+            <div class="detail-content">
+              <span class="label">{{ 'TimeIn' | translate }}</span>
+              <span class="value">{{ attendance.timeIn | date: 'shortTime' }}</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <fa-icon [icon]="faClock" class="detail-icon"></fa-icon>
+            <div class="detail-content">
+              <span class="label">{{ 'TimeOut' | translate }}</span>
+              <span class="value">{{ attendance.timeOut | date: 'shortTime' }}</span>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="attendance.locationName">
+            <fa-icon [icon]="faLocationDot" class="detail-icon"></fa-icon>
+            <div class="detail-content">
+              <span class="label">{{ 'Location' | translate }}</span>
+              <span class="value">{{ attendance.locationName }}</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <fa-icon [icon]="faIdCard" class="detail-icon"></fa-icon>
+            <div class="detail-content">
+              <span class="label">{{ 'AttendanceType' | translate }}</span>
+              <span class="value">{{ attendance.attType }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+          <button class="btn glass-button" [routerLink]="['/attendance/history', attendance.employeeId]">
+            {{ 'ViewHistory' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,338 @@
+:host {
+    display: block;
+    font-family: var(--font-family-base);
+    position: relative;
+    z-index: 0;
+}
+
+/* Ethereal Header with Enhanced Magic Effect */
+.header {
+    position: relative;
+    color: var(--color-text-light);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--color-primary-gradient-start) 0%, var(--color-primary-gradient-end) 70%, var(--color-background-light) 100%); /* Smooth transition to light background */
+    background-size: 100% 100%;
+    animation: none;
+}
+
+
+
+.header::before, .header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-overlay-light); /* Very subtle overlay */
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    animation: etherealWave 25s linear infinite;
+    border-radius: 50%; /* Circular distortion */
+}
+
+.header::after {
+    animation-delay: -12.5s;
+    transform: scaleY(-1) rotate(180deg); /* Invert and rotate for complex motion */
+}
+
+@keyframes etherealWave {
+    0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 0.8; }
+    25% { transform: translateX(20%) translateY(10%) rotate(90deg) scale(1.1); opacity: 0.9; }
+    50% { transform: translateX(0) translateY(20%) rotate(180deg) scale(1.2); opacity: 0.7; }
+    75% { transform: translateX(-20%) translateY(10%) rotate(270deg) scale(1.1); opacity: 0.9; }
+    100% { transform: translateX(0) translateY(0) rotate(360deg) scale(1); opacity: 0.8; }
+}
+
+/* Refined Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem var(--spacing-xl); /* Further reduced padding for smaller height */
+    border-radius: var(--border-radius-small); /* Added border-radius */
+    background-color: transparent; /* No background */
+    backdrop-filter: none; /* Remove blur */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--color-overlay-medium); /* Very subtle separator */
+    box-shadow: none; /* Remove shadow */
+}
+
+.navbar-brand .logo {
+    height: 45px; /* Smaller logo */
+    filter: drop-shadow(0 0 6px var(--color-white-transparent-40)); /* Subtle glow */
+}
+
+.navbar-actions {
+    display: flex;
+    gap: var(--spacing-md); /* Smaller gap */
+}
+
+.btn {
+    padding: 0.7rem 1.8rem; /* Smaller padding */
+    border: none;
+    border-radius: var(--border-radius-large); /* Slightly less rounded */
+    cursor: pointer;
+    font-weight: var(--font-weight-semibold); /* Less thick */
+    transition: var(--transition-ease);
+    box-shadow: 0 2px 8px var(--shadow-medium); /* Simpler shadow */
+    text-transform: none; /* Changed from uppercase to none */
+    letter-spacing: normal; /* Changed from 0.03em to normal */
+    text-decoration: none; /* Added to remove underline */
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px var(--shadow-strong);
+}
+
+.btn-login {
+    background-color: var(--color-white-transparent-10); /* More subtle transparent white */
+    color: var(--color-text-light);
+    border: 1px solid var(--color-white-transparent-20);
+}
+
+.btn-login:hover {
+    background-color: var(--color-white-transparent-20);
+    border-color: var(--color-white-transparent-40);
+}
+
+.btn-register {
+    background: linear-gradient(45deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end)); /* Magical purple gradient */
+    color: var(--color-text-light);
+    box-shadow: 0 4px 12px var(--shadow-primary-gradient);
+    backdrop-filter: blur(5px); /* Glass effect */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
+    padding: 0.7rem 1.8rem; /* Match login button padding */
+}
+
+.btn-register:hover {
+    background: linear-gradient(45deg, var(--color-primary-gradient-end), var(--color-primary-gradient-start));
+    box-shadow: 0 6px 20px var(--shadow-primary-gradient-strong);
+}
+
+/* Header Content - More Impactful */
+.header-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 6rem var(--spacing-lg); /* Reduced padding */
+    text-shadow: 0 5px 10px var(--shadow-text); /* Softer shadow */
+    background: linear-gradient(180deg, var(--color-primary-gradient-start) 0%, transparent 100%); /* Smooth transition to transparent */
+    border-radius: 0; /* Remove border-radius for seamless blend */
+    margin: 0; /* Remove margin for seamless blend */
+    box-shadow: none;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInFromBottom 1s ease-out forwards;
+}
+
+@keyframes fadeInFromBottom {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header-title {
+    font-size: 5.5rem; /* Slightly smaller */
+    margin-bottom: var(--spacing-md);
+    line-height: 1.1;
+    font-weight: var(--font-weight-bold); /* Less thick */
+    letter-spacing: -0.03em; /* Less negative spacing */
+    color: var(--color-text-light);
+}
+
+.header-subtitle {
+    font-size: 1.7rem; /* Slightly smaller */
+    margin-bottom: var(--spacing-xl);
+    max-width: 1000px;
+    color: var(--color-text-medium);
+    font-weight: var(--font-weight-light); /* Lighter weight */
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--color-secondary-gradient-start), var(--color-secondary-gradient-end)); /* Vibrant blue gradient */
+    color: var(--color-text-light);
+    border: none;
+    padding: 1.2rem var(--spacing-xl); /* Slightly smaller */
+    font-size: 1.4rem;
+    border-radius: 35px;
+    box-shadow: 0 6px 18px var(--shadow-strong);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, var(--color-secondary-gradient-end), var(--color-secondary-gradient-start));
+    box-shadow: 0 10px 25px var(--shadow-stronger);
+}
+
+/* Features Section - More Integrated */
+.features-section {
+    padding: 8rem var(--spacing-lg); /* Reduced padding */
+    text-align: center;
+    background-color: var(--color-background-light); /* Lighter background */
+}
+
+.section-title {
+    font-size: 3.8rem; /* Slightly smaller */
+    margin-bottom: 4rem;
+    color: var(--color-text-dark);
+    font-weight: var(--font-weight-bold); /* Less thick */
+    letter-spacing: -0.02em; /* Less negative spacing */
+}
+
+.feature-cards {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-lg); /* Reduced gap */
+    flex-wrap: wrap;
+}
+
+/* Enhanced Waterfall Effect for Feature Cards */
+.feature-card {
+    background: linear-gradient(45deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end)); /* Magical purple gradient */
+    border: none;
+    border-radius: var(--border-radius-medium); /* Slightly less rounded */
+    padding: var(--spacing-xl); /* Reduced padding */
+    max-width: 350px; /* Slightly smaller max-width */
+    box-shadow: 0 12px 35px var(--shadow-primary-gradient); /* Adjusted shadow */
+    transition: all 0.4s ease;
+    opacity: 0;
+    transform: translateY(60px) scale(0.98); /* Reduced translateY and scale */
+    animation: fadeInSlideUpScale 0.9s ease forwards;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-overlay-medium); /* Slightly more visible overlay */
+    opacity: 0;
+    transition: var(--transition-ease);
+    z-index: 1;
+}
+
+.feature-card:hover::before {
+    opacity: 1;
+}
+
+.feature-card:nth-child(1) { animation-delay: 0.1s; }
+.feature-card:nth-child(2) { animation-delay: 0.2s; }
+.feature-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInSlideUpScale {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.feature-card:hover {
+    transform: translateY(-15px) scale(1.01); /* Reduced hover effect */
+    box-shadow: 0 18px 45px var(--shadow-primary-gradient-hover); /* Stronger shadow on hover */
+}
+
+.feature-title {
+    font-size: 2.2rem; /* Slightly smaller */
+    margin-bottom: 1.2rem;
+    color: var(--color-text-light);
+    font-weight: var(--font-weight-bold); /* Less thick */
+}
+
+.feature-description {
+    color: var(--color-text-medium);
+    line-height: 1.7;
+    font-size: 1.1rem;
+}
+
+/* Footer Styling - More Elegant */
+.footer {
+    background-color: var(--color-background-dark); /* Deep blue from gradient */
+    color: var(--color-text-medium);
+    text-align: center;
+    padding: var(--spacing-xl); /* Reduced padding */
+    margin-top: 5rem;
+    font-size: 1rem;
+    border-top: 1px solid var(--color-overlay-light);
+    box-shadow: inset 0 4px 12px var(--shadow-medium);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: var(--spacing-sm);
+    }
+
+    .navbar-actions {
+        margin-top: var(--spacing-sm);
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap; /* Allow buttons to wrap if needed */
+        gap: var(--spacing-sm); /* Adjusted gap for smaller screens */
+    }
+
+    .btn {
+        padding: 0.6rem 1.5rem; /* Smaller buttons for mobile */
+        font-size: 0.9rem;
+    }
+
+    .header-title {
+        font-size: 3.5rem; /* Adjusted for mobile */
+    }
+
+    .header-subtitle {
+        font-size: 1.4rem; /* Adjusted for mobile */
+    }
+
+    .header-content {
+        padding: 4rem var(--spacing-md); /* Adjusted padding for mobile */
+    }
+
+    .btn-primary {
+        padding: 1rem 2rem; /* Adjusted for mobile */
+        font-size: 1.1rem;
+    }
+
+    .section-title {
+        font-size: 2.8rem; /* Adjusted for mobile */
+        margin-bottom: var(--spacing-xl); /* Adjusted spacing */
+    }
+
+    .feature-cards {
+        gap: var(--spacing-md); /* Adjusted gap for mobile */
+    }
+
+    .feature-card {
+        max-width: 90%; /* Ensure cards don't overflow */
+        padding: var(--spacing-lg); /* Adjusted padding */
+    }
+
+    .feature-title {
+        font-size: 1.8rem;
+    }
+
+    .feature-description {
+        font-size: 1rem;
+    }
+
+    .footer {
+        padding: var(--spacing-lg); /* Adjusted padding */
+    }
+}

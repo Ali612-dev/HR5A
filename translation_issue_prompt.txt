@@ -1,0 +1,20 @@
+When translation keys (e.g., 'ERROR.SOME_KEY') appear in the UI instead of their translated values, it indicates a localization problem. Here's a prompt to help diagnose and resolve it:
+
+**Prompt for Translation Key Display Issue:**
+
+"I'm encountering an issue where translation keys (e.g., `ERROR.SOME_KEY`, `ATTENDANCE.ADD_ATTENDANCE.EMPLOYEE_REQUIRED`) are being displayed in the UI instead of their actual translated values. This happens even though I believe the keys exist in the translation files.
+
+To help me debug this, please provide the following information:
+
+1.  **Affected Translation Keys:** List the specific keys that are not translating (e.g., `ERROR.EMPLOYEE_ID_REQUIRED`, `ATTENDANCE.ADD_ATTENDANCE.EMPLOYEE_NOT_FOUND`).
+2.  **Relevant Translation File Content:** Provide the content of the relevant section from your primary translation file (e.g., `src/locale/en.json`) where these keys are defined. Ensure the keys and their corresponding values are present.
+3.  **Component Code Snippet:** Share the TypeScript code snippet from the component where `this.translate.instant()` or the `| translate` pipe is used with these keys.
+4.  **TranslateModule Configuration:** Provide the relevant section of your `app.config.ts` (or `app.module.ts` if applicable) where `TranslateModule.forRoot()` or `TranslateModule.forChild()` is configured, especially the `TranslateLoader` setup.
+
+Based on this, I will investigate:
+*   Whether the keys are correctly defined in the JSON files.
+*   Whether the `TranslateLoader` is correctly loading the translation files.
+*   Whether there are any typos or case mismatches in the keys used in the component or HTML.
+*   Any other potential configuration issues with `ngx-translate`.
+
+This information will help pinpoint why the translation service is returning the key instead of the value."

@@ -1,1 +1,71 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --color-primary-gradient-start: #8e2de2;
+  --color-primary-gradient-end: #4a00e0;
+  --color-secondary-gradient-start: #00c6ff;
+  --color-secondary-gradient-end: #0072ff;
+  --color-text-light: #fff;
+  --color-text-medium: #e0e0e0;
+  --color-text-dark: #2c3e50;
+  --color-background-light: #f8f9fa;
+  --color-background-dark: #1a2a6c;
+  --color-overlay-light: rgba(255, 255, 255, 0.05);
+  --color-overlay-medium: rgba(255, 255, 255, 0.08);
+  --color-overlay-dark: rgba(0, 0, 0, 0.1);
+  --shadow-light: rgba(0, 0, 0, 0.05);
+  --shadow-medium: rgba(0, 0, 0, 0.15);
+  --shadow-strong: rgba(0, 0, 0, 0.25);
+  --shadow-primary-gradient: rgba(142, 45, 226, 0.25);
+  --color-white-transparent-10: rgba(255,255,255,.1);
+  --color-white-transparent-20: rgba(255,255,255,.2);
+  --color-white-transparent-40: rgba(255,255,255,.4);
+  --shadow-primary-gradient-strong: rgba(142, 45, 226, 0.5);
+  --shadow-text: rgba(0,0,0,.4);
+  --shadow-stronger: rgba(0,0,0,.35);
+  --shadow-primary-gradient-hover: rgba(142, 45, 226, 0.4);
+  --font-family-base: "Inter", "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --border-radius-small: 15px;
+  --border-radius-medium: 20px;
+  --border-radius-large: 30px;
+  --spacing-xs: .5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --transition-ease: all .3s ease;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #f0f2f5;
+}
+
+.transparent-backdrop {
+  background: transparent !important;
+}
+
+
+.glass-dialog-panel .mat-dialog-container {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.glass-dialog-panel .mdc-dialog__surface {
+  background: linear-gradient(45deg, rgba(142, 45, 226, 0.15), rgba(74, 0, 224, 0.15)) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 15px !important;
+  color: #fff !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
+  overflow: hidden;
+}

@@ -1,0 +1,52 @@
+
+<div class="view-employee-container">
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+      <a routerLink="/employees" class="back-button">
+        <fa-icon [icon]="faArrowLeft"></fa-icon>
+      </a>
+      <h2 class="page-title">{{ 'ViewEmployee' | translate }}</h2>
+    </div>
+
+    <!-- Employee Details -->
+    <div class="card">
+      <div *ngIf="store.isLoading()">
+        <app-shimmer></app-shimmer>
+      </div>
+      <div *ngIf="store.error()" class="alert alert-danger">
+        {{ store.error()! | translate }}
+      </div>
+      <div *ngIf="!store.isLoading() && store.employee() as employee" class="employee-details">
+        <div class="detail-item">
+          <span class="label">{{ 'Name' | translate }}:</span>
+          <span class="value">{{ employee.name }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">{{ 'Phone' | translate }}:</span>
+          <span class="value">{{ employee.phone }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">{{ 'Department' | translate }}:</span>
+          <span class="value">{{ employee.department }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">{{ 'Email' | translate }}:</span>
+          <span class="value">{{ employee.email }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">{{ 'CardNumber' | translate }}:</span>
+          <span class="value">{{ employee.cardNumber }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">{{ 'IsActive' | translate }}:</span>
+          <span class="value">{{ employee.isActive ? ('Active' | translate) : ('Inactive' | translate) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">{{ 'JoinedDate' | translate }}:</span>
+          <span class="value">{{ employee.joinedDate | date: 'medium' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

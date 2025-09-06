@@ -1,0 +1,77 @@
+.pagination-container {
+  display: flex;
+  justify-content: flex-start; /* Align to start */
+  margin-top: 2rem;
+  overflow-x: auto; /* Allow horizontal scrolling for pagination */
+  padding: 0 10px; /* Add horizontal padding */
+  scrollbar-width: none; /* For Firefox */
+}
+
+.pagination-container::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.pagination {
+  display: flex; /* Make the ul a flex container */
+  list-style: none; /* Remove bullet points */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+  flex-wrap: nowrap; /* Prevent pagination items from wrapping */
+  /* width: max-content; */ /* Removed this line */
+}
+
+.pagination .page-item {
+  margin: 0 0.1rem; /* Reduced horizontal space between page items */
+  flex-shrink: 0; /* Prevent page items from shrinking */
+}
+
+.pagination .page-item .page-link {
+  display: inline-block;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  margin: 0 0.25rem;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem !important;
+  min-width: 40px !important;
+  text-align: center;
+}
+
+.pagination .page-item .page-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .pagination-container {
+    overflow-x: auto; /* Allow horizontal scrolling for pagination */
+    overflow-y: hidden; /* Explicitly hide vertical overflow */
+    justify-content: flex-start; /* Align to start for scrolling */
+  }
+
+  .pagination {
+    flex-wrap: nowrap; /* Prevent pagination items from wrapping */
+    width: max-content; /* Force pagination to take full content width */
+  }
+
+  .pagination .page-item .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 1rem;
+    font-size: 0.9rem;
+  }
+}

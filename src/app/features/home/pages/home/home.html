@@ -1,0 +1,46 @@
+       <header class="header">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a routerLink="/">
+                <img src="assets/logo.svg" alt="HR5A Logo" class="logo">
+            </a>
+        </div>
+
+        <div class="navbar-actions">
+            <app-language-switcher (langChange)="changeLanguage($event)"></app-language-switcher>
+            <a routerLink="/admin-login" class="btn btn-login">{{'ADMIN_LOGIN.LOGIN_BUTTON' | translate}}</a>
+            <button class="btn btn-register" routerLink="/register">{{'register' | translate}}</button>
+            <a *ngIf="showGoToDashboardButton()" routerLink="/admin-dashboard" class="btn btn-register ms-2">{{'GoToDashboard' | translate}}</a>
+        </div>
+    </nav>
+
+    <div class="header-content">
+        <h1 class="header-title">{{'headerTitle' | translate}}</h1>
+        <p class="header-subtitle">{{'headerSubtitle' | translate}}</p>
+
+    </div>
+</header>
+
+<main>
+    <section id="features" class="features-section">
+        <h2 class="section-title">{{'featuresSectionTitle' | translate}}</h2>
+        <div class="feature-cards">
+            <div class="feature-card">
+                <h3 class="feature-title">{{'employeeManagementTitle' | translate}}</h3>
+                <p class="feature-description">{{'employeeManagementDescription' | translate}}</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">{{'attendanceTrackingTitle' | translate}}</h3>
+                <p class="feature-description">{{'attendanceTrackingDescription' | translate}}</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">{{'payrollProcessingTitle' | translate}}</h3>
+                <p class="feature-description">{{'payrollProcessingDescription' | translate}}</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <p>{{'footerCopyright' | translate}}</p>
+</footer>

@@ -1,0 +1,264 @@
+:host {
+  display: block;
+}
+
+.table-responsive-wrapper.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+  color: #fff;
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.table tbody td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  padding: 1rem;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.action-cell {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.action-cell .btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.action-cell .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pagination .page-item {
+  margin: 0 0.1rem; /* Reduced horizontal space between page items */
+  flex-shrink: 0; /* Prevent page items from shrinking */
+}
+
+.pagination .page-item .page-link {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  margin: 0 0.25rem;
+  transition: all 0.3s ease;
+  padding: 0.75rem 1.2rem;
+  text-align: center;
+}
+
+.pagination .page-item .page-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+/* Mobile Card View Styles */
+.employee-cards-container {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.employee-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.employee-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.employee-card .card-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.employee-card .badge {
+  font-size: 0.8rem;
+}
+
+.employee-card .card-body p {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.employee-card .card-body fa-icon {
+  margin-right: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.employee-card .card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.employee-card .btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.employee-card .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Shimmer Effect Styles */
+@keyframes shimmer-animation {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.shimmer-table, .shimmer-card {
+  animation: shimmer-animation 1.5s infinite linear;
+  background: linear-gradient(to right, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 60%);
+  background-size: 2000px 100%;
+}
+
+.shimmer-row {
+  display: flex;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.shimmer-header .shimmer-cell {
+  background-color: rgba(255,255,255,0.15);
+  height: 24px;
+  border-radius: 4px;
+}
+
+.shimmer-cell {
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.shimmer-line {
+  display: block;
+  height: 16px;
+  background-color: rgba(255,255,255,0.15);
+  border-radius: 4px;
+}
+
+.shimmer-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.shimmer-card .title {
+  width: 60%;
+  height: 20px;
+}
+
+.shimmer-card .badge {
+  width: 20%;
+  height: 20px;
+}
+
+.shimmer-card .card-body .shimmer-line {
+  margin-bottom: 0.75rem;
+}
+
+.shimmer-card .card-body .shimmer-line:last-child {
+  margin-bottom: 0;
+  width: 80%;
+}
+
+/* Mobile responsiveness for pagination */
+@media (max-width: 768px) {
+  .pagination-container {
+    overflow-x: auto; /* Allow horizontal scrolling for pagination */
+    overflow-y: hidden; /* Explicitly hide vertical overflow */
+    justify-content: flex-start; /* Align to start for scrolling */
+  }
+
+  .pagination {
+    flex-wrap: nowrap; /* Prevent pagination items from wrapping */
+    width: max-content; /* Force pagination to take full content width */
+  }
+
+  .pagination .page-item .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 1rem;
+    font-size: 0.9rem;
+  }
+}

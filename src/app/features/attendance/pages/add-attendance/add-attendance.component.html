@@ -1,0 +1,148 @@
+<div class="add-attendance-container">
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+      <h2 class="page-title">{{ 'AddAttendance' | translate }}</h2>
+    </div>
+
+    <!-- Add Attendance Form -->
+    <div class="card">
+      <div *ngIf="store.isLoading()">
+        <app-shimmer></app-shimmer>
+      </div>
+      <div *ngIf="!store.isLoading()">
+        <form [formGroup]="attendanceForm" (ngSubmit)="onSubmit()">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="employeeSearch" class="form-label">{{ 'EmployeeNameOrPhone' | translate }}</label>
+                  <div class="input-wrapper">
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="employeeSearch" 
+                      [formControl]="employeeSearchTerm" 
+                      placeholder="{{ 'SearchEmployee' | translate }}"
+                      (blur)="onEmployeeSearchBlur()"
+                    >
+                    <div *ngIf="suggestions.length > 0" class="autocomplete-suggestions">
+                      <div *ngFor="let suggestion of suggestions" class="suggestion-item" (click)="selectEmployee(suggestion)">
+                        {{ suggestion.name }} ({{ suggestion.phone }})
+                      </div>
+                    </div>
+                    <div *ngIf="getValidationErrors('employeeSearchTerm').length > 0 && !selectedEmployeeId" class="form-error-message">
+                      <div *ngFor="let error of getValidationErrors('employeeSearchTerm')">{{ error }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="date" class="form-label">{{ 'Date' | translate }}</label>
+                  <div class="input-wrapper">
+                    <input type="date" class="form-control" id="date" formControlName="date">
+                    <div *ngIf="getValidationErrors('date').length > 0" class="form-error-message">
+                      <div *ngFor="let error of getValidationErrors('date')">{{ error }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="timeIn" class="form-label">{{ 'TimeIn' | translate }}</label>
+                  <div class="input-wrapper">
+                    <input type="time" class="form-control" id="timeIn" formControlName="timeIn">
+                    <div *ngIf="getValidationErrors('timeIn').length > 0" class="form-error-message">
+                      <div *ngFor="let error of getValidationErrors('timeIn')">{{ error }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="timeOut" class="form-label">{{ 'TimeOut' | translate }}</label>
+                  <div class="input-wrapper">
+                    <input type="time" class="form-control" id="timeOut" formControlName="timeOut">
+                    <div *ngIf="getValidationErrors('timeOut').length > 0" class="form-error-message">
+                      <div *ngFor="let error of getValidationErrors('timeOut')">{{ error }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="locationName" class="form-label">{{ 'LocationName' | translate }}</label>
+                  <div class="input-wrapper">
+                    <input type="text" class="form-control" id="locationName" formControlName="locationName">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="status" class="form-label">{{ 'Status' | translate }}</label>
+                  <div class="input-wrapper">
+                    <input type="text" class="form-control" id="status" formControlName="status">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="attType" class="form-label">{{ 'AttType' | translate }}</label>
+                  <div class="input-wrapper">
+                    <app-custom-dropdown
+                      [options]="attTypeOptions"
+                      [selectedValue]="attendanceForm.get('attType')?.value"
+                      (selectionChange)="onAttTypeChange($event)"
+                    ></app-custom-dropdown>
+                    <div *ngIf="getValidationErrors('attType').length > 0" class="form-error-message">
+                      <div *ngFor="let error of getValidationErrors('attType')">{{ error }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field-container">
+                <div class="form-field-group">
+                  <label for="time" class="form-label">{{ 'Time' | translate }}</label>
+                  <div class="input-wrapper">
+                    <input type="time" class="form-control" id="time" formControlName="time">
+                    <div *ngIf="getValidationErrors('time').length > 0" class="form-error-message">
+                      <div *ngFor="let error of getValidationErrors('time')">{{ error | translate }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-4 button-group">
+            <button type="button" class="btn btn-secondary" (click)="onCancel()">
+              <fa-icon [icon]="faTimes" class="me-1"></fa-icon> {{ 'Cancel' | translate }}
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="store.isLoading()">
+              <fa-icon [icon]="faSave" class="me-1"></fa-icon> {{ 'Save' | translate }}
+            </button>
+          </div>
+
+          <div *ngIf="store.error()" class="alert alert-danger mt-3">
+            {{ store.error()! | translate }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

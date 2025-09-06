@@ -1,0 +1,19 @@
+<div class="glass-dialog-container">
+  <div class="dialog-header">
+    <h2 class="dialog-title">
+      {{ 'SendMessageTo' | translate }}
+      <span *ngFor="let name of data.employeeNames; let i = index">
+        <span class="employee-name">{{ name }}</span>
+        <span *ngIf="i < data.employeeNames.length - 1">, </span>
+      </span>
+    </h2>
+  </div>
+  <div class="dialog-content">
+    <p>{{ 'PleaseEnterYourMessage' | translate }}</p>
+    <textarea [(ngModel)]="message" rows="4" class="form-control" placeholder="{{ 'EnterYourMessage' | translate }}"></textarea>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn btn-secondary" (click)="onCancel()">{{ 'Cancel' | translate }}</button>
+    <button class="btn btn-primary" (click)="onConfirm()" [disabled]="!message.trim()">{{ 'Send' | translate }}</button>
+  </div>
+</div>

@@ -1,0 +1,79 @@
+<div class="employees-container">
+  <div class="container-fluid flex-grow-1">
+    <!-- Header -->
+<div *ngIf="!store.isLoading(); else headerShimmer">
+  <div class="page-header">
+    <h2 class="page-title">{{ 'Employees' | translate }}</h2>
+    <div class="header-actions">
+      <div class="header-actions-top">
+        <button class="btn btn-secondary me-2" routerLink="/employees/add">
+          <fa-icon [icon]="faPlus" class="me-1"></fa-icon> {{ 'AddEmployee' | translate }}
+        </button>
+        <div class="whatsapp-button-container">
+          <button class="btn btn-secondary" (click)="sendWhatsAppMessage()" [disabled]="selectedCount === 0">
+            <fa-icon [icon]="whatsappIcon" class="me-1"></fa-icon> {{ 'SendWhatsApp' | translate }}
+          </button>
+          <span class="badge bg-info" *ngIf="selectedCount > 0">{{ selectedCount }}</span>
+        </div>
+      </div>
+      <div class="header-actions-bottom mt-3">
+        <button class="btn btn-secondary" (click)="toggleFilter()">
+          <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Header Shimmer Template -->
+<ng-template #headerShimmer>
+  <div class="page-header shimmer-header">
+    <div class="shimmer-line page-title-shimmer"></div>
+    <div class="header-actions">
+      <div class="header-actions-top">
+        <div class="shimmer-line btn-shimmer"></div>
+        <div class="shimmer-line btn-shimmer"></div>
+      </div>
+      <div class="header-actions-bottom mt-3">
+        <div class="shimmer-line btn-shimmer filter-btn-shimmer"></div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+    <!-- Filtering -->
+    <div *ngIf="!isFilterCollapsed" class="glass-card filter-card">
+      <h5 class="mb-2">{{ 'Filters' | translate }}</h5>
+      <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="filters-container">
+        <input type="text" class="form-control" formControlName="name" [placeholder]="'Name' | translate">
+        <input type="text" class="form-control" formControlName="phone" [placeholder]="'Phone' | translate">
+        <input type="text" class="form-control" formControlName="department" [placeholder]="'Department' | translate">
+        <app-custom-dropdown
+          [options]="statusOptions"
+          [selectedValue]="filterForm.get('isActive')?.value"
+          (selectionChange)="filterForm.get('isActive')?.setValue($event)"
+        ></app-custom-dropdown>
+        <div class="filter-buttons">
+          <button type="submit" class="btn btn-primary">{{ 'Filters' | translate }}</button>
+          <button type="button" class="btn btn-secondary" (click)="onResetFilters()">{{ 'Reset' | translate }}</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Employees Table -->
+        <app-responsive-employee-table
+      [employees]="store.employees()"
+      [totalCount]="store.totalCount()"
+      [request]="store.request()"
+      [isLoading]="store.isLoading()"
+      [error]="store.error()"
+      [selectedEmployees]="selectedEmployees"
+      (pageChange)="onPageChange($event)"
+      (sort)="onSort($event)"
+      (delete)="onDelete($event)"
+      (toggleSelection)="toggleSelection($event)"
+      (retry)="onRetryLoadEmployees()"
+    ></app-responsive-employee-table>
+
+  </div>
+</div>

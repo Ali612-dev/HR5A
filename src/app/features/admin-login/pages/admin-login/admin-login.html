@@ -1,0 +1,22 @@
+<div class="admin-login-container fade-in">
+  <div class="card">
+    <h1>{{ 'ADMIN_LOGIN.TITLE' | translate }}</h1>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="username">{{ 'ADMIN_LOGIN.USERNAME_LABEL' | translate }}</label>
+        <input type="text" id="username" formControlName="username" class="input-field" placeholder="{{ 'ADMIN_LOGIN.USERNAME_PLACEHOLDER' | translate }}">
+      </div>
+      <div class="form-group">
+        <label for="password">{{ 'ADMIN_LOGIN.PASSWORD_LABEL' | translate }}</label>
+        <input type="password" id="password" formControlName="password" class="input-field" placeholder="{{ 'ADMIN_LOGIN.PASSWORD_PLACEHOLDER' | translate }}">
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid || authStore.loading()">
+        <span *ngIf="!authStore.loading()">{{ 'ADMIN_LOGIN.LOGIN_BUTTON' | translate }}</span>
+        <span *ngIf="authStore.loading()">Loading...</span>
+      </button>
+      <button *ngIf="showGoToDashboardButton()" class="btn btn-secondary mt-3" (click)="goToDashboard()">
+        Go to Dashboard
+      </button>
+    </form>
+  </div>
+</div>

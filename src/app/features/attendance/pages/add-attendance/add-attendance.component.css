@@ -1,0 +1,188 @@
+.add-attendance-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  color: #fff;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  color: #fff;
+  margin: 0;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-field-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  width: 100%; /* Ensure it takes full width */
+}
+
+.form-label {
+  flex-shrink: 0;
+  min-width: 100px;
+  text-align: right;
+  margin-bottom: 0;
+}
+
+.form-control, .form-select {
+  flex-grow: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  /* Glass effect for select */
+  backdrop-filter: blur(5px); /* Slightly less blur than card for distinction */
+  -webkit-backdrop-filter: blur(5px);
+  /* Custom arrow for select */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2C114.7L159.7%2C242c-3.9%2C3.9-10.2%2C3.9-14.1%2C0L5.4%2C114.7c-3.9-3.9-3.9-10.2%2C0-14.1s10.2-3.9%2C14.1%2C0l133.3%2C133.3L272.9%2C100.6c3.9-3.9%2C10.2-3.9%2C14.1%2C0S290.9%2C110.8%2C287%2C114.7z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 0.8em auto;
+}
+
+.form-select option {
+  background-color: rgba(44, 44, 44, 0.95); /* Darker background for options */
+  color: #fff;
+  /* Attempt to enhance glass effect for options */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+}
+
+.form-control::placeholder {
+  color: #a0a0a0;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+.btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.btn-primary:hover {
+  background-color: #764ba2;
+  border-color: #764ba2;
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.form-error-message {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #ff6b6b;
+}
+
+.field-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* This should be the only positioned parent */
+  width: 100%; /* Ensure it takes full width */
+}
+
+.autocomplete-suggestions {
+  position: absolute;
+  top: 100%; /* Position below the input */
+  left: 0;
+  right: 0;
+  width: 100%; /* Ensure it spans the width of the input */
+  background-color: rgba(44, 44, 44, 0.95); /* Darker background for suggestions */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000; /* Ensure it's above other elements */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  margin: 0; /* Explicitly remove margin */
+  text-align: left; /* Explicitly set text alignment */
+  display: block; /* Ensure it behaves as a block element */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.suggestion-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+  .form-field-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-label {
+    text-align: left;
+    margin-bottom: 0.5rem;
+  }
+
+  .button-group {
+    justify-content: center !important;
+  }
+}

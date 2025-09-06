@@ -1,0 +1,20 @@
+
+<div class="dialog-container">
+  <div class="dialog-header">
+    <fa-icon [icon]="faExclamationTriangle" class="dialog-icon"></fa-icon>
+    <h2 class="dialog-title">{{ data.title | translate }}</h2>
+  </div>
+  <div class="dialog-content">
+    <p [innerHTML]="data.message | translate"></p>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn btn-secondary" (click)="onDismiss()">
+      <fa-icon [icon]="faTimes" class="me-1"></fa-icon>
+      {{ data.cancelButtonText | translate }}
+    </button>
+    <button class="btn btn-danger" (click)="onConfirm()">
+      <fa-icon [icon]="faCheck" class="me-1"></fa-icon>
+      {{ data.confirmButtonText | translate }}
+    </button>
+  </div>
+</div>

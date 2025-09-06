@@ -1,0 +1,138 @@
+<div *ngIf="isLoading">
+  <!-- Desktop Shimmer -->
+  <div *ngIf="!isMobile" class="table-responsive-wrapper glass-card">
+    <div class="shimmer-table">
+      <div class="shimmer-row shimmer-header">
+        <div class="shimmer-cell"></div>
+        <div class="shimmer-cell"></div>
+        <div class="shimmer-cell"></div>
+        <div class="shimmer-cell"></div>
+        <div class="shimmer-cell"></div>
+        <div class="shimmer-cell"></div>
+      </div>
+      <div class="shimmer-row" *ngFor="let i of [1, 2, 3, 4, 5]">
+        <div class="shimmer-cell"><span class="shimmer-line"></span></div>
+        <div class="shimmer-cell"><span class="shimmer-line"></span></div>
+        <div class="shimmer-cell"><span class="shimmer-line"></span></div>
+        <div class="shimmer-cell"><span class="shimmer-line"></span></div>
+        <div class="shimmer-cell"><span class="shimmer-line"></span></div>
+        <div class="shimmer-cell"><span class="shimmer-line"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Shimmer -->
+  <div *ngIf="isMobile" class="employee-cards-container">
+    <div class="employee-card shimmer-card" *ngFor="let i of [1, 2, 3]">
+      <div class="card-header">
+        <div class="shimmer-line title"></div>
+        <div class="shimmer-line badge"></div>
+      </div>
+      <div class="card-body">
+        <div class="shimmer-line"></div>
+        <div class="shimmer-line"></div>
+        <div class="shimmer-line"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="error">
+  <app-error [errorMessage]="error" (retry)="onRetry()"></app-error>
+</div>
+
+<div *ngIf="!isLoading && !error">
+  <!-- Desktop View -->
+  <div *ngIf="!isMobile" class="table-responsive-wrapper glass-card">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th (click)="onSort('employeeName')">
+            {{ 'EmployeeName' | translate }}
+            <fa-icon [icon]="request.sortField === 'employeeName' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+          </th>
+          <th (click)="onSort('date')">
+            {{ 'Date' | translate }}
+            <fa-icon [icon]="request.sortField === 'date' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+          </th>
+          <th (click)="onSort('timeIn')">
+            {{ 'TimeIn' | translate }}
+            <fa-icon [icon]="request.sortField === 'timeIn' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+          </th>
+          <th (click)="onSort('timeOut')">
+            {{ 'TimeOut' | translate }}
+            <fa-icon [icon]="request.sortField === 'timeOut' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+          </th>
+          <th (click)="onSort('status')">
+            {{ 'Status' | translate }}
+            <fa-icon [icon]="request.sortField === 'status' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+          </th>
+          <th>{{ 'Actions' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let attendance of attendances">
+          <td>{{ attendance.employeeName }}</td>
+          <td>{{ attendance.date | date: 'shortDate' }}</td>
+          <td>{{ attendance.timeIn | date: 'shortTime' }}</td>
+          <td>{{ attendance.timeOut | date: 'shortTime' }}</td>
+          <td>{{ attendance.status }}</td>
+          <td class="action-cell">
+            <button class="btn btn-sm btn-info me-1" [routerLink]="['/attendance/view', attendance.id]" appCustomTooltip [appCustomTooltipText]="'ViewAttendance' | translate">
+              <fa-icon [icon]="faEye"></fa-icon>
+            </button>
+            <button class="btn btn-sm btn-primary me-1" [routerLink]="['/attendance/update', attendance.id]" (click)="onUpdate(attendance)" appCustomTooltip [appCustomTooltipText]="'EditAttendance' | translate">
+              <fa-icon [icon]="faEdit"></fa-icon>
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip [appCustomTooltipText]="'DeleteAttendance' | translate">
+              <fa-icon [icon]="faTrash"></fa-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile View (Cards) -->
+  <div *ngIf="isMobile" class="employee-cards-container">
+    <div class="employee-card glass-card" *ngFor="let attendance of attendances">
+      <div class="card-header">
+        <h5 class="card-title">{{ attendance.employeeName }}</h5>
+        <span class="badge" [ngClass]="attendance.status === 'Present' ? 'bg-success' : 'bg-danger'">
+          {{ attendance.status }}
+        </span>
+      </div>
+      <div class="card-body">
+        <p><fa-icon [icon]="faCalendarAlt"></fa-icon> {{ attendance.date | date: 'shortDate' }}</p>
+        <p><fa-icon [icon]="faClock"></fa-icon> {{ attendance.timeIn | date: 'shortTime' }} - {{ attendance.timeOut | date: 'shortTime' }}</p>
+        <p *ngIf="attendance.locationName"><fa-icon [icon]="faLocationDot"></fa-icon> {{ attendance.locationName }}</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-sm btn-info" [routerLink]="['/attendance/view', attendance.id]" appCustomTooltip [appCustomTooltipText]="'ViewAttendance' | translate">
+          <fa-icon [icon]="faEye"></fa-icon> {{ 'View' | translate }}
+        </button>
+        <button class="btn btn-sm btn-primary" [routerLink]="['/attendance/update', attendance.id]" appCustomTooltip [appCustomTooltipText]="'EditAttendance' | translate">
+          <fa-icon [icon]="faEdit"></fa-icon> {{ 'Edit' | translate }}
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip [appCustomTooltipText]="'DeleteAttendance' | translate">
+          <fa-icon [icon]="faTrash"></fa-icon> {{ 'Delete' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <nav *ngIf="totalPages > 1" class="pagination-container">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="request.pageNumber === 1">
+        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(request.pageNumber! - 1)">&laquo;</a>
+      </li>
+      <li class="page-item" *ngFor="let page of pages" [class.active]="request.pageNumber === page">
+        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(page)">{{ page }}</a>
+      </li>
+      <li class="page-item" [class.disabled]="request.pageNumber === totalPages">
+        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(request.pageNumber! + 1)">&raquo;</a>
+      </li>
+    </ul>
+  </nav>
+</div>

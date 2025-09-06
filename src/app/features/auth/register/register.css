@@ -1,0 +1,231 @@
+/* Ensure consistent box model for all elements */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.register-container {
+  min-height: 100vh;
+  padding: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  --primary-color: #4e73df;
+  --primary-hover: #2e59d9;
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --text-color: #2d3748;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.25);
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.5rem;
+}
+
+.glass-body {
+  padding: 1.25rem;
+}
+
+/* Ensure form groups take full available width */
+.form-group {
+  width: 100%;
+  margin-bottom: 1.1rem; /* Keep existing vertical spacing */
+}
+
+/* Ensure labels are block-level and take full width */
+.form-label {
+  display: block;
+  width: 100%;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+/* Ensure form controls take full width and padding is included in width */
+.form-control {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem; /* Keep existing padding */
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  height: auto;
+}
+
+.form-control:focus {
+  background: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.input-group-text {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+}
+
+/* Ensure helper text and validation messages are block-level and take full width */
+.text-muted,
+.text-danger {
+  display: block;
+  width: 100%;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.85rem;
+}
+
+.alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.validation-summary-errors {
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.field-validation-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 0.75rem;
+  display: block;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  padding: 0.35rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  color: white;
+  font-weight: 700;
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  margin: 0 0 1.5rem;
+  line-height: 1.5;
+  padding: 0 0.5rem;
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 400px) {
+  .logo {
+    width: 70px;
+    height: 70px;
+    padding: 0.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    padding: 0;
+  }
+
+  .btn-block {
+    width: auto;
+    display: inline-block;
+    margin-top: 0;
+  }
+
+  .glass-body {
+    padding: 1.5rem;
+  }
+
+  .form-control {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 576px) {
+  .glass-card {
+    border-radius: 12px;
+    max-width: 450px;
+    margin: 1rem auto;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .glass-body {
+    padding: 2rem 2.5rem;
+  }
+
+  .logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1.25rem;
+    padding: 0.5rem;
+  }
+
+  .title {
+    font-size: 1.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+}

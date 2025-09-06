@@ -1,0 +1,369 @@
+/* Shimmer Effect Styles */
+@keyframes shimmer-animation {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.shimmer-header .shimmer-line {
+  animation: shimmer-animation 1.5s infinite linear;
+  background: linear-gradient(to right, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 60%);
+  background-size: 2000px 100%;
+  border-radius: 4px;
+}
+
+.page-title-shimmer {
+  height: 38px;
+  width: 200px;
+}
+
+.btn-shimmer {
+  height: 40px;
+  width: 150px;
+}
+
+.filter-btn-shimmer {
+  width: 100px;
+}
+
+.employees-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Enable scrolling for the container itself */
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  color: #fff;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.header-actions-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-actions-bottom {
+  margin-top: 1rem;
+}
+
+.header-actions .btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.header-actions .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.whatsapp-button-container {
+  position: relative;
+  display: inline-block;
+}
+
+.whatsapp-button-container .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  padding: 0.4em 0.6em;
+  border-radius: 50%;
+  font-size: 0.7em;
+  background-color: rgba(255, 0, 0, 0.7); /* Red with transparency */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.8em;
+  height: 1.8em;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 1rem; /* Further reduced padding for height */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.filter-card h5 {
+  margin-top: 0; /* Remove top margin */
+  margin-bottom: 0.5rem; /* Reduced bottom margin */
+}
+
+.filter-card .filters-container {
+  display: flex; /* Changed to flex */
+  align-items: center; /* Align items vertically */
+  gap: 1rem; /* Space between elements */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.filter-card .form-control,
+.filter-card .form-select {
+  flex: 1 1 auto; /* Allow inputs to grow and shrink */
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+}
+
+.filter-card .form-control::placeholder {
+  color: #a0a0a0;
+}
+
+.filter-card .form-control:focus,
+.filter-card .form-select:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+.filter-card .form-select option {
+  background: rgba(118, 75, 162, 0.8);
+  color: #fff;
+}
+
+.filter-card .btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px; /* Added border-radius */
+  padding: 0.75rem 1.5rem; /* Adjusted padding */
+  font-weight: 600;
+  transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+.filter-card .btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.filter-card .btn-primary {
+  background-color: #667eea; /* Primary color for Filter button */
+  border-color: #667eea;
+}
+
+.filter-card .btn-primary:hover {
+  background-color: #764ba2;
+  border-color: #764ba2;
+}
+
+.filter-card .btn-secondary {
+  background-color: rgba(255, 255, 255, 0.1); /* Glass effect for Reset button */
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.filter-card .btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 1rem; /* Space between the two buttons */
+  flex-shrink: 0; /* Prevent button group from shrinking */
+}
+
+.table-responsive-wrapper {
+  overflow-x: auto; /* Enable horizontal scrolling for the table */
+}
+
+.table {
+  color: #fff;
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse; /* Ensure borders collapse properly */
+}
+
+.table thead th {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Only bottom border for header */
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.1); /* Optional: Add a subtle background to header */
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.table tbody td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Only bottom border for body cells */
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  padding: 1rem;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none; /* Remove bottom border for last row cells */
+}
+
+.action-cell {
+  display: flex;
+  gap: 0.5rem; /* Space between buttons */
+  align-items: center;
+}
+
+.action-cell .btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem; /* Reduced padding */
+  font-size: 0.8rem; /* Reduced font size */
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.action-cell .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  overflow-x: auto; /* Allow horizontal scrolling for pagination */
+}
+
+.pagination {
+  display: flex; /* Make the ul a flex container */
+  list-style: none; /* Remove bullet points */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+  flex-wrap: nowrap; /* Prevent pagination items from wrapping */
+  width: max-content; /* Force pagination to take full content width */
+}
+
+.pagination .page-item {
+  margin: 0 0.1rem; /* Reduced horizontal space between page items */
+  flex-shrink: 0; /* Prevent page items from shrinking */
+}
+
+.pagination .page-item .page-link {
+  display: inline-block;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  margin: 0 0.25rem;
+  transition: all 0.3s ease;
+  padding: 0.75rem 1.5rem !important;
+  min-width: 60px !important;
+  text-align: center;
+}
+
+.pagination .page-item .page-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    margin-top: 1rem;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .filter-card .filters-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-card .form-control,
+  .filter-card .form-select,
+  .filter-card .btn {
+    width: 100%; /* Ensure elements take full width */
+    margin-bottom: 0.5rem; /* Add some space between stacked elements */
+  }
+
+  .filter-card .form-control[formControlName="name"],
+  .filter-card .form-control[formControlName="phone"],
+  .filter-card .form-control[formControlName="department"],
+  .filter-card .form-select[formControlName="isActive"] {
+    width: 80%;
+  }
+
+  .filter-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-buttons .btn {
+    margin-left: 0; /* Remove margin for stacked buttons */
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 0.75rem; /* Reduce padding for smaller screens */
+    font-size: 0.9rem; /* Reduce font size */
+  }
+
+  .action-cell {
+    flex-wrap: wrap; /* Allow action buttons to wrap */
+    justify-content: center;
+  }
+
+  }

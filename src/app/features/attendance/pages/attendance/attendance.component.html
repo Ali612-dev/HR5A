@@ -1,0 +1,42 @@
+<div class="attendance-container">
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+      <h2 class="page-title">{{ 'DailyAttendance' | translate }}</h2>
+      <div class="header-actions">
+        <button class="btn btn-secondary" routerLink="/attendance/add">
+          <fa-icon [icon]="faPlus" class="me-1"></fa-icon> {{ 'AddAttendance' | translate }}
+        </button>
+        <button class="btn btn-secondary" (click)="toggleFilter()">
+          <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtering -->
+    <div *ngIf="!isFilterCollapsed" class="glass-card filter-card">
+      <h5 class="mb-2">{{ 'Filters' | translate }}</h5>
+      <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="filters-container">
+        <input type="date" class="form-control" formControlName="date" [placeholder]="'Date' | translate">
+        <input type="text" class="form-control" formControlName="employeeName" [placeholder]="'EmployeeName' | translate">
+        <div class="filter-buttons">
+          <button type="submit" class="btn btn-primary">{{ 'Filters' | translate }}</button>
+          <button type="button" class="btn btn-secondary" (click)="onResetFilters()">{{ 'Reset' | translate }}</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Attendance Table -->
+    <app-responsive-attendance-table
+      [attendances]="filteredAttendances()"
+      [totalCount]="store.totalCount()"
+      [request]="store.request()"
+      [isLoading]="store.isLoading()"
+      [error]="store.error()"
+      (pageChange)="onPageChange($event)"
+      (sort)="onSort($event)"
+      (delete)="onDelete($event)"
+      (retry)="onRetryLoadAttendances()">
+    </app-responsive-attendance-table>
+  </div>
+</div>

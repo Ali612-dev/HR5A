@@ -1,0 +1,38 @@
+<div class="employee-history-container">
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+      <a routerLink="/attendance" class="back-button">
+        <fa-icon [icon]="faArrowLeft"></fa-icon>
+      </a>
+      <h2 class="page-title">{{ 'EmployeeAttendanceHistory' | translate }}</h2>
+      <button class="btn glass-button" (click)="toggleFilter()">
+        <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
+      </button>
+    </div>
+
+    <!-- Filtering -->
+    <div *ngIf="!isFilterCollapsed" class="glass-card filter-card">
+      <h5 class="mb-2">{{ 'Filters' | translate }}</h5>
+      <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="filters-container">
+        <input type="date" class="form-control" formControlName="startDate" [placeholder]="'StartDate' | translate">
+        <input type="date" class="form-control" formControlName="endDate" [placeholder]="'EndDate' | translate">
+        <div class="filter-buttons">
+          <button type="submit" class="btn btn-primary">{{ 'Filters' | translate }}</button>
+          <button type="button" class="btn btn-secondary" (click)="onResetFilters()">{{ 'Reset' | translate }}</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Attendance Table -->
+    <app-responsive-attendance-table
+      [attendances]="store.attendances()"
+      [totalCount]="store.totalCount()"
+      [request]="store.request()"
+      [isLoading]="store.isLoading()"
+      [error]="store.error()"
+      (pageChange)="onPageChange($event)"
+      (sort)="onSort($event)">
+    </app-responsive-attendance-table>
+  </div>
+</div>

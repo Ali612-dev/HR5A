@@ -1,0 +1,15 @@
+
+<div class="custom-dropdown-container">
+  <div class="dropdown-toggle" (click)="toggleDropdown()" #toggleButton>
+    <span>{{ getSelectedLabel() }}</span>
+    <span class="dropdown-arrow"></span>
+  </div>
+</div>
+
+<ng-template #dropdownMenu>
+  <div class="dropdown-menu">
+    <div class="dropdown-item" *ngFor="let option of options" (click)="selectOption(option.value)">
+      {{ option.label }}
+    </div>
+  </div>
+</ng-template>
