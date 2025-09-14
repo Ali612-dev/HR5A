@@ -1,9 +1,19 @@
 {
-  "buildCommand": "npm run build:prod", 
-  "outputDirectory": "dist/HR5A/browser",
-  "installCommand": "npm install",
-  "framework": "angular",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build:prod",
+        "distDir": "dist/HR5A/browser"
+      }
+    }
+  ],
   "routes": [
+    {
+      "handle": "filesystem"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
