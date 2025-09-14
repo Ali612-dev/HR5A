@@ -17,16 +17,30 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 function appInitializer(translate: TranslateService) {
   return () => new Promise<void>(resolve => {
-    translate.use('en').subscribe({
-      next: () => {
-        console.log('App Initializer: Translations loaded successfully.');
+    console.log('App Initializer: Starting translation setup...');
+    try {
+      translate.setDefaultLang('en');
+      translate.use('en').subscribe({
+        next: () => {
+          console.log('App Initializer: Translations loaded successfully.');
+          resolve();
+        },
+        error: (err) => {
+          console.warn('App Initializer: Translation loading failed, continuing anyway:', err);
+          resolve(); // Always resolve to prevent blocking
+        }
+      });
+      
+      // Timeout fallback to prevent indefinite waiting
+      setTimeout(() => {
+        console.warn('App Initializer: Translation loading timeout, proceeding without translations');
         resolve();
-      },
-      error: (err) => {
-        console.error('Error loading translations in APP_INITIALIZER:', err);
-        resolve(); // Resolve even on error to prevent app from crashing
-      }
-    });
+      }, 5000);
+      
+    } catch (error) {
+      console.error('App Initializer: Critical error in translation setup:', error);
+      resolve(); // Always resolve to prevent app crash
+    }
   });
 }
 
