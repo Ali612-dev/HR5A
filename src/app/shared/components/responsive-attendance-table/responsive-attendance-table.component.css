@@ -28,6 +28,7 @@
   background-color: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
+  text-align: center;
 }
 
 .table tbody td {
@@ -36,6 +37,7 @@
   border-left: none;
   border-right: none;
   padding: 1rem;
+  text-align: center;
 }
 
 .table tbody tr:last-child td {
@@ -46,6 +48,7 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  justify-content: center;
 }
 
 .action-cell .btn {

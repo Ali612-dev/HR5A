@@ -45,7 +45,51 @@ html, body {
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background-color: #f0f2f5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  /* Fix overscroll bounce background */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure the background extends beyond viewport for overscroll */
+html {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Fix for iOS Safari overscroll bounce */
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  /* Prevent overscroll bounce on mobile */
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Additional fixes for overscroll bounce background */
+* {
+  /* Ensure all elements inherit the background */
+  background-color: transparent;
+}
+
+/* Fix for webkit browsers overscroll bounce */
+@supports (-webkit-overflow-scrolling: touch) {
+  html, body {
+    background-color: #667eea; /* Fallback color for overscroll */
+    background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+}
+
+/* Fix for Firefox overscroll bounce */
+@-moz-document url-prefix() {
+  html, body {
+    background-color: #667eea; /* Fallback color for overscroll */
+    background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
 }
 
 .transparent-backdrop {

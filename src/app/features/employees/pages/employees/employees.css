@@ -218,26 +218,38 @@
 }
 
 .table thead th {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Only bottom border for header */
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
   border-top: none;
   border-left: none;
   border-right: none;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.1); /* Optional: Add a subtle background to header */
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
 }
 
 .table tbody td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Only bottom border for body cells */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   border-top: none;
   border-left: none;
   border-right: none;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
 }
 
 .table tbody tr:last-child td {
-  border-bottom: none; /* Remove bottom border for last row cells */
+  border-bottom: none;
+}
+
+.table tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table tbody tr:nth-child(even) td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.table tbody tr:nth-child(even):hover td {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .action-cell {
@@ -357,8 +369,8 @@
 
   .table thead th,
   .table tbody td {
-    padding: 0.75rem; /* Reduce padding for smaller screens */
-    font-size: 0.9rem; /* Reduce font size */
+    padding: 0.375rem 0.5rem; /* Even more compact for mobile */
+    font-size: 0.85rem; /* Slightly smaller font for mobile */
   }
 
   .action-cell {
@@ -367,3 +379,31 @@
   }
 
   }
+
+/* Loading States for WhatsApp Buttons */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(45deg, rgba(37, 211, 102, 0.1), rgba(37, 211, 102, 0.2)) !important;
+  border-color: rgba(37, 211, 102, 0.3) !important;
+}
+
+.btn:disabled fa-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Spinner Animation */
+.fa-spin {
+  animation: fa-spin 1s linear infinite;
+}
+
+@keyframes fa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -10,8 +10,10 @@
           <fa-icon [icon]="faPlus" class="me-1"></fa-icon> {{ 'AddEmployee' | translate }}
         </button>
         <div class="whatsapp-button-container">
-          <button class="btn btn-secondary" (click)="sendWhatsAppMessage()" [disabled]="selectedCount === 0">
-            <fa-icon [icon]="whatsappIcon" class="me-1"></fa-icon> {{ 'SendWhatsApp' | translate }}
+          <button class="btn btn-secondary" (click)="sendWhatsAppMessage()" [disabled]="selectedCount === 0 || groupWhatsappLoading">
+            <fa-icon [icon]="whatsappIcon" *ngIf="!groupWhatsappLoading" class="me-1"></fa-icon>
+            <fa-icon [icon]="faSpinner" *ngIf="groupWhatsappLoading" class="me-1 fa-spin"></fa-icon>
+            {{ groupWhatsappLoading ? ('Sending...' | translate) : ('SendWhatsApp' | translate) }}
           </button>
           <span class="badge bg-info" *ngIf="selectedCount > 0">{{ selectedCount }}</span>
         </div>

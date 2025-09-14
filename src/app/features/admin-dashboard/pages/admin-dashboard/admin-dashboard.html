@@ -7,10 +7,10 @@
           <h2 class="text-white mb-0">Admin Dashboard</h2>
           <div class="d-flex ms-auto" style="gap: 5px;">
             <a routerLink="/home" class="btn btn-outline-light">
-              <fa-icon [icon]="faArrowRight" class="me-1"></fa-icon> Go to Home
+              <fa-icon [icon]="faArrowRight" class="me-1 icon-header"></fa-icon> Go to Home
             </a>
             <button (click)="logout()" class="btn btn-outline-light">
-              <fa-icon [icon]="faArrowRightFromBracket" class="me-1"></fa-icon> Logout
+              <fa-icon [icon]="faArrowRightFromBracket" class="me-1 icon-header"></fa-icon> Logout
             </button>
           </div>
         </div>
@@ -39,10 +39,10 @@
             <div class="glass-card h-100 hover-scale">
               <div class="glass-body p-4 text-center">
                 <div class="stat-icon mb-3">
-                  <fa-icon [icon]="faPeopleGroup" class="text-primary"></fa-icon>
+                  <fa-icon [icon]="faPeopleGroup" class="icon-unified"></fa-icon>
                 </div>
-                <h3 class="mb-1">{{ totalEmployees }}</h3>
-                <p class="mb-0 text-muted">{{ 'TotalEmployees' | translate }} <fa-icon [icon]="faArrowRight"></fa-icon></p>
+                <h3 class="mb-1 card-main-text">{{ totalEmployees }}</h3>
+                <p class="mb-0 text-muted">{{ 'TotalEmployees' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
               </div>
             </div>
           </a>
@@ -52,10 +52,10 @@
             <div class="glass-card h-100 hover-scale">
               <div class="glass-body p-4 text-center">
                 <div class="stat-icon mb-3">
-                  <fa-icon [icon]="faUserCheck" class="text-info"></fa-icon>
+                  <fa-icon [icon]="faUserCheck" class="icon-unified"></fa-icon>
                 </div>
-                <h3 class="mb-1">{{ 'Today Attendants' | translate }}</h3>
-                <p class="mb-0 text-muted">{{ 'View Today Attendants' | translate }} <fa-icon [icon]="faArrowRight"></fa-icon></p>
+                <h3 class="mb-1 card-main-text">{{ 'Today Attendants' | translate }}</h3>
+                <p class="mb-0 text-muted">{{ 'View Today Attendants' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
               </div>
             </div>
           </a>
@@ -65,10 +65,10 @@
             <div class="glass-card h-100 hover-scale">
               <div class="glass-body p-4 text-center">
                 <div class="stat-icon mb-3">
-                  <fa-icon [icon]="faHourglassHalf" class="text-warning"></fa-icon>
+                  <fa-icon [icon]="faHourglassHalf" class="icon-unified"></fa-icon>
                 </div>
-                <h3 class="mb-1">{{ pendingCount }}</h3>
-                <p class="mb-0 text-muted">{{ 'PendingRegistrations' | translate }} <fa-icon [icon]="faArrowRight"></fa-icon></p>
+                <h3 class="mb-1 card-main-text">{{ pendingCount }}</h3>
+                <p class="mb-0 text-muted">{{ 'PendingRegistrations' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
               </div>
             </div>
           </a>
@@ -78,10 +78,10 @@
             <div class="glass-card h-100 hover-scale">
               <div class="glass-body p-4 text-center">
                 <div class="stat-icon mb-3">
-                  <fa-icon [icon]="faCircleCheck" class="text-success"></fa-icon>
+                  <fa-icon [icon]="faCircleCheck" class="icon-unified"></fa-icon>
                 </div>
-                <h3 class="mb-1">{{ approvedCount }}</h3>
-                <p class="mb-0 text-muted">{{ 'Approved' | translate }} <fa-icon [icon]="faArrowRight"></fa-icon></p>
+                <h3 class="mb-1 card-main-text">{{ approvedCount }}</h3>
+                <p class="mb-0 text-muted">{{ 'Approved' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
               </div>
             </div>
           </a>
@@ -91,10 +91,10 @@
             <div class="glass-card h-100 hover-scale">
               <div class="glass-body p-4 text-center">
                 <div class="stat-icon mb-3">
-                  <fa-icon [icon]="faGear" class="text-primary"></fa-icon>
+                  <fa-icon [icon]="faGear" class="icon-unified"></fa-icon>
                 </div>
-                <h3 class="mb-1">{{ 'WorkRules' | translate }}</h3>
-                <p class="mb-0 text-muted">{{ 'ManageAll' | translate }} <fa-icon [icon]="faArrowRight"></fa-icon></p>
+                <h3 class="mb-1 card-main-text">{{ 'WorkRules' | translate }}</h3>
+                <p class="mb-0 text-muted">{{ 'ManageAll' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
               </div>
             </div>
           </a>
@@ -120,7 +120,7 @@
             <div class="glass-body p-4">
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0">{{ 'PendingRequests' | translate }}</h5>
-                <span class="badge bg-warning">{{ pendingCount }}</span>
+                <span class="badge bg-purple-accent">{{ pendingCount }}</span>
               </div>
 
               <div *ngIf="pendingRequests.length > 0; else noPendingRequests" class="table-responsive">
@@ -142,10 +142,10 @@
                     <td>{{ request.requestDate | date:'MMM dd, yyyy' }}</td>
                     <td class="text-nowrap">
                       <button class="btn btn-sm btn-success me-1" (click)="processRequest(request.id, true)" appCustomTooltip [appCustomTooltipText]="'TOOLTIP.ACCEPT_REQUEST' | translate">
-                        <fa-icon [icon]="faCheck"></fa-icon>
+                        <fa-icon [icon]="faCheck" class="icon-button"></fa-icon>
                       </button>
                       <button class="btn btn-sm btn-danger" (click)="rejectRequest(request)" appCustomTooltip [appCustomTooltipText]="'TOOLTIP.REJECT_REQUEST' | translate">
-                        <fa-icon [icon]="faXmark"></fa-icon>
+                        <fa-icon [icon]="faXmark" class="icon-button"></fa-icon>
                       </button>
                     </td>
 
@@ -154,7 +154,7 @@
               </div>
               <ng-template #noPendingRequests>
                 <div class="text-center py-4">
-                  <fa-icon [icon]="faInbox" class="text-muted" style="font-size: 3rem;"></fa-icon>
+                  <fa-icon [icon]="faInbox" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
                   <p class="mt-2 mb-0">{{ 'NoPendingRequests' | translate }}</p>
                 </div>
               </ng-template>
@@ -184,8 +184,8 @@
                 <div *ngFor="let request of recentApprovals" class="list-group-item bg-transparent border-0 px-0 py-3">
                   <div class="d-flex align-items-center approval-item-flex">
                     <div class="flex-shrink-0">
-                      <div class="avatar bg-success bg-opacity-10 text-success rounded-circle p-1">
-                        <fa-icon [icon]="faUsers"></fa-icon>
+                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-1">
+                        <fa-icon [icon]="faUsers" class="icon-unified"></fa-icon>
                       </div>
                     </div>
                     <div class="flex-grow-1 approval-details">
@@ -194,13 +194,13 @@
                         {{ 'ApprovedOn' | translate }} {{ request.processedDate | date:'MMM dd, yyyy' }}
                       </small>
                     </div>
-                    <span class="badge bg-success">{{ 'Approved' | translate }}</span>
+                    <span class="badge bg-purple-success">{{ 'Approved' | translate }}</span>
                   </div>
                 </div>
               </div>
               <ng-template #noRecentApprovals>
                 <div class="text-center py-4">
-                  <fa-icon [icon]="faUsers" class="text-muted" style="font-size: 3rem;"></fa-icon>
+                  <fa-icon [icon]="faUsers" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
                   <p class="mt-2 mb-0">{{ 'No Approved Requests Yet' | translate }}</p>
                 </div>
               </ng-template>

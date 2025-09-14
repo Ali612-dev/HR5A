@@ -10,6 +10,7 @@ import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.
 import { CustomDropdownComponent } from '../../../../shared/components/custom-dropdown/custom-dropdown.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
+import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { AddAttendanceDto, AttendanceViewModel, UpdateAttendanceDto } from '../../../../core/interfaces/attendance.interface';
 import { ApiResponse } from '../../../../core/interfaces/dashboard.interface';
@@ -75,7 +76,7 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
           this.loadingDialogRef = undefined;
         }
         this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
-          panelClass: 'transparent-dialog',
+          panelClass: 'glass-dialog-panel',
           data: {
             title: this.translate.instant('LOADING.TITLE'),
             message: this.attendanceId ? this.translate.instant('LOADING.UPDATE_ATTENDANCE') : this.translate.instant('LOADING.ADD_ATTENDANCE'),
@@ -90,7 +91,7 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
         if (this.store.isSuccess()) {
           this.dialog.open(NotificationDialogComponent, {
-            panelClass: 'transparent-dialog',
+            panelClass: 'glass-dialog-panel',
             data: {
               title: this.translate.instant('SUCCESS.TITLE'),
               message: this.attendanceId ? this.translate.instant('SUCCESS.UPDATE_ATTENDANCE') : this.translate.instant('SUCCESS.ADD_ATTENDANCE'),
@@ -100,12 +101,11 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
           this.store.resetState();
           this.navigateToAttendanceList(); // Navigate after success notification
         } else if (this.store.error()) {
-          this.dialog.open(NotificationDialogComponent, {
-            panelClass: 'transparent-dialog',
+          this.dialog.open(ErrorDialogComponent, {
+            panelClass: 'glass-dialog-panel',
             data: {
               title: this.translate.instant('ERROR.TITLE'),
-              message: this.store.error(),
-              isSuccess: false
+              message: this.store.error()
             }
           });
           this.store.resetState();

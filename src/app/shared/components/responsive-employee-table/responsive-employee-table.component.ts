@@ -6,11 +6,13 @@ import { NotificationDialogComponent } from '../notification-dialog/notification
 import { ErrorDialogComponent } from '../error-dialog/error-dialog.component';
 import { PaginationComponent } from '../pagination/pagination.component';
 import { WhatsAppService } from '../../../core/services/whatsapp.service';
+import { HttpClientService } from '../../../core/http-client.service';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faPhone, faEnvelope, faBuilding, faIdCard, faCalendarAlt, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faPhone, faEnvelope, faBuilding, faIdCard, faCalendarAlt, faEllipsisV, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { EmployeeDto, GetEmployeesRequest } from '../../../core/interfaces/employee.interface';
 import { ShimmerComponent } from '../shimmer/shimmer.component';
@@ -55,6 +57,10 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
 
   private dialog = inject(MatDialog);
   private whatsAppService = inject(WhatsAppService);
+  
+  // Loading states for WhatsApp buttons
+  whatsappLoadingStates: { [key: number]: boolean } = {};
+  groupWhatsappLoading = false;
 
   faSort = faSort;
   faSortUp = faSortUp;
@@ -69,6 +75,7 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
   faCalendarAlt = faCalendarAlt;
   faWhatsapp = faWhatsapp;
   faEllipsisV = faEllipsisV;
+  faSpinner = faSpinner;
 
   isMobile: boolean = false;
   private destroy$ = new Subject<void>();
@@ -88,34 +95,108 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  isWhatsappLoading(employeeId: number): boolean {
+    return this.whatsappLoadingStates[employeeId] || false;
+  }
+
+  private getUserFriendlyErrorMessage(error: any): string {
+    // Handle different types of errors
+    if (error.status === 0) {
+      return 'Server is not available. Please check your internet connection and try again later.';
+    }
+    
+    if (error.status === 500) {
+      return 'Server error occurred. Please try again later.';
+    }
+    
+    if (error.status === 404) {
+      return 'WhatsApp service not found. Please contact support.';
+    }
+    
+    if (error.status === 401 || error.status === 403) {
+      return 'You are not authorized to send WhatsApp messages. Please contact your administrator.';
+    }
+    
+    if (error.status >= 400 && error.status < 500) {
+      return 'Invalid request. Please check your message and try again.';
+    }
+    
+    if (error.status >= 500) {
+      return 'Server error occurred. Please try again later.';
+    }
+    
+    // Handle API response errors
+    if (error.error && error.error.message) {
+      return error.error.message;
+    }
+    
+    if (error.error && error.error.errors && error.error.errors.length > 0) {
+      return error.error.errors.join(', ');
+    }
+    
+    // Handle network errors
+    if (error.message && error.message.includes('Network')) {
+      return 'Network error. Please check your internet connection and try again.';
+    }
+    
+    // Default fallback
+    return 'An unexpected error occurred while sending the WhatsApp message. Please try again later.';
+  }
+
   openMessageDialog(employee: EmployeeDto): void {
     const employeeName = employee.name;
     const dialogRef = this.dialog.open(MessageDialogComponent, {
       width: '400px',
-      data: { employeeName },
-      panelClass: 'glass-dialog-panel'
+      data: { employeeNames: [employeeName] },
+      panelClass: 'glass-dialog-panel',
+      backdropClass: 'transparent-backdrop'
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.whatsAppService.sendWhatsAppMessage(employee.phone, result).subscribe({
+        // Set loading state for this specific employee
+        this.whatsappLoadingStates[employee.id] = true;
+        
+        this.whatsAppService.sendGroupWhatsAppMessage([employee.phone], result).subscribe({
           next: (response) => {
+            // Clear loading state
+            this.whatsappLoadingStates[employee.id] = false;
+            
             if (response.isSuccess) {
               this.dialog.open(NotificationDialogComponent, {
                 width: '400px',
-                data: { message: response.message || 'WhatsApp message sent successfully!' }
+                panelClass: 'glass-dialog-panel',
+                backdropClass: 'transparent-backdrop',
+                data: { 
+                  title: 'Success',
+                  message: response.message || 'WhatsApp message sent successfully!',
+                  isSuccess: true
+                }
               });
             } else {
               this.dialog.open(ErrorDialogComponent, {
                 width: '400px',
-                data: { message: response.message || 'Failed to send WhatsApp message.' }
+                panelClass: 'glass-dialog-panel',
+                backdropClass: 'transparent-backdrop',
+                data: { 
+                  title: 'Error',
+                  message: response.message || 'Failed to send WhatsApp message.'
+                }
               });
             }
           },
           error: (err) => {
+            // Clear loading state
+            this.whatsappLoadingStates[employee.id] = false;
+            
             this.dialog.open(ErrorDialogComponent, {
               width: '400px',
-              data: { message: err.message || 'An error occurred while sending WhatsApp message.' }
+              panelClass: 'glass-dialog-panel',
+              backdropClass: 'transparent-backdrop',
+              data: { 
+                title: 'Error',
+                message: this.getUserFriendlyErrorMessage(err)
+              }
             });
           }
         });
@@ -128,30 +209,56 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(MessageDialogComponent, {
       width: '400px',
       data: { employeeNames },
-      panelClass: 'glass-dialog-panel'
+      panelClass: 'glass-dialog-panel',
+      backdropClass: 'transparent-backdrop'
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        // Set loading state for group message
+        this.groupWhatsappLoading = true;
+        
         const phoneNumbers = this.selectedEmployees.map(emp => emp.phone);
         this.whatsAppService.sendGroupWhatsAppMessage(phoneNumbers, result).subscribe({
           next: (response) => {
+            // Clear loading state
+            this.groupWhatsappLoading = false;
+            
             if (response.isSuccess) {
               this.dialog.open(NotificationDialogComponent, {
                 width: '400px',
-                data: { message: response.message || 'WhatsApp group message sent successfully!' }
+                panelClass: 'glass-dialog-panel',
+                backdropClass: 'transparent-backdrop',
+                data: { 
+                  title: 'Success',
+                  message: response.message || 'WhatsApp group message sent successfully!',
+                  isSuccess: true
+                }
               });
             } else {
               this.dialog.open(ErrorDialogComponent, {
                 width: '400px',
-                data: { message: response.message || 'Failed to send WhatsApp group message.' }
+                panelClass: 'glass-dialog-panel',
+                backdropClass: 'transparent-backdrop',
+                data: { 
+                  title: 'Error',
+                  message: response.message || 'Failed to send WhatsApp group message.'
+                }
               });
             }
           },
           error: (err) => {
+            // Clear loading state
+            this.groupWhatsappLoading = false;
+            
             this.dialog.open(ErrorDialogComponent, {
               width: '400px',
-              data: { message: err.message || 'An error occurred while sending WhatsApp group message.' }
+              panelClass: 'glass-dialog-panel',
+              backdropClass: 'transparent-backdrop',
+              data: { 
+                title: 'Error',
+                message: this.getUserFriendlyErrorMessage(err)
+              }
             });
           }
         });

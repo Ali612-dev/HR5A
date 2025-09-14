@@ -11,6 +11,7 @@ import { AttendanceViewModel } from '../../../../core/interfaces/attendance.inte
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
+import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
 import { DeleteAttendanceStore } from '../../../../store/delete-attendance.store'; // Reusing for now, will create specific attendance delete store later
 import { effect } from '@angular/core';
 import { ResponsiveAttendanceTableComponent } from '../../../../shared/components/responsive-attendance-table/responsive-attendance-table.component';
@@ -74,7 +75,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.loadingDialogRef = undefined;
         }
         this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
-          panelClass: 'transparent-dialog',
+          panelClass: 'glass-dialog-panel',
           data: {
             title: this.translate.instant('LOADING.TITLE'),
             message: this.translate.instant('LOADING.DELETE_ATTENDANCE'),
@@ -90,7 +91,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         if (this.deleteStore.isSuccess()) {
           this.store.loadDailyAttendances(); // Reload attendances after delete
           this.dialog.open(NotificationDialogComponent, {
-            panelClass: 'transparent-dialog',
+            panelClass: 'glass-dialog-panel',
             data: {
               title: this.translate.instant('SUCCESS.TITLE'),
               message: this.translate.instant('SUCCESS.DELETE_ATTENDANCE'),
@@ -99,12 +100,11 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           });
           this.deleteStore.resetState();
         } else if (this.deleteStore.error()) {
-          this.dialog.open(NotificationDialogComponent, {
-            panelClass: 'transparent-dialog',
+          this.dialog.open(ErrorDialogComponent, {
+            panelClass: 'glass-dialog-panel',
             data: {
               title: this.translate.instant('ERROR.TITLE'),
-              message: this.deleteStore.error(),
-              isSuccess: false
+              message: this.deleteStore.error()
             }
           });
           this.deleteStore.resetState();

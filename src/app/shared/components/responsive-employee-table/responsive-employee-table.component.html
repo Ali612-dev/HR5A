@@ -75,7 +75,11 @@
               <a class="dropdown-item" [routerLink]="['/employees/view', employee.id]"><fa-icon [icon]="faEye"></fa-icon> {{ 'View' | translate }}</a>
               <a class="dropdown-item" [routerLink]="['/employees/update', employee.id]"><fa-icon [icon]="faEdit"></fa-icon> {{ 'Edit' | translate }}</a>
               <a class="dropdown-item" (click)="onDelete(employee)"><fa-icon [icon]="faTrash"></fa-icon> {{ 'Delete' | translate }}</a>
-              <a class="dropdown-item" (click)="openMessageDialog(employee)"><fa-icon [icon]="faWhatsapp"></fa-icon> {{ 'SendWhatsApp' | translate }}</a>
+              <a class="dropdown-item" (click)="openMessageDialog(employee)" [class.loading]="isWhatsappLoading(employee.id)">
+                <fa-icon [icon]="faWhatsapp" *ngIf="!isWhatsappLoading(employee.id)"></fa-icon>
+                <fa-icon [icon]="faSpinner" *ngIf="isWhatsappLoading(employee.id)" class="fa-spin"></fa-icon>
+                {{ isWhatsappLoading(employee.id) ? ('Sending...' | translate) : ('SendWhatsApp' | translate) }}
+              </a>
             </div>
           </div>
         </td>

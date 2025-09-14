@@ -82,11 +82,11 @@
 }
 
 .table thead th {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
   border-top: none;
   border-left: none;
   border-right: none;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
   text-align: center;
   vertical-align: middle;
   background-color: rgba(255, 255, 255, 0.1);
@@ -97,17 +97,29 @@
 }
 
 .table tbody td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   border-top: none;
   border-left: none;
   border-right: none;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
   text-align: center;
   vertical-align: middle;
 }
 
 .table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.table tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table tbody tr:nth-child(even) td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.table tbody tr:nth-child(even):hover td {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .action-cell {
@@ -280,6 +292,13 @@
   padding: 0.5rem;
   border-radius: 50%;
   transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
 }
 
 .dropdown-toggle:hover {
@@ -325,4 +344,32 @@
 
 .dropdown-item fa-icon {
   margin-right: 0.75rem;
+}
+
+/* Loading States for WhatsApp Buttons */
+.dropdown-item.loading {
+  opacity: 0.7;
+  pointer-events: none;
+  background: linear-gradient(45deg, rgba(37, 211, 102, 0.1), rgba(37, 211, 102, 0.2));
+  border-left: 3px solid #25d366;
+}
+
+.dropdown-item.loading fa-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Spinner Animation */
+.fa-spin {
+  animation: fa-spin 1s linear infinite;
+}
+
+@keyframes fa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

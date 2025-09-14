@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faFilter } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faFilter, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 
 import { EmployeeStore } from '../../../../store/employee.store';
@@ -44,6 +44,7 @@ export class Employees implements OnInit {
   faPlus = faPlus;
   faFilter = faFilter;
   whatsappIcon = faWhatsapp;
+  faSpinner = faSpinner;
 
   isFilterCollapsed: boolean = true;
 
@@ -60,6 +61,9 @@ export class Employees implements OnInit {
 
   private fb = inject(FormBuilder);
   private whatsAppService = inject(WhatsAppService);
+  
+  // Loading state for group WhatsApp button
+  groupWhatsappLoading = false;
 
   constructor() {
     effect(() => {
@@ -111,6 +115,50 @@ export class Employees implements OnInit {
     });
   }
 
+  private getUserFriendlyErrorMessage(error: any): string {
+    // Handle different types of errors
+    if (error.status === 0) {
+      return 'Server is not available. Please check your internet connection and try again later.';
+    }
+    
+    if (error.status === 500) {
+      return 'Server error occurred. Please try again later.';
+    }
+    
+    if (error.status === 404) {
+      return 'WhatsApp service not found. Please contact support.';
+    }
+    
+    if (error.status === 401 || error.status === 403) {
+      return 'You are not authorized to send WhatsApp messages. Please contact your administrator.';
+    }
+    
+    if (error.status >= 400 && error.status < 500) {
+      return 'Invalid request. Please check your message and try again.';
+    }
+    
+    if (error.status >= 500) {
+      return 'Server error occurred. Please try again later.';
+    }
+    
+    // Handle API response errors
+    if (error.error && error.error.message) {
+      return error.error.message;
+    }
+    
+    if (error.error && error.error.errors && error.error.errors.length > 0) {
+      return error.error.errors.join(', ');
+    }
+    
+    // Handle network errors
+    if (error.message && error.message.includes('Network')) {
+      return 'Network error. Please check your internet connection and try again.';
+    }
+    
+    // Default fallback
+    return 'An unexpected error occurred while sending the WhatsApp message. Please try again later.';
+  }
+
   ngOnInit(): void {
     this.filterForm = this.fb.group({
       name: [this.store.request().name || ''],
@@ -155,30 +203,56 @@ export class Employees implements OnInit {
     const dialogRef = this.dialog.open(MessageDialogComponent, {
       width: '400px',
       data: { employeeNames },
-      panelClass: 'glass-dialog-panel'
+      panelClass: 'glass-dialog-panel',
+      backdropClass: 'transparent-backdrop'
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        // Set loading state
+        this.groupWhatsappLoading = true;
+        
         const phoneNumbers = selectedEmployees.map(emp => emp.phone);
         this.whatsAppService.sendGroupWhatsAppMessage(phoneNumbers, result).subscribe({
           next: (response: any) => {
+            // Clear loading state
+            this.groupWhatsappLoading = false;
+            
             if (response.isSuccess) {
               this.dialog.open(NotificationDialogComponent, {
                 width: '400px',
-                data: { message: response.message || 'WhatsApp group message sent successfully!' }
+                panelClass: 'glass-dialog-panel',
+                backdropClass: 'transparent-backdrop',
+                data: { 
+                  title: 'Success',
+                  message: response.message || 'WhatsApp group message sent successfully!',
+                  isSuccess: true
+                }
               });
             } else {
               this.dialog.open(ErrorDialogComponent, {
                 width: '400px',
-                data: { message: response.message || 'Failed to send WhatsApp group message.' }
+                panelClass: 'glass-dialog-panel',
+                backdropClass: 'transparent-backdrop',
+                data: { 
+                  title: 'Error',
+                  message: response.message || 'Failed to send WhatsApp group message.'
+                }
               });
             }
           },
           error: (err: any) => {
+            // Clear loading state
+            this.groupWhatsappLoading = false;
+            
             this.dialog.open(ErrorDialogComponent, {
               width: '400px',
-              data: { message: err.message || 'An error occurred while sending WhatsApp group message.' }
+              panelClass: 'glass-dialog-panel',
+              backdropClass: 'transparent-backdrop',
+              data: { 
+                title: 'Error',
+                message: this.getUserFriendlyErrorMessage(err)
+              }
             });
           }
         });

@@ -1,4 +1,6 @@
-export const API_BASE_URL = 'http://172.20.208.1:6365';
+import { environment } from '../../environments/environment';
+
+export const API_BASE_URL = environment.apiBaseUrl;
 export const API_ENDPOINTS = {
   LOGIN: '/api/Auth/login',
   REGISTER: '/api/Auth/employee-register',
