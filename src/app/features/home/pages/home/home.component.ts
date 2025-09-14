@@ -22,6 +22,7 @@ export class HomeComponent implements OnInit {
     private authService: AuthService
   ) {
     // Set default language with more robust initialization
+    // Force Vercel to use latest commit with fallbacks
     this.initializeTranslations();
   }
 
