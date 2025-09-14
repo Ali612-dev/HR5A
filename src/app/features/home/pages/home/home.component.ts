@@ -46,4 +46,10 @@ export class HomeComponent implements OnInit {
   changeLanguage(lang: string): void {
     this.translate.use(lang);
   }
+
+  scrollToFeatures(): void {
+    document.getElementById('features')?.scrollIntoView({ 
+      behavior: 'smooth' 
+    });
+  }
 }

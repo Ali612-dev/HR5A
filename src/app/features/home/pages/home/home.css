@@ -132,6 +132,8 @@
     font-weight: 700;
     color: white;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    opacity: 1;
+    animation: fadeInUp 0.8s ease-out 0.3s both;
 }
 
 .header-subtitle {
@@ -140,6 +142,19 @@
     max-width: 600px;
     color: rgba(255, 255, 255, 0.9);
     line-height: 1.6;
+    opacity: 1;
+    animation: fadeInUp 0.8s ease-out 0.5s both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .btn-primary {
@@ -153,6 +168,8 @@
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
     transition: all 0.3s ease;
     cursor: pointer;
+    opacity: 1;
+    animation: fadeInUp 0.8s ease-out 0.7s both;
 }
 
 .btn-primary:hover {
@@ -178,6 +195,8 @@
     color: white;
     font-weight: 800;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    opacity: 1;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
 .section-subtitle {
@@ -188,6 +207,8 @@
     margin-left: auto;
     margin-right: auto;
     line-height: 1.6;
+    opacity: 1;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
 .feature-cards {
@@ -210,7 +231,13 @@
     box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
+    opacity: 1;
+    animation: fadeInUp 0.8s ease-out both;
 }
+
+.feature-card:nth-child(1) { animation-delay: 0.6s; }
+.feature-card:nth-child(2) { animation-delay: 0.8s; }
+.feature-card:nth-child(3) { animation-delay: 1.0s; }
 
 .feature-card:hover {
     transform: translateY(-8px);
