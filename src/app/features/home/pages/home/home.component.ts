@@ -21,14 +21,31 @@ export class HomeComponent implements OnInit {
     private translate: TranslateService,
     private authService: AuthService
   ) {
-    // Set default language
-    translate.setDefaultLang('en');
-    // Use a language
-    translate.use('en');
+    // Set default language with more robust initialization
+    this.initializeTranslations();
   }
 
   ngOnInit(): void {
     this.checkAdminToken();
+  }
+
+  private initializeTranslations(): void {
+    try {
+      this.translate.setDefaultLang('en');
+      this.translate.use('en');
+      
+      // Ensure translations are loaded with fallback
+      this.translate.get('headerTitle').subscribe({
+        next: (res: string) => {
+          console.log('Translations loaded successfully:', res);
+        },
+        error: (err) => {
+          console.warn('Translation loading failed, using fallbacks:', err);
+        }
+      });
+    } catch (error) {
+      console.warn('Translation service initialization failed:', error);
+    }
   }
 
   checkAdminToken(): void {

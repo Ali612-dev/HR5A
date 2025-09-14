@@ -8,43 +8,43 @@
 
         <div class="navbar-actions">
             <app-language-switcher (langChange)="changeLanguage($event)"></app-language-switcher>
-            <a routerLink="/admin-login" class="btn btn-login">{{'ADMIN_LOGIN.LOGIN_BUTTON' | translate}}</a>
-            <button class="btn btn-register" routerLink="/register">{{'register' | translate}}</button>
-            <a *ngIf="showGoToDashboardButton()" routerLink="/admin-dashboard" class="btn btn-register ms-2">{{'GoToDashboard' | translate}}</a>
+            <a routerLink="/admin-login" class="btn btn-login">{{ ('ADMIN_LOGIN.LOGIN_BUTTON' | translate) || 'Admin Login' }}</a>
+            <button class="btn btn-register" routerLink="/register">{{ ('register' | translate) || 'Register' }}</button>
+            <a *ngIf="showGoToDashboardButton()" routerLink="/admin-dashboard" class="btn btn-register ms-2">{{ ('GoToDashboard' | translate) || 'Dashboard' }}</a>
         </div>
     </nav>
 
     <div class="header-content">
-        <h1 class="header-title">{{'headerTitle' | translate}}</h1>
-        <p class="header-subtitle">{{'headerSubtitle' | translate}}</p>
-        <button class="btn btn-primary" (click)="scrollToFeatures()">{{'getStarted' | translate}}</button>
+        <h1 class="header-title">{{ ('headerTitle' | translate) || 'Welcome to HR5A' }}</h1>
+        <p class="header-subtitle">{{ ('headerSubtitle' | translate) || 'Your complete HR solution' }}</p>
+        <button class="btn btn-primary" (click)="scrollToFeatures()">{{ ('getStarted' | translate) || 'Get Started' }}</button>
     </div>
 </header>
 
 <main>
     <section id="features" class="features-section">
-        <h2 class="section-title">{{'featuresSectionTitle' | translate}}</h2>
+        <h2 class="section-title">{{ ('featuresSectionTitle' | translate) || 'Key Features' }}</h2>
         <p class="section-subtitle">Discover powerful tools designed to streamline your HR processes</p>
         <div class="feature-cards">
             <div class="feature-card">
                 <div class="feature-icon">👥</div>
-                <h3 class="feature-title">{{'employeeManagementTitle' | translate}}</h3>
-                <p class="feature-description">{{'employeeManagementDescription' | translate}}</p>
+                <h3 class="feature-title">{{ ('employeeManagementTitle' | translate) || 'Employee Management' }}</h3>
+                <p class="feature-description">{{ ('employeeManagementDescription' | translate) || 'Manage employee data, contracts, and performance.' }}</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📅</div>
-                <h3 class="feature-title">{{'attendanceTrackingTitle' | translate}}</h3>
-                <p class="feature-description">{{'attendanceTrackingDescription' | translate}}</p>
+                <h3 class="feature-title">{{ ('attendanceTrackingTitle' | translate) || 'Attendance Tracking' }}</h3>
+                <p class="feature-description">{{ ('attendanceTrackingDescription' | translate) || 'Track employee attendance, leaves, and working hours.' }}</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">💼</div>
-                <h3 class="feature-title">{{'payrollProcessingTitle' | translate}}</h3>
-                <p class="feature-description">{{'payrollProcessingDescription' | translate}}</p>
+                <h3 class="feature-title">{{ ('payrollProcessingTitle' | translate) || 'Payroll Processing' }}</h3>
+                <p class="feature-description">{{ ('payrollProcessingDescription' | translate) || 'Streamline payroll calculations and salary management.' }}</p>
             </div>
         </div>
     </section>
 </main>
 
 <footer class="footer">
-    <p>{{'footerCopyright' | translate}}</p>
+    <p>{{ ('footerCopyright' | translate) || '© 2024 HR5A. All rights reserved.' }}</p>
 </footer>
