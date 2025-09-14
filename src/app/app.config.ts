@@ -12,7 +12,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { tap } from 'rxjs/operators';
 
 export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http, './locale/', '.json');
+  return new TranslateHttpLoader(http, '/locale/', '.json');
 }
 
 function appInitializer(translate: TranslateService) {
@@ -63,11 +63,12 @@ export const appConfig: ApplicationConfig = {
       useClass: ErrorInterceptor,
       multi: true
     },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: appInitializer,
-      deps: [TranslateService],
-      multi: true,
-    },
+    // Temporarily disable APP_INITIALIZER for debugging
+    // {
+    //   provide: APP_INITIALIZER,
+    //   useFactory: appInitializer,
+    //   deps: [TranslateService],
+    //   multi: true,
+    // },
   ]
 };
