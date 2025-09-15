@@ -63,12 +63,11 @@ export const appConfig: ApplicationConfig = {
       useClass: ErrorInterceptor,
       multi: true
     },
-    // Temporarily disable APP_INITIALIZER for debugging
-    // {
-    //   provide: APP_INITIALIZER,
-    //   useFactory: appInitializer,
-    //   deps: [TranslateService],
-    //   multi: true,
-    // },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: appInitializer,
+      deps: [TranslateService],
+      multi: true,
+    },
   ]
 };

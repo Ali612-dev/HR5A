@@ -46,5 +46,20 @@
 </main>
 
 <footer class="footer">
-    <p>{{ ('footerCopyright' | translate) || '© 2024 HR5A. All rights reserved.' }}</p>
+    <div class="footer-content">
+        <div class="footer-brand">
+            <h3 class="footer-logo">HR5A</h3>
+            <p class="footer-tagline">{{ ('footerTagline' | translate) || 'Streamlining Human Resources with Innovation' }}</p>
+        </div>
+        
+        <div class="footer-divider"></div>
+        
+        <nav class="footer-links">
+            <a href="#features" class="footer-link" (click)="scrollToFeatures()">{{ ('Features' | translate) || 'Features' }}</a>
+            <a routerLink="/admin-login" class="footer-link">{{ ('ADMIN_LOGIN.LOGIN_BUTTON' | translate) || 'Admin Login' }}</a>
+            <a routerLink="/register" class="footer-link">{{ ('register' | translate) || 'Register' }}</a>
+        </nav>
+        
+        <p>{{ ('footerCopyright' | translate) || '© 2025 HR5A. All rights reserved.' }}</p>
+    </div>
 </footer>
