@@ -63,12 +63,40 @@ module.exports = async (req, res) => {
       data = await response.json();
     } else {
       const text = await response.text();
-      // If it's not JSON, wrap it in a standard error format
-      data = {
-        isSuccess: false,
-        message: text || `HTTP ${response.status} ${response.statusText}`,
-        errors: [text || `Server returned ${response.status}`]
-      };
+      console.log('Non-JSON response received:', text.substring(0, 200) + '...');
+      
+      // Handle HTML error pages (like IIS 405 errors)
+      if (contentType && contentType.includes('text/html')) {
+        // Extract meaningful error message from HTML
+        let errorMessage = `HTTP ${response.status} ${response.statusText}`;
+        
+        if (response.status === 405) {
+          errorMessage = 'HTTP method not allowed. The API endpoint may not support this operation.';
+        } else if (response.status === 404) {
+          errorMessage = 'API endpoint not found. Please check if the server is running properly.';
+        } else if (response.status >= 500) {
+          errorMessage = 'Internal server error. Please check the API server logs.';
+        }
+        
+        data = {
+          isSuccess: false,
+          message: errorMessage,
+          errors: [errorMessage],
+          debug: {
+            status: response.status,
+            statusText: response.statusText,
+            contentType: contentType,
+            url: targetUrl
+          }
+        };
+      } else {
+        // Handle other non-JSON responses
+        data = {
+          isSuccess: false,
+          message: text || `HTTP ${response.status} ${response.statusText}`,
+          errors: [text || `Server returned ${response.status}`]
+        };
+      }
     }
 
     console.log('Response data:', data);
