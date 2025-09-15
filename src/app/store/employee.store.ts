@@ -36,6 +36,11 @@ export const EmployeeStore = signalStore(
       employeeService.getAllEmployees(store.request()).pipe(
         tap({
           next: (response) => {
+            console.log('🔍 Employee API Response:', response);
+            console.log('📊 Data structure:', response.data);
+            console.log('👥 Employees count:', response.data?.employees?.length);
+            console.log('📈 Total count:', response.data?.totalCount);
+            
             if (response.isSuccess && response.data) {
               patchState(store, {
                 employees: response.data.employees,
@@ -43,6 +48,7 @@ export const EmployeeStore = signalStore(
                 isLoading: false,
               });
             } else {
+              console.error('❌ Employee API failed:', response);
               patchState(store, { error: translate.instant('ERROR.FAILED_TO_LOAD_EMPLOYEES'), isLoading: false });
             }
           },
