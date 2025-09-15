@@ -30,11 +30,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "functions": {
-    "api/*.js": {
-      "runtime": "@vercel/node@2"
-    }
-  },
-  "_comment": "Force redeploy - updated at 2024-12-15"
+  ]
 }
