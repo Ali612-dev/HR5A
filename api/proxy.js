@@ -51,17 +51,41 @@ module.exports = async (req, res) => {
     console.log('Fetch options:', options);
 
     const response = await fetch(targetUrl, options);
-    const data = await response.json();
-
+    
     console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Handle different content types
+    const contentType = response.headers.get('content-type');
+    let data;
+    
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      // If it's not JSON, wrap it in a standard error format
+      data = {
+        isSuccess: false,
+        message: text || `HTTP ${response.status} ${response.statusText}`,
+        errors: [text || `Server returned ${response.status}`]
+      };
+    }
+
     console.log('Response data:', data);
 
+    // Always return the data with the original status code
     return res.status(response.status).json(data);
 
   } catch (error) {
-    console.error('Proxy error:', error);
+    console.error('🚨 Proxy catch error:', error);
     return res.status(500).json({
-      error: 'Proxy error: ' + error.message,
+      isSuccess: false,
+      message: 'Proxy connection failed: ' + error.message,
+      errors: [error.message],
+      debug: {
+        originalError: error.toString(),
+        targetUrl: `${API_BASE}${req.query.path}`
+      }
     });
   }
 };
