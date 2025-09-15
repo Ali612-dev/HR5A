@@ -17,15 +17,11 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 function appInitializer(translate: TranslateService) {
   return () => new Promise<void>(resolve => {
-    console.log('🌐 App Initializer: Starting translation setup...');
-    console.log('🔗 Translation loader path: /locale/*.json');
-    
     let resolved = false;
     
-    const resolveOnce = (reason: string) => {
+    const resolveOnce = () => {
       if (!resolved) {
         resolved = true;
-        console.log(`✅ App Initializer: ${reason}`);
         resolve();
       }
     };
@@ -33,34 +29,22 @@ function appInitializer(translate: TranslateService) {
     try {
       translate.setDefaultLang('en');
       
-      // Test if translation files are accessible
-      console.log('🔍 Testing translation file accessibility...');
-      
       translate.use('en').subscribe({
-        next: (translations) => {
-          console.log('📄 Translations loaded:', Object.keys(translations).slice(0, 5));
-          resolveOnce('Translations loaded successfully');
+        next: () => {
+          resolveOnce();
         },
-        error: (err) => {
-          console.error('❌ Translation loading error:', err);
-          console.error('📍 Error details:', {
-            message: err.message,
-            status: err.status,
-            url: err.url
-          });
-          resolveOnce('Translation loading failed, proceeding without translations');
+        error: () => {
+          resolveOnce(); // Continue even if translations fail
         }
       });
       
-      // Optimized timeout - translations do load, just need a bit more time
+      // Fallback timeout to ensure app never blocks
       setTimeout(() => {
-        console.warn('⏰ App Initializer: Translation loading timeout (3s), proceeding with fallbacks');
-        resolveOnce('Translation loading timeout - using fallbacks');
+        resolveOnce();
       }, 3000);
       
     } catch (error) {
-      console.error('🚨 App Initializer: Critical error in translation setup:', error);
-      resolveOnce('Critical error in translation setup');
+      resolveOnce();
     }
   });
 }
