@@ -52,11 +52,11 @@ function appInitializer(translate: TranslateService) {
         }
       });
       
-      // Reduced timeout for faster feedback in production
+      // Optimized timeout - translations do load, just need a bit more time
       setTimeout(() => {
-        console.warn('⏰ App Initializer: Translation loading timeout (2s), proceeding without translations');
-        resolveOnce('Translation loading timeout');
-      }, 2000);
+        console.warn('⏰ App Initializer: Translation loading timeout (3s), proceeding with fallbacks');
+        resolveOnce('Translation loading timeout - using fallbacks');
+      }, 3000);
       
     } catch (error) {
       console.error('🚨 App Initializer: Critical error in translation setup:', error);
