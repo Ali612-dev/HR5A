@@ -8,6 +8,8 @@ import { AuthStore } from '../../../../store/auth.store';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // Import MatDialog and MatDialogModule
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component'; // Import ErrorDialogComponent
 import { HttpErrorResponse } from '@angular/common/http'; // Import HttpErrorResponse
+import { API_BASE_URL, API_ENDPOINTS } from '../../../../core/constants';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-admin-login',
@@ -55,7 +57,12 @@ export class AdminLoginComponent implements OnInit {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
+      const loginUrl = `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`;
       console.log('🔐 Starting login attempt...');
+      console.log('🌐 Login URL:', loginUrl);
+      console.log('📦 Form data:', this.loginForm.value);
+      console.log('🔧 Environment:', environment);
+      
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
           console.log('📡 Login response received:', response);
