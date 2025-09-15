@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <location path="." inheritInChildApplications="false">
+    <system.webServer>
+      <!-- CORS Configuration - TESTING VERSION (allows multiple origins) -->
+      <httpProtocol>
+        <customHeaders>
+          <!-- CORS Headers - Allow All Origins for Testing -->
+          <add name="Access-Control-Allow-Origin" value="*" />
+          <add name="Access-Control-Allow-Methods" value="GET, POST, PUT, DELETE, OPTIONS" />
+          <add name="Access-Control-Allow-Headers" value="Content-Type, Authorization, Accept-Language, X-Requested-With" />
+          <!-- Security Headers -->
+          <remove name="X-Powered-By" />
+        </customHeaders>
+      </httpProtocol>
+      
+      <!-- Handle ALL HTTP verbs including OPTIONS preflight requests -->
+      <handlers>
+        <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+      </handlers>
+      
+      <!-- ASP.NET Core Configuration -->
+      <aspNetCore processPath="dotnet" arguments=".\CustomAttendance.Web.dll" stdoutLogEnabled="false" stdoutLogFile=".\logs\stdout" hostingModel="inprocess" />
+    </system.webServer>
+  </location>
+</configuration>
+<!--ProjectGuid: FE629961-BF26-4922-8D02-9878B0C38100-->
