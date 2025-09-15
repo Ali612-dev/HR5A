@@ -33,9 +33,19 @@ export const EmployeeStore = signalStore(
     loadEmployees() {
       patchState(store, { isLoading: true, error: null });
 
+      console.log('🔄 EmployeeStore: Loading employees with request:', store.request());
+
       employeeService.getAllEmployees(store.request()).pipe(
         tap({
           next: (response) => {
+            console.log('📥 EmployeeStore: API Response received:', {
+              isSuccess: response.isSuccess,
+              dataExists: !!response.data,
+              employeeCount: response.data?.employees?.length,
+              totalCount: response.data?.totalCount,
+              message: response.message
+            });
+            
             if (response.isSuccess && response.data) {
               patchState(store, {
                 employees: response.data.employees,
@@ -43,6 +53,7 @@ export const EmployeeStore = signalStore(
                 isLoading: false,
               });
             } else {
+              console.error('❌ EmployeeStore: API failed with response:', response);
               patchState(store, { error: translate.instant('ERROR.FAILED_TO_LOAD_EMPLOYEES'), isLoading: false });
             }
           },
@@ -54,7 +65,14 @@ export const EmployeeStore = signalStore(
       ).subscribe();
     },
     updateRequest(request: Partial<GetEmployeesRequest>) {
-      patchState(store, { request: { ...store.request(), ...request } });
+      const newRequest = { ...store.request(), ...request };
+      console.log('🔄 EmployeeStore: Updating request:', {
+        oldRequest: store.request(),
+        partialUpdate: request,
+        newRequest: newRequest
+      });
+      
+      patchState(store, { request: newRequest });
       this.loadEmployees();
     },
   }))

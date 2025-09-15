@@ -266,6 +266,10 @@ export class Employees implements OnInit {
 
   // Methods passed to ResponsiveEmployeeTableComponent
   onPageChange(pageNumber: number): void {
+    console.log('📄 Employee Page: Handling page change:', {
+      newPage: pageNumber,
+      currentRequest: this.store.request()
+    });
     this.store.updateRequest({ pageNumber });
   }
 
@@ -274,6 +278,15 @@ export class Employees implements OnInit {
     const currentSortOrder = this.store.request().sortOrder;
 
     const sortOrder = currentSortField === sortField && currentSortOrder === 'asc' ? 'desc' : 'asc';
+    
+    console.log('🔀 Employee Sort: Handling sort change:', {
+      sortField,
+      newSortOrder: sortOrder,
+      currentSortField,
+      currentSortOrder,
+      currentRequest: this.store.request()
+    });
+    
     this.store.updateRequest({ sortField, sortOrder });
   }
 

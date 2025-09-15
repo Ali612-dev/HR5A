@@ -19,6 +19,12 @@ export class PaginationComponent implements OnInit {
   ngOnInit(): void { }
 
   onPageChange(pageNumber: number): void {
+    console.log('🔄 Pagination: Page change requested:', {
+      newPage: pageNumber,
+      currentPage: this.request?.pageNumber,
+      totalPages: this.totalPages,
+      totalCount: this.totalCount
+    });
     this.pageChange.emit(pageNumber);
   }
 

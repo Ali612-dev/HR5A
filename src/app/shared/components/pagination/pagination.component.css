@@ -51,6 +51,12 @@
 .pagination .page-item.disabled .page-link {
   color: rgba(255, 255, 255, 0.5);
   pointer-events: none;
+  cursor: not-allowed !important;
+}
+
+.pagination .page-item:not(.disabled) .page-link {
+  cursor: pointer !important;
+  pointer-events: auto;
 }
 
 /* Mobile responsiveness */
