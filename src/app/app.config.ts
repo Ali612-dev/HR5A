@@ -17,29 +17,50 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 function appInitializer(translate: TranslateService) {
   return () => new Promise<void>(resolve => {
-    console.log('App Initializer: Starting translation setup...');
+    console.log('🌐 App Initializer: Starting translation setup...');
+    console.log('🔗 Translation loader path: /locale/*.json');
+    
+    let resolved = false;
+    
+    const resolveOnce = (reason: string) => {
+      if (!resolved) {
+        resolved = true;
+        console.log(`✅ App Initializer: ${reason}`);
+        resolve();
+      }
+    };
+    
     try {
       translate.setDefaultLang('en');
+      
+      // Test if translation files are accessible
+      console.log('🔍 Testing translation file accessibility...');
+      
       translate.use('en').subscribe({
-        next: () => {
-          console.log('App Initializer: Translations loaded successfully.');
-          resolve();
+        next: (translations) => {
+          console.log('📄 Translations loaded:', Object.keys(translations).slice(0, 5));
+          resolveOnce('Translations loaded successfully');
         },
         error: (err) => {
-          console.warn('App Initializer: Translation loading failed, continuing anyway:', err);
-          resolve(); // Always resolve to prevent blocking
+          console.error('❌ Translation loading error:', err);
+          console.error('📍 Error details:', {
+            message: err.message,
+            status: err.status,
+            url: err.url
+          });
+          resolveOnce('Translation loading failed, proceeding without translations');
         }
       });
       
-      // Timeout fallback to prevent indefinite waiting
+      // Reduced timeout for faster feedback in production
       setTimeout(() => {
-        console.warn('App Initializer: Translation loading timeout, proceeding without translations');
-        resolve();
-      }, 5000);
+        console.warn('⏰ App Initializer: Translation loading timeout (2s), proceeding without translations');
+        resolveOnce('Translation loading timeout');
+      }, 2000);
       
     } catch (error) {
-      console.error('App Initializer: Critical error in translation setup:', error);
-      resolve(); // Always resolve to prevent app crash
+      console.error('🚨 App Initializer: Critical error in translation setup:', error);
+      resolveOnce('Critical error in translation setup');
     }
   });
 }

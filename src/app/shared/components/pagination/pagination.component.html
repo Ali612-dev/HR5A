@@ -1,19 +1,19 @@
 <div class="pagination-container">
   <ul class="pagination">
     <li class="page-item" [class.disabled]="(request?.pageNumber ?? 1) === 1">
-      <a class="page-link" (click)="onPageChange(1)">{{ 'First' | translate }}</a>
+      <a class="page-link" (click)="onPageChange(1)">{{ ('First' | translate) || 'First' }}</a>
     </li>
     <li class="page-item" [class.disabled]="(request?.pageNumber ?? 1) === 1">
-      <a class="page-link" (click)="onPageChange((request?.pageNumber ?? 1) - 1)">{{ 'Previous' | translate }}</a>
+      <a class="page-link" (click)="onPageChange((request?.pageNumber ?? 1) - 1)">{{ ('Previous' | translate) || 'Previous' }}</a>
     </li>
     <li class="page-item" *ngFor="let page of pages" [class.active]="page === (request?.pageNumber ?? 1)">
       <a class="page-link" (click)="onPageChange(page)">{{ page }}</a>
     </li>
     <li class="page-item" [class.disabled]="(request?.pageNumber ?? 1) === totalPages">
-      <a class="page-link" (click)="onPageChange((request?.pageNumber ?? 1) + 1)">{{ 'Next' | translate }}</a>
+      <a class="page-link" (click)="onPageChange((request?.pageNumber ?? 1) + 1)">{{ ('Next' | translate) || 'Next' }}</a>
     </li>
     <li class="page-item" [class.disabled]="(request?.pageNumber ?? 1) === totalPages">
-      <a class="page-link" (click)="onPageChange(totalPages)">{{ 'Last' | translate }}</a>
+      <a class="page-link" (click)="onPageChange(totalPages)">{{ ('Last' | translate) || 'Last' }}</a>
     </li>
   </ul>
 </div>

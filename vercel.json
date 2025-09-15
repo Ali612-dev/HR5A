@@ -24,6 +24,14 @@
       "dest": "/api/test.js"
     },
     {
+      "src": "/locale/(.*)",
+      "dest": "/locale/$1",
+      "headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "public, max-age=3600"
+      }
+    },
+    {
       "handle": "filesystem"
     },
     {
