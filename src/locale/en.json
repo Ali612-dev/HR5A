@@ -51,6 +51,7 @@
     "TIME_OUT_NOT_ALLOWED_FOR_ATTENDANCE": "Time Out is not allowed for Attendance.",
     "TITLE": "Error",
     "SERVER_NOT_AVAILABLE": "Server not available. Please try again later.",
+    "BAD_REQUEST": "Invalid request. Please check your input and try again.",
     "SERVER_ERROR": "An unexpected server error occurred. Please try again later.",
     "REGISTER_EMPLOYEE_FAILED": "Failed to register employee.",
     "REGISTER_EMPLOYEE_ERROR": "An error occurred during employee registration.",

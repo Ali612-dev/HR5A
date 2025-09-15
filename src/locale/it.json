@@ -16,7 +16,12 @@
     "LOGIN_BUTTON": "Accedi"
   },
   "ERROR": {
+    "TITLE": "Errore",
     "UNKNOWN_LOGIN_ERROR": "Si è verificato un errore sconosciuto durante il login. Riprova.",
+    "UNAUTHORIZED_LOGIN": "Nome utente o password non validi. Riprova.",
+    "SERVER_NOT_AVAILABLE": "Server non disponibile. Riprova più tardi.",
+    "BAD_REQUEST": "Richiesta non valida. Controlla i dati inseriti e riprova.",
+    "SERVER_ERROR": "Si è verificato un errore del server. Riprova più tardi.",
     "FAILED_TO_LOAD_EMPLOYEES": "Caricamento dipendenti non riuscito.",
     "FETCH_EMPLOYEES_ERROR": "Si è verificato un errore during il recupero dei dipendenti."
   },

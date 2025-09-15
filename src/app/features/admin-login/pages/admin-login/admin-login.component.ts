@@ -55,37 +55,73 @@ export class AdminLoginComponent implements OnInit {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
+      console.log('🔐 Starting login attempt...');
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
+          console.log('📡 Login response received:', response);
           if (response.isSuccess) {
-            console.log('Login successful!', response.data);
-            this.router.navigate(['/admin-dashboard']); // Navigate to admin-dashboard page on success
+            console.log('✅ Login successful!', response.data);
+            this.router.navigate(['/admin-dashboard']);
           } else {
-            // Show smart dialog with localized error from response.message
-            const errorMessage = response.message || this.translate.instant('ERROR.UNKNOWN_LOGIN_ERROR');
+            console.log('❌ Login failed - server returned isSuccess: false');
+            // Show actual server message if available
+            const errorMessage = response.message || 
+                                response.errors?.join(', ') || 
+                                this.translate.instant('ERROR.UNKNOWN_LOGIN_ERROR');
+            console.log('Error message to display:', errorMessage);
             this.openErrorDialog(errorMessage);
           }
         },
-        error: (err: HttpErrorResponse) => { // Type err as HttpErrorResponse
+        error: (err: HttpErrorResponse) => {
+          console.log('🚨 Login HTTP error:', err);
+          console.log('Error status:', err.status);
+          console.log('Error body:', err.error);
+          
           let displayMessage: string;
+          
+          // Check if it's a network connectivity issue
           if (err.status === 0) {
-            displayMessage = 'ERROR.SERVER_NOT_AVAILABLE';
+            displayMessage = this.translate.instant('ERROR.SERVER_NOT_AVAILABLE');
           }
+          // Check for specific HTTP status codes
           else if (err.status === 401) {
-            displayMessage = 'ERROR.UNAUTHORIZED_LOGIN';
-          } else if (err.error && typeof err.error.message === 'string') {
-            displayMessage = err.error.message;
-          } else if (err.status >= 500) {
-            displayMessage = 'ERROR.SERVER_ERROR';
+            // Try to get the actual message from server
+            if (err.error && err.error.message) {
+              displayMessage = err.error.message;
+            } else {
+              displayMessage = this.translate.instant('ERROR.UNAUTHORIZED_LOGIN');
+            }
+          } 
+          else if (err.status === 400) {
+            // Bad request - show server message if available
+            if (err.error && err.error.message) {
+              displayMessage = err.error.message;
+            } else if (err.error && err.error.errors && Array.isArray(err.error.errors)) {
+              displayMessage = err.error.errors.join(', ');
+            } else {
+              displayMessage = this.translate.instant('ERROR.BAD_REQUEST');
+            }
           }
+          else if (err.status >= 500) {
+            displayMessage = this.translate.instant('ERROR.SERVER_ERROR');
+          }
+          // Try to extract message from error response
+          else if (err.error && typeof err.error.message === 'string') {
+            displayMessage = err.error.message;
+          } 
           else if (err.message) {
             displayMessage = err.message;
-          } else {
-            displayMessage = 'ERROR.UNKNOWN_LOGIN_ERROR';
+          } 
+          else {
+            displayMessage = this.translate.instant('ERROR.UNKNOWN_LOGIN_ERROR');
           }
-          this.openErrorDialog(displayMessage); // Pass the message/key to the dialog
+          
+          console.log('Final error message to display:', displayMessage);
+          this.openErrorDialog(displayMessage);
         }
       });
+    } else {
+      console.log('⚠️ Form is invalid');
     }
   }
 
