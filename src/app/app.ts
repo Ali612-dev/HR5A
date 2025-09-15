@@ -21,12 +21,4 @@ export class App {
       timestamp: new Date().toISOString()
     });
   }
-  
-  getEnvironmentInfo() {
-    return environment;
-  }
-  
-  getTimestamp() {
-    return new Date().toLocaleTimeString();
-  }
 }

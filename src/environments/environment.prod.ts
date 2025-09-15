@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://77.93.153.146:6365'
+  apiBaseUrl: '/api/proxy' // Use Vercel proxy to avoid CORS issues
 };
