@@ -1,10 +1,9 @@
-// Vercel serverless function to proxy HTTP API calls
-export default async function handler(req, res) {
+// Vercel serverless function using CommonJS format
+module.exports = async (req, res) => {
   console.log('🔍 Proxy function called:');
   console.log('  Method:', req.method);
   console.log('  Query:', req.query);
   console.log('  Body:', req.body);
-  console.log('  Headers:', req.headers);
 
   // Set CORS headers for all responses
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,8 +25,8 @@ export default async function handler(req, res) {
     if (!path) {
       console.log('❌ No path provided');
       return res.status(400).json({
-        isSuccess: false,
-        message: 'Missing path parameter'
+        error: 'Missing path parameter',
+        query: req.query
       });
     }
 
@@ -35,6 +34,9 @@ export default async function handler(req, res) {
     console.log('🔗 Proxying request to:', targetUrl);
     console.log('📦 Request method:', req.method);
     console.log('📋 Request body:', req.body);
+    
+    // Import fetch dynamically (for Node.js compatibility)
+    const fetch = (await import('node-fetch')).default;
     
     // Prepare fetch options
     const fetchOptions = {
@@ -66,7 +68,6 @@ export default async function handler(req, res) {
     const response = await fetch(targetUrl, fetchOptions);
     
     console.log('📡 API response status:', response.status);
-    console.log('📡 API response headers:', Object.fromEntries(response.headers.entries()));
     
     // Parse response
     const contentType = response.headers.get('content-type');
@@ -86,12 +87,8 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('🚨 Proxy error:', error);
     return res.status(500).json({
-      isSuccess: false,
-      message: 'Proxy error: ' + error.message,
-      debug: {
-        error: error.toString(),
-        stack: error.stack
-      }
+      error: 'Proxy error: ' + error.message,
+      details: error.toString()
     });
   }
-}
+};
