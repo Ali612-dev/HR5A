@@ -31,6 +31,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/attendance/pages/employee-history/employee-history.component').then(m => m.EmployeeHistoryComponent)
     },
     {
+        path: 'attendance/map',
+        loadComponent: () => import('./features/attendance/pages/attendance-map/attendance-map.component').then(m => m.AttendanceMapComponent)
+    },
+    {
+        path: 'attendance/map-simple',
+        loadComponent: () => import('./features/attendance/pages/attendance-map/attendance-map-simple.component').then(m => m.AttendanceMapSimpleComponent)
+    },
+    {
+        path: 'test/map',
+        loadComponent: () => import('./features/test/pages/map-test/map-test.component').then(m => m.MapTestComponent)
+    },
+    {
         path: 'financial',
         loadComponent: () => import('./features/financial/pages/financial/financial.component').then(m => m.FinancialComponent)
     },

@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth.service';
 import { AuthStore } from '../../../../store/auth.store';
+import { LanguageService } from '../../../../shared/services/language.service';
 
 @Component({
   selector: 'app-home',
@@ -19,35 +20,24 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private translate: TranslateService,
-    private authService: AuthService
+    private authService: AuthService,
+    private languageService: LanguageService
   ) {
-    // Set default language with more robust initialization
-    // Force Vercel to use latest commit with fallbacks
-    this.initializeTranslations();
+    // Let the LanguageService handle language initialization
+    // Remove manual translation initialization to avoid conflicts
+    console.log('🏠 HomeComponent: Constructor called');
   }
 
   ngOnInit(): void {
+    console.log('🏠 HomeComponent: ngOnInit called');
+    console.log('🏠 HomeComponent: Current language on init:', this.translate.currentLang);
+    console.log('🏠 HomeComponent: LanguageService current language:', this.languageService.getCurrentLanguage());
+    
     this.checkAdminToken();
   }
 
-  private initializeTranslations(): void {
-    try {
-      this.translate.setDefaultLang('en');
-      this.translate.use('en');
-      
-      // Ensure translations are loaded with fallback
-      this.translate.get('headerTitle').subscribe({
-        next: (res: string) => {
-          console.log('Translations loaded successfully:', res);
-        },
-        error: (err) => {
-          console.warn('Translation loading failed, using fallbacks:', err);
-        }
-      });
-    } catch (error) {
-      console.warn('Translation service initialization failed:', error);
-    }
-  }
+  // Removed initializeTranslations to avoid conflicts with LanguageService
+  // The LanguageService now handles all translation initialization
 
   checkAdminToken(): void {
     const token = this.authStore.token();
@@ -62,7 +52,8 @@ export class HomeComponent implements OnInit {
   }
 
   changeLanguage(lang: string): void {
-    this.translate.use(lang);
+    // Use the language service for consistent language management
+    this.languageService.changeLanguage(lang);
   }
 
   scrollToFeatures(): void {

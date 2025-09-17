@@ -13,6 +13,7 @@ import { TranslateModule } from '@ngx-translate/core';
 })
 export class ErrorComponent {
   @Input() errorMessage: string = 'DefaultErrorMessage';
+  @Input() isEmptyState: boolean = false;
   @Output() retry = new EventEmitter<void>();
 
   faSync = faSync;

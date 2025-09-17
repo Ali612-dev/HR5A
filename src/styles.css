@@ -1,3 +1,20 @@
+/* CSS Reset and Normalization for consistent cross-platform rendering */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Prevent font size adjustments after orientation changes in iOS */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 :root {
   --color-primary-gradient-start: #8e2de2;
   --color-primary-gradient-end: #4a00e0;
@@ -36,6 +53,16 @@
   --spacing-lg: 2rem;
   --spacing-xl: 3rem;
   --transition-ease: all .3s ease;
+  
+  /* Consistent font size variables for cross-platform compatibility */
+  --font-size-xs: clamp(0.75rem, 2vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 2.5vw, 1rem);
+  --font-size-base: clamp(1rem, 3vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 3.5vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 4vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 5vw, 2rem);
+  --font-size-3xl: clamp(2rem, 6vw, 2.5rem);
+  --font-size-4xl: clamp(2.5rem, 7vw, 3.5rem);
 }
 
 html, body {
@@ -48,9 +75,23 @@ html, body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  
+  /* Font rendering optimizations */
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  font-weight: var(--font-weight-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
   /* Fix overscroll bounce background */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  
+  /* Prevent unwanted zoom on input focus (iOS) */
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Ensure the background extends beyond viewport for overscroll */
@@ -96,6 +137,11 @@ body {
   background: transparent !important;
 }
 
+/* Essential Leaflet styles */
+.leaflet-container {
+  background: #f0f2f5;
+}
+
 
 .glass-dialog-panel .mat-dialog-container {
   padding: 0 !important;
@@ -112,4 +158,70 @@ body {
   color: #fff !important;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
   overflow: hidden;
+}
+
+/* Cross-platform input and button normalization */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Prevent zoom on inputs for iOS */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+select,
+textarea {
+  font-size: var(--font-size-base);
+  min-height: 44px; /* Minimum touch target size */
+}
+
+/* Ensure consistent button sizing */
+.btn {
+  font-size: var(--font-size-base) !important;
+  min-height: 44px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Table responsive font sizes */
+.table {
+  font-size: var(--font-size-sm);
+}
+
+.table th,
+.table td {
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+/* Responsive text scaling */
+h1 { font-size: var(--font-size-4xl); }
+h2 { font-size: var(--font-size-3xl); }
+h3 { font-size: var(--font-size-2xl); }
+h4 { font-size: var(--font-size-xl); }
+h5 { font-size: var(--font-size-lg); }
+h6 { font-size: var(--font-size-base); }
+
+p, span, div, a {
+  font-size: var(--font-size-base);
+}
+
+small {
+  font-size: var(--font-size-sm);
 }

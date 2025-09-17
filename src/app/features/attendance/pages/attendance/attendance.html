@@ -8,6 +8,9 @@
           <button class="btn btn-secondary" routerLink="/attendance/add">
             <fa-icon [icon]="faPlus" class="me-1"></fa-icon> {{ 'AddAttendance' | translate }}
           </button>
+          <button class="btn btn-success" routerLink="/attendance/map" [queryParams]="{ date: filterForm.get('date')?.value }">
+            <fa-icon [icon]="faMapMarkerAlt" class="me-1"></fa-icon> {{ 'ViewAllOnMap' | translate }}
+          </button>
           <button class="btn btn-secondary" (click)="toggleFilter()">
             <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
           </button>

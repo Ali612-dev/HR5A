@@ -1,0 +1,242 @@
+<div class="attendance-map-container">
+  <a routerLink="/test/map" class="test-map-link">Test Simple Map</a>
+  <a routerLink="/attendance/map-simple" class="test-map-link" style="top: 50px;">Simplified Map</a>
+
+  <!-- Map Container -->
+  <div style="width: 100%; height: 100%;">
+    <div #mapContainer id="map"></div>
+  </div>
+
+  <!-- Mobile Toggle Button -->
+  <div *ngIf="isMobile" class="mobile-toggle-btn" (click)="togglePanel()">
+    <fa-icon [icon]="faFilter" class="toggle-icon"></fa-icon>
+  </div>
+
+  <!-- Side Panel -->
+  <div class="side-panel" [class.mobile-collapsed]="isMobile && !isPanelExpanded" [class.mobile-expanded]="isMobile && isPanelExpanded">
+    <!-- Panel Header -->
+    <div class="panel-header" (click)="togglePanel()">
+      <h5 class="panel-title">
+        <fa-icon [icon]="faMapMarkerAlt" class="me-2"></fa-icon>
+        {{ 'AttendanceMap' | translate }}
+      </h5>
+      <fa-icon [icon]="isPanelExpanded ? faChevronUp : faChevronDown" class="toggle-icon"></fa-icon>
+    </div>
+
+    <!-- Panel Content -->
+    <div class="panel-content">
+      <!-- Stats Overview -->
+      <div class="stats-section">
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">{{ 'TotalEmployees' | translate }}</span>
+                <div class="stat-icon">
+                  <fa-icon [icon]="faUsers"></fa-icon>
+                </div>
+              </div>
+              <h4 class="stat-value">{{ attendanceData.totalEmployees }}</h4>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">{{ 'PresentToday' | translate }}</span>
+                <div class="stat-icon success">
+                  <fa-icon [icon]="faUsers"></fa-icon>
+                </div>
+              </div>
+              <h4 class="stat-value">{{ attendanceData.presentCount }}</h4>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">{{ 'AbsentToday' | translate }}</span>
+                <div class="stat-icon danger">
+                  <fa-icon [icon]="faUsers"></fa-icon>
+                </div>
+              </div>
+              <h4 class="stat-value">{{ attendanceData.absentCount }}</h4>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">{{ 'AttendancePercent' | translate }}</span>
+                <div class="stat-icon info">
+                  <fa-icon [icon]="faUsers"></fa-icon>
+                </div>
+              </div>
+              <h4 class="stat-value">{{ attendancePercentage }}%</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department Stats -->
+      <div class="department-section">
+        <div class="section-header">
+          <h6 class="section-title">
+            <fa-icon [icon]="faBuilding" class="me-2"></fa-icon>
+            {{ 'Departments' | translate }}
+          </h6>
+          <small class="section-count">{{ attendanceData.departments.length }}</small>
+        </div>
+        <div class="department-list">
+          <div *ngFor="let dept of attendanceData.departments" class="department-item">
+            <div class="department-header">
+              <span class="department-name">{{ dept }}</span>
+              <span class="department-percentage">
+                {{ getDepartmentPercentage(dept) }}%
+              </span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" 
+                   [style.width.%]="getDepartmentProgressWidth(dept)">
+              </div>
+            </div>
+            <div class="department-stats">
+              <small class="department-count">
+                {{ attendanceData.departmentStats[dept].presentCount || 0 }}/{{ attendanceData.departmentStats[dept].totalCount || 0 }} {{ 'Present' | translate }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="filter-section">
+        <div class="filter-header" (click)="toggleFilter()">
+          <h5 class="filter-title">
+            <fa-icon [icon]="faFilter" class="me-2"></fa-icon>
+            {{ 'AttendanceMapFilters' | translate }}
+          </h5>
+          <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" class="filter-toggle"></fa-icon>
+        </div>
+        
+        <div class="filter-content" [class.collapsed]="!isFilterExpanded">
+          <form [formGroup]="filterForm" class="filter-form">
+            <div class="form-group">
+              <label class="form-label">
+                <fa-icon [icon]="faCalendar" class="me-2"></fa-icon>
+                {{ 'Date' | translate }}
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <fa-icon [icon]="faCalendar"></fa-icon>
+                </span>
+                <input type="date" formControlName="date" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <fa-icon [icon]="faBuilding" class="me-2"></fa-icon>
+                {{ 'Department' | translate }}
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <fa-icon [icon]="faBuilding"></fa-icon>
+                </span>
+                <select formControlName="department" class="form-select">
+                  <option value="">{{ 'AllDepartments' | translate }}</option>
+                  <option *ngFor="let dept of attendanceData.departments" [value]="dept">{{ dept }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
+                {{ 'EmployeeID' | translate }}
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <fa-icon [icon]="faUsers"></fa-icon>
+                </span>
+                <input type="number" formControlName="employeeId" class="form-control" 
+                       [placeholder]="'EnterEmployeeID' | translate">
+              </div>
+            </div>
+
+            <div class="filter-actions">
+              <button type="button" class="btn btn-primary" (click)="loadAttendanceData()">
+                <fa-icon [icon]="faFilter" class="me-2"></fa-icon>
+                {{ 'ApplyFilters' | translate }}
+              </button>
+              <button type="button" class="btn btn-outline-primary" (click)="goToAttendanceTable()">
+                <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
+                {{ 'ViewTable' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Employee List -->
+      <div class="employee-section">
+        <div class="section-header">
+          <h6 class="section-title">
+            <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
+            {{ 'EmployeesOnMap' | translate }}
+          </h6>
+        </div>
+        <div class="employee-list">
+          <div class="search-box">
+            <div class="input-group">
+              <span class="input-group-text">
+                <fa-icon [icon]="faSearch"></fa-icon>
+              </span>
+              <input type="text" class="form-control" 
+                     [placeholder]="'SearchEmployees' | translate"
+                     (input)="onSearchChange($any($event.target).value)">
+            </div>
+          </div>
+          <div class="employee-items">
+            <div *ngFor="let employee of uniqueEmployees" 
+                 class="employee-item"
+                 (click)="focusOnEmployee(employee.employeeId)">
+              <div class="employee-avatar">
+                <span class="avatar-text">{{ employee.employeeName[0] }}</span>
+              </div>
+              <div class="employee-info">
+                <div class="employee-name">{{ employee.employeeName }}</div>
+                <small class="employee-department">{{ employee.department || 'N/A' }}</small>
+              </div>
+              <button class="btn-focus">
+                <fa-icon [icon]="faEye"></fa-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Count -->
+      <div class="attendance-count">
+        {{ 'ShowingLocations' | translate: { count: attendanceData.attendancePoints.length } }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Legend -->
+  <div class="status-legend">
+    <div class="legend-item">
+      <div class="legend-color check-in"></div>
+      <span>{{ 'CheckIn' | translate }}</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color check-out"></div>
+      <span>{{ 'CheckOut' | translate }}</span>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>{{ 'Loading' | translate }}...</p>
+    </div>
+  </div>
+</div>

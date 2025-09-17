@@ -45,14 +45,14 @@
   <table class="table table-striped table-hover glass-card">
     <thead>
       <tr>
-        <th (click)="onSort('fullName')">
-          <input type="checkbox" (change)="onToggleSelection(null)" /> {{ 'FullName' | translate }} <fa-icon [icon]="request.sortField === 'fullName' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+        <th (click)="onSort('id')">
+          <input type="checkbox" [checked]="isAllSelected" [indeterminate]="isSomeSelected && !isAllSelected" (change)="onToggleSelection(null)" (click)="$event.stopPropagation()" /> {{ 'FullName' | translate }} <fa-icon [icon]="request.sortField === 'id' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
         </th>
         <th (click)="onSort('email')">
           {{ 'Email' | translate }} <fa-icon [icon]="request.sortField === 'email' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
         </th>
         <th (click)="onSort('phoneNumber')">
-          {{ 'PhoneNumber' | translate }} <fa-icon [icon]="request.sortField === 'phoneNumber' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+          {{ 'Phone' | translate }} <fa-icon [icon]="request.sortField === 'phoneNumber' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
         </th>
         <th (click)="onSort('department')">
           {{ 'Department' | translate }} <fa-icon [icon]="request.sortField === 'department' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>

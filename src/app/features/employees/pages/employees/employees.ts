@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus, faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faFilter, faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -48,16 +48,13 @@ export class Employees implements OnInit {
 
   isFilterCollapsed: boolean = true;
 
-  statusOptions = [
-    { value: null, label: 'All' },
-    { value: true, label: 'Active' },
-    { value: false, label: 'Inactive' }
-  ];
+  statusOptions: { value: boolean | null; label: string }[] = [];
 
   private loadingDialogRef: any; // Declare loadingDialogRef
 
   readonly deleteStore = inject(DeleteEmployeeStore);
   private dialog = inject(MatDialog);
+  private translate = inject(TranslateService);
 
   private fb = inject(FormBuilder);
   private whatsAppService = inject(WhatsAppService);
@@ -78,7 +75,7 @@ export class Employees implements OnInit {
         this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
           panelClass: 'transparent-dialog',
           data: {
-            title: 'Loading',
+            title: this.translate.instant('Loading'),
             message: 'Deleting employee...',
             isSuccess: true // Use true for loading state to show spinner if implemented
           },
@@ -94,7 +91,7 @@ export class Employees implements OnInit {
           this.dialog.open(NotificationDialogComponent, {
             panelClass: 'transparent-dialog',
             data: {
-              title: 'Success',
+              title: this.translate.instant('Success'),
               message: 'Employee deleted successfully.',
               isSuccess: true
             }
@@ -160,6 +157,13 @@ export class Employees implements OnInit {
   }
 
   ngOnInit(): void {
+    // Initialize status options with translations
+    this.statusOptions = [
+      { value: null, label: this.translate.instant('All') },
+      { value: true, label: this.translate.instant('Active') },
+      { value: false, label: this.translate.instant('Inactive') }
+    ];
+
     this.filterForm = this.fb.group({
       name: [this.store.request().name || ''],
       phone: [this.store.request().phone || ''],
@@ -224,8 +228,8 @@ export class Employees implements OnInit {
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
                 data: { 
-                  title: 'Success',
-                  message: response.message || 'WhatsApp group message sent successfully!',
+                  title: this.translate.instant('Success'),
+                  message: response.message || this.translate.instant('WhatsAppGroupMessageSentSuccessfully'),
                   isSuccess: true
                 }
               });
@@ -235,8 +239,8 @@ export class Employees implements OnInit {
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
                 data: { 
-                  title: 'Error',
-                  message: response.message || 'Failed to send WhatsApp group message.'
+                  title: this.translate.instant('Error'),
+                  message: response.message || this.translate.instant('FailedToSendWhatsAppGroupMessage')
                 }
               });
             }
@@ -250,7 +254,7 @@ export class Employees implements OnInit {
               panelClass: 'glass-dialog-panel',
               backdropClass: 'transparent-backdrop',
               data: { 
-                title: 'Error',
+                title: this.translate.instant('Error'),
                 message: this.getUserFriendlyErrorMessage(err)
               }
             });
@@ -295,10 +299,10 @@ export class Employees implements OnInit {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
       backdropClass: 'transparent-backdrop',
       data: {
-        title: 'Confirm Deletion',
-        message: `Are you sure you want to delete <span class="employee-name-highlight">${employee.name}</span>?`,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel'
+        title: this.translate.instant('ConfirmDeletion'),
+        message: this.translate.instant('DeleteEmployeeConfirmation', { employeeName: employee.name }),
+        confirmButtonText: this.translate.instant('Delete'),
+        cancelButtonText: this.translate.instant('Cancel')
       }
     });
 
@@ -314,11 +318,24 @@ export class Employees implements OnInit {
   }
 
   toggleSelection(employee: EmployeeDto | null) {
+    console.log('🔘 Main Component: toggleSelection called with:', employee ? employee.name : 'null (select all)');
+    
     if (employee) {
+      // Toggle individual employee selection
       employee.selected = !employee.selected;
+      console.log('🔘 Individual selection:', employee.name, 'selected:', employee.selected);
     } else {
+      // Toggle all employees selection
       const allSelected = this.store.employees().every(e => e.selected);
-      this.store.employees().forEach(e => e.selected = !allSelected);
+      console.log('🔘 Select all - current allSelected:', allSelected);
+      
+      this.store.employees().forEach(e => {
+        e.selected = !allSelected;
+        console.log('🔘 Setting', e.name, 'to:', e.selected);
+      });
     }
+    
+    console.log('🔘 Current selected count:', this.selectedCount);
+    console.log('🔘 Current selected employees:', this.selectedEmployees.map(e => e.name));
   }
 }

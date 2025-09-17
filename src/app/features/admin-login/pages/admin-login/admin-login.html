@@ -12,10 +12,10 @@
       </div>
       <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid || authStore.loading()">
         <span *ngIf="!authStore.loading()">{{ 'ADMIN_LOGIN.LOGIN_BUTTON' | translate }}</span>
-        <span *ngIf="authStore.loading()">Loading...</span>
+              <span *ngIf="authStore.loading()">{{ 'Loading' | translate }}</span>
       </button>
       <button *ngIf="showGoToDashboardButton()" class="btn btn-secondary mt-3" (click)="goToDashboard()">
-        Go to Dashboard
+        {{ 'GoToDashboard' | translate }}
       </button>
     </form>
   </div>

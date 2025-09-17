@@ -21,8 +21,8 @@ const initialState: EmployeeState = {
   request: {
     pageNumber: 1,
     pageSize: 10,
-    sortField: 'name',
-    sortOrder: 'asc',
+    sortField: 'id',
+    sortOrder: 'desc',
   },
 };
 
@@ -34,6 +34,7 @@ export const EmployeeStore = signalStore(
       patchState(store, { isLoading: true, error: null });
 
       console.log('🔄 EmployeeStore: Loading employees with request:', store.request());
+      console.log('🔄 Sort field:', store.request().sortField, 'Sort order:', store.request().sortOrder);
 
       employeeService.getAllEmployees(store.request()).pipe(
         tap({
@@ -47,8 +48,16 @@ export const EmployeeStore = signalStore(
             });
             
             if (response.isSuccess && response.data) {
+              // Initialize selected property for each employee
+              const employeesWithSelection = response.data.employees.map(emp => ({
+                ...emp,
+                selected: emp.selected || false
+              }));
+              
+              console.log('📥 EmployeeStore: First few employees received:', employeesWithSelection.slice(0, 3).map(e => e.name));
+              
               patchState(store, {
-                employees: response.data.employees,
+                employees: employeesWithSelection,
                 totalCount: response.data.totalCount,
                 isLoading: false,
               });

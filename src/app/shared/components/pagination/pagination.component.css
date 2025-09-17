@@ -1,7 +1,9 @@
 .pagination-container {
   display: flex;
-  justify-content: flex-start; /* Align to start */
+  justify-content: center; /* Center the pagination */
+  align-items: center;
   margin-top: 2rem;
+  width: 100%; /* Take full width */
   overflow-x: auto; /* Allow horizontal scrolling for pagination */
   padding: 0 10px; /* Add horizontal padding */
   scrollbar-width: none; /* For Firefox */
@@ -17,11 +19,13 @@
   padding: 0; /* Remove default padding */
   margin: 0; /* Remove default margin */
   flex-wrap: nowrap; /* Prevent pagination items from wrapping */
-  /* width: max-content; */ /* Removed this line */
+  gap: 0.5rem; /* Better spacing between items */
+  align-items: center;
+  justify-content: center;
+  width: 100%; /* Take full available width */
 }
 
 .pagination .page-item {
-  margin: 0 0.1rem; /* Reduced horizontal space between page items */
   flex-shrink: 0; /* Prevent page items from shrinking */
 }
 
@@ -31,11 +35,12 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   border-radius: 8px;
-  margin: 0 0.25rem;
   transition: all 0.3s ease;
   padding: 0.5rem 1rem !important;
-  min-width: 40px !important;
+  min-width: 44px !important; /* Improved touch target */
   text-align: center;
+  font-weight: 500;
+  text-decoration: none;
 }
 
 .pagination .page-item .page-link:hover {
@@ -65,19 +70,23 @@
     overflow-x: auto; /* Allow horizontal scrolling for pagination */
     overflow-y: hidden; /* Explicitly hide vertical overflow */
     justify-content: flex-start; /* Align to start for scrolling */
+    padding: 0 5px; /* Reduced padding on mobile */
   }
 
   .pagination {
     flex-wrap: nowrap; /* Prevent pagination items from wrapping */
     width: max-content; /* Force pagination to take full content width */
+    gap: 0.25rem; /* Reduced gap on mobile */
+    justify-content: flex-start; /* Override center alignment on mobile */
   }
 
   .pagination .page-item .page-link {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 38px;
-    padding: 0 1rem;
+    min-height: 44px; /* Better touch target */
+    padding: 0.5rem 0.75rem; /* Adjusted padding */
     font-size: 0.9rem;
+    min-width: 40px !important; /* Slightly smaller on mobile */
   }
 }

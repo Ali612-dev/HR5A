@@ -104,6 +104,9 @@
 .detail-content {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0; /* Allow flex items to shrink below their content size */
+  overflow: hidden;
 }
 
 .detail-content .label {
@@ -118,6 +121,10 @@
   font-size: 1.1rem;
   font-weight: 400;
   color: #fff;
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 @media (max-width: 768px) {

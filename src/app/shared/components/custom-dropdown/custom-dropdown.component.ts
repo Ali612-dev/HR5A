@@ -1,5 +1,6 @@
 
-import { Component, EventEmitter, Input, Output, ViewChild, TemplateRef, ElementRef, ViewContainerRef, HostBinding } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, TemplateRef, ElementRef, ViewContainerRef, HostBinding, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
@@ -23,6 +24,8 @@ export class CustomDropdownComponent {
 
   private overlayRef!: OverlayRef;
 
+  private translate = inject(TranslateService);
+  
   constructor(private overlay: Overlay, private viewContainerRef: ViewContainerRef) {}
 
   toggleDropdown() {
@@ -67,6 +70,6 @@ export class CustomDropdownComponent {
 
   getSelectedLabel() {
     const selectedOption = this.options.find(option => option.value === this.selectedValue);
-    return selectedOption ? selectedOption.label : 'Select';
+    return selectedOption ? selectedOption.label : this.translate.instant('Select');
   }
 }

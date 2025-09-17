@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faFilter } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faFilter, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 
 import { AttendanceStore } from '../../../../store/attendance.store';
 import { AttendanceViewModel } from '../../../../core/interfaces/attendance.interface';
@@ -15,7 +15,6 @@ import { ErrorDialogComponent } from '../../../../shared/components/error-dialog
 import { DeleteAttendanceStore } from '../../../../store/delete-attendance.store'; // Reusing for now, will create specific attendance delete store later
 import { effect } from '@angular/core';
 import { ResponsiveAttendanceTableComponent } from '../../../../shared/components/responsive-attendance-table/responsive-attendance-table.component';
-import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -28,8 +27,7 @@ import { Subject, takeUntil } from 'rxjs';
     ReactiveFormsModule,
     FontAwesomeModule,
     RouterLink,
-    ResponsiveAttendanceTableComponent,
-    PaginationComponent
+    ResponsiveAttendanceTableComponent
   ],
   templateUrl: './attendance.component.html',
   styleUrls: ['./attendance.component.css']
@@ -40,6 +38,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   faPlus = faPlus;
   faFilter = faFilter;
+  faMapMarkerAlt = faMapMarkerAlt;
 
   isFilterCollapsed: boolean = true;
 
@@ -164,6 +163,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   onPageChange(pageNumber: number): void {
+    console.log('📄 Attendance Page: Handling page change:', {
+      newPage: pageNumber,
+      currentRequest: this.store.request()
+    });
     this.store.updateRequest({ pageNumber });
   }
 
@@ -172,6 +175,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     const currentSortOrder = this.store.request().sortOrder;
 
     const sortOrder = currentSortField === sortField && currentSortOrder === 'asc' ? 'desc' : 'asc';
+    
+    console.log('🔀 Attendance Sort: Handling sort change:', {
+      sortField,
+      newSortOrder: sortOrder,
+      currentSortField,
+      currentSortOrder,
+      currentRequest: this.store.request()
+    });
+    
     this.store.updateRequest({ sortField, sortOrder });
   }
 

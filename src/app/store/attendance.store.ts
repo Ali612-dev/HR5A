@@ -33,9 +33,19 @@ export const AttendanceStore = signalStore(
     loadDailyAttendances() {
       patchState(store, { isLoading: true, error: null });
 
+      console.log('🔄 AttendanceStore: Loading attendances with request:', store.request());
+
       attendanceService.getDailyAttendance(store.request()).pipe(
         tap({
           next: (response) => {
+            console.log('📥 AttendanceStore: API Response received:', {
+              isSuccess: response.isSuccess,
+              dataExists: !!response.data,
+              attendanceCount: response.data?.attendances?.length,
+              totalCount: response.data?.totalCount,
+              message: response.message
+            });
+            
             if (response.isSuccess && response.data) {
               patchState(store, {
                 attendances: response.data.attendances,
@@ -43,6 +53,7 @@ export const AttendanceStore = signalStore(
                 isLoading: false,
               });
             } else {
+              console.error('❌ AttendanceStore: API failed with response:', response);
               patchState(store, { error: 'ERROR.FAILED_TO_LOAD_ATTENDANCES', isLoading: false });
             }
           },
@@ -54,7 +65,14 @@ export const AttendanceStore = signalStore(
       ).subscribe();
     },
     updateRequest(request: Partial<GetDailyAttendanceDto>) {
-      patchState(store, { request: { ...store.request(), ...request } });
+      const newRequest = { ...store.request(), ...request };
+      console.log('🔄 AttendanceStore: Updating request:', {
+        oldRequest: store.request(),
+        partialUpdate: request,
+        newRequest: newRequest
+      });
+      
+      patchState(store, { request: newRequest });
       this.loadDailyAttendances();
     },
   }))

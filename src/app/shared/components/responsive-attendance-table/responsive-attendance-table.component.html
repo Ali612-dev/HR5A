@@ -38,7 +38,7 @@
 </div>
 
 <div *ngIf="error">
-  <app-error [errorMessage]="error" (retry)="onRetry()"></app-error>
+  <app-error [errorMessage]="error" [isEmptyState]="isEmptyDataError()" (retry)="onRetry()"></app-error>
 </div>
 
 <div *ngIf="!isLoading && !error">
@@ -83,6 +83,9 @@
             </button>
             <button class="btn btn-sm btn-primary me-1" [routerLink]="['/attendance/update', attendance.id]" (click)="onUpdate(attendance)" appCustomTooltip [appCustomTooltipText]="'EditAttendance' | translate">
               <fa-icon [icon]="faEdit"></fa-icon>
+            </button>
+            <button *ngIf="attendance.latitude && attendance.longitude" class="btn btn-sm btn-success me-1" [routerLink]="['/attendance/map']" [queryParams]="{ employeeId: attendance.employeeId, date: attendance.date }" appCustomTooltip [appCustomTooltipText]="'ViewOnMap' | translate">
+              <fa-icon [icon]="faMapMarkerAlt"></fa-icon>
             </button>
             <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip [appCustomTooltipText]="'DeleteAttendance' | translate">
               <fa-icon [icon]="faTrash"></fa-icon>

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faCalendarAlt, faClock, faLocationDot } from '@fortawesome/free-solid-svg-icons';
+import { faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faCalendarAlt, faClock, faLocationDot, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import { AttendanceViewModel, GetDailyAttendanceDto } from '../../../core/interfaces/attendance.interface';
 import { ShimmerComponent } from '../shimmer/shimmer.component';
 import { CustomTooltipDirective } from '../../directives/custom-tooltip.directive';
@@ -49,6 +49,7 @@ export class ResponsiveAttendanceTableComponent implements OnInit, OnDestroy {
   faCalendarAlt = faCalendarAlt;
   faClock = faClock;
   faLocationDot = faLocationDot;
+  faMapMarkerAlt = faMapMarkerAlt;
 
   isMobile: boolean = false;
   private destroy$ = new Subject<void>();
@@ -70,6 +71,12 @@ export class ResponsiveAttendanceTableComponent implements OnInit, OnDestroy {
   }
 
   onPageChange(pageNumber: number): void {
+    console.log('🔄 Attendance Table: Page change requested:', {
+      newPage: pageNumber,
+      currentPage: this.request?.pageNumber,
+      totalPages: this.totalPages,
+      totalCount: this.totalCount
+    });
     this.pageChange.emit(pageNumber);
   }
 
@@ -99,5 +106,21 @@ export class ResponsiveAttendanceTableComponent implements OnInit, OnDestroy {
       pages.push(i);
     }
     return pages;
+  }
+
+  isEmptyDataError(): boolean {
+    if (!this.error) return false;
+    // Check if the error message indicates empty data rather than an actual error
+    const emptyDataMessages = [
+      'NoDailyAttendanceFound', 
+      'NoEmployeeAttendanceHistoryFound', 
+      'No daily attendance found', 
+      'No daily attendance found.',
+      'No employee attendance history found',
+      'No employee attendance history found.',
+      'لم يتم العثور على سجلات حضور يومية',
+      'لم يتم العثور على تاريخ حضور الموظف'
+    ];
+    return emptyDataMessages.some(msg => this.error?.includes(msg));
   }
 }

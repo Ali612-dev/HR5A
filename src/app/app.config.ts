@@ -10,12 +10,13 @@ import { ErrorInterceptor } from './core/error.interceptor';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { tap } from 'rxjs/operators';
+import { LanguageService } from './shared/services/language.service';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, '/locale/', '.json');
 }
 
-function appInitializer(translate: TranslateService) {
+function appInitializer(languageService: LanguageService, translate: TranslateService) {
   return () => new Promise<void>(resolve => {
     let resolved = false;
     
@@ -27,13 +28,28 @@ function appInitializer(translate: TranslateService) {
     };
     
     try {
-      translate.setDefaultLang('en');
+      console.log('🌐 App Initializer: Starting language initialization...');
       
-      translate.use('en').subscribe({
+      // Initialize language service (sets default and restores saved language)
+      languageService.initializeLanguage();
+      
+      // Get the language that was set by the language service
+      const currentLanguage = languageService.getCurrentLanguage();
+      console.log('🌐 App Initializer: Current language after initialization:', currentLanguage);
+      
+      // Double-check what's in localStorage
+      if (typeof localStorage !== 'undefined') {
+        const storedLang = localStorage.getItem('selectedLanguage');
+        console.log('🌐 App Initializer: Direct localStorage check:', storedLang);
+      }
+      
+      translate.use(currentLanguage).subscribe({
         next: () => {
+          console.log('🌐 App Initializer: TranslateService successfully loaded language:', currentLanguage);
           resolveOnce();
         },
-        error: () => {
+        error: (err) => {
+          console.error('🌐 App Initializer: TranslateService error:', err);
           resolveOnce(); // Continue even if translations fail
         }
       });
@@ -44,6 +60,7 @@ function appInitializer(translate: TranslateService) {
       }, 3000);
       
     } catch (error) {
+      console.error('🌐 App Initializer: Error initializing language:', error);
       resolveOnce();
     }
   });
@@ -71,7 +88,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: appInitializer,
-      deps: [TranslateService],
+      deps: [LanguageService, TranslateService],
       multi: true,
     },
   ]

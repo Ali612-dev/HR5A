@@ -15,7 +15,8 @@ import { NotificationDialogComponent } from '../../../shared/components/notifica
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TranslateModule
+    TranslateModule,
+    NotificationDialogComponent
   ],
   templateUrl: './register.html',
   styleUrls: ['./register.css']

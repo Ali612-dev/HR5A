@@ -4,13 +4,13 @@
     <div class="row mb-4">
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
-          <h2 class="text-white mb-0">Admin Dashboard</h2>
+          <h2 class="text-white mb-0">{{ 'AdminDashboard' | translate }}</h2>
           <div class="d-flex ms-auto" style="gap: 5px;">
             <a routerLink="/home" class="btn btn-outline-light">
-              <fa-icon [icon]="faArrowRight" class="me-1 icon-header"></fa-icon> Go to Home
+              <fa-icon [icon]="faArrowRight" class="me-1 icon-header"></fa-icon> {{ 'GoToHome' | translate }}
             </a>
             <button (click)="logout()" class="btn btn-outline-light">
-              <fa-icon [icon]="faArrowRightFromBracket" class="me-1 icon-header"></fa-icon> Logout
+              <fa-icon [icon]="faArrowRightFromBracket" class="me-1 icon-header"></fa-icon> {{ 'Logout' | translate }}
             </button>
           </div>
         </div>

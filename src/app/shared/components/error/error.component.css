@@ -16,8 +16,16 @@
 .error-icon svg {
   width: 80px;
   height: 80px;
-  color: #ff6b6b;
   animation: pulse 2s infinite;
+}
+
+.error-state-icon svg {
+  color: #ff6b6b;
+}
+
+.empty-state-icon svg {
+  color: #9ca3af;
+  opacity: 0.7;
 }
 
 .error-title {

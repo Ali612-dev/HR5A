@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output, Input, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-language-switcher',
@@ -82,13 +83,21 @@ export class LanguageSwitcherComponent implements OnInit {
 
   isOpen: boolean = false;
 
-  constructor(private translate: TranslateService, @Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(
+    private translate: TranslateService, 
+    private languageService: LanguageService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit(): void {
+    // Get current language from the language service
+    this.currentLang = this.languageService.getCurrentLanguage();
+    console.log('🌐 LanguageSwitcher: Initialized with language:', this.currentLang);
+    
+    // Debug localStorage directly
     if (isPlatformBrowser(this.platformId)) {
-      this.currentLang = this.translate.currentLang ?? this.translate.defaultLang;
-    } else {
-      this.currentLang = 'en'; // Default language for server-side rendering
+      const directCheck = localStorage.getItem('selectedLanguage');
+      console.log('🌐 LanguageSwitcher: Direct localStorage check:', directCheck);
     }
   }
 
@@ -97,7 +106,8 @@ export class LanguageSwitcherComponent implements OnInit {
   }
 
   selectLanguage(lang: string): void {
-    this.translate.use(lang);
+    // Use language service to change and persist language
+    this.languageService.changeLanguage(lang);
     this.currentLang = lang;
     this.langChange.emit(lang);
     this.isOpen = false;

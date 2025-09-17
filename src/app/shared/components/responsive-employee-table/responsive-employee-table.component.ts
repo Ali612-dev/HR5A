@@ -6,9 +6,7 @@ import { NotificationDialogComponent } from '../notification-dialog/notification
 import { ErrorDialogComponent } from '../error-dialog/error-dialog.component';
 import { PaginationComponent } from '../pagination/pagination.component';
 import { WhatsAppService } from '../../../core/services/whatsapp.service';
-import { HttpClientService } from '../../../core/http-client.service';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -30,12 +28,12 @@ import { ErrorComponent } from '../error/error.component';
     TranslateModule,
     FontAwesomeModule,
     RouterLink,
-    MessageDialogComponent,
-    CustomTooltipDirective,
     ErrorComponent,
+    PaginationComponent,
+    CustomTooltipDirective,
+    MessageDialogComponent,
     NotificationDialogComponent,
-    ErrorDialogComponent,
-    PaginationComponent
+    ErrorDialogComponent
   ],
   templateUrl: './responsive-employee-table.component.html',
   styleUrls: ['./responsive-employee-table.component.css']
@@ -57,6 +55,7 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
 
   private dialog = inject(MatDialog);
   private whatsAppService = inject(WhatsAppService);
+  private translate = inject(TranslateService);
   
   // Loading states for WhatsApp buttons
   whatsappLoadingStates: { [key: number]: boolean } = {};
@@ -81,6 +80,15 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   private screenSizeService = inject(ScreenSizeService);
+
+  // Computed property for select all checkbox state
+  get isAllSelected(): boolean {
+    return this.employees.length > 0 && this.employees.every(emp => emp.selected);
+  }
+
+  get isSomeSelected(): boolean {
+    return this.employees.some(emp => emp.selected);
+  }
 
   ngOnInit(): void {
     this.screenSizeService.isMobile$
@@ -168,8 +176,8 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
                 data: { 
-                  title: 'Success',
-                  message: response.message || 'WhatsApp message sent successfully!',
+                  title: this.translate.instant('Success'),
+                  message: response.message || this.translate.instant('WhatsAppMessageSentSuccessfully'),
                   isSuccess: true
                 }
               });
@@ -179,8 +187,8 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
                 data: { 
-                  title: 'Error',
-                  message: response.message || 'Failed to send WhatsApp message.'
+                  title: this.translate.instant('Error'),
+                  message: response.message || this.translate.instant('FailedToSendWhatsAppMessage')
                 }
               });
             }
@@ -194,7 +202,7 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
               panelClass: 'glass-dialog-panel',
               backdropClass: 'transparent-backdrop',
               data: { 
-                title: 'Error',
+                title: this.translate.instant('Error'),
                 message: this.getUserFriendlyErrorMessage(err)
               }
             });
@@ -230,8 +238,8 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
                 data: { 
-                  title: 'Success',
-                  message: response.message || 'WhatsApp group message sent successfully!',
+                  title: this.translate.instant('Success'),
+                  message: response.message || this.translate.instant('WhatsAppGroupMessageSentSuccessfully'),
                   isSuccess: true
                 }
               });
@@ -241,8 +249,8 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
                 data: { 
-                  title: 'Error',
-                  message: response.message || 'Failed to send WhatsApp group message.'
+                  title: this.translate.instant('Error'),
+                  message: response.message || this.translate.instant('FailedToSendWhatsAppGroupMessage')
                 }
               });
             }
@@ -256,7 +264,7 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
               panelClass: 'glass-dialog-panel',
               backdropClass: 'transparent-backdrop',
               data: { 
-                title: 'Error',
+                title: this.translate.instant('Error'),
                 message: this.getUserFriendlyErrorMessage(err)
               }
             });
@@ -291,6 +299,7 @@ export class ResponsiveEmployeeTableComponent implements OnInit, OnDestroy {
   }
 
   onToggleSelection(employee: EmployeeDto | null): void {
+    console.log('🔘 Responsive Table: onToggleSelection called with:', employee ? employee.name : 'null (select all)');
     this.toggleSelection.emit(employee);
   }
 
