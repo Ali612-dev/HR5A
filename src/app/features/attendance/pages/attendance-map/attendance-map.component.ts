@@ -521,8 +521,16 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       }
     }
 
-    const bounds = L.latLngBounds([]);
+    // Check if L.latLngBounds is available (Vercel compatibility)
+    let bounds: any = null;
     let hasValidPoints = false;
+    
+    if (L.latLngBounds && typeof L.latLngBounds === 'function') {
+      bounds = L.latLngBounds([]);
+      console.log('✅ L.latLngBounds is available');
+    } else {
+      console.warn('⚠️ L.latLngBounds is not available, skipping bounds calculation');
+    }
 
     // Define mobile-responsive popup styling variables
     const popupWidth = this.isMobile ? '120px' : '200px';
@@ -563,7 +571,9 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     locationGroups.forEach((points, locationKey) => {
       const firstPoint = points[0];
       hasValidPoints = true;
-      bounds.extend([firstPoint.latitude, firstPoint.longitude]);
+      if (bounds && bounds.extend) {
+        bounds.extend([firstPoint.latitude, firstPoint.longitude]);
+      }
       
       console.log(`Creating marker for group: ${locationKey} with ${points.length} records`);
       
@@ -779,7 +789,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     });
 
     // Focus map on attendance points if we have valid data and no saved state
-    if (hasValidPoints && bounds.isValid()) {
+    if (hasValidPoints && bounds && bounds.isValid && bounds.isValid()) {
       const savedState = this.getSavedMapState();
       if (!savedState) {
         console.log('No saved state, fitting bounds to attendance points');
@@ -789,6 +799,17 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       } else {
         console.log('Saved state exists, keeping current view');
       }
+    } else if (hasValidPoints) {
+      console.log('Has valid points but bounds are invalid or unavailable, using default view');
+      // Set a default view if we have points but no bounds
+      if (this.map && locationGroups.size > 0) {
+        const firstGroup = Array.from(locationGroups.values())[0];
+        const firstPoint = firstGroup[0];
+        this.map.setView([firstPoint.latitude, firstPoint.longitude], 12);
+        console.log('Set default view to first attendance point');
+      }
+    } else {
+      console.log('No valid attendance points found');
     }
   }
 
