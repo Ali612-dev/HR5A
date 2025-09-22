@@ -15,8 +15,27 @@ export class HttpClientService {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
-    const currentLang = this.translate.currentLang || 'en-US'; // Default to en-US if no language is set
-    return headers.set('Accept-Language', currentLang);
+    
+    // Convert language codes to proper locale format
+    const currentLang = this.translate.currentLang || 'en';
+    let localeCode = 'en-US'; // Default fallback
+    
+    switch (currentLang) {
+      case 'en':
+        localeCode = 'en-US';
+        break;
+      case 'ar':
+        localeCode = 'ar-SA';
+        break;
+      case 'it':
+        localeCode = 'it-IT';
+        break;
+      default:
+        localeCode = 'en-US';
+    }
+    
+    console.log('🌐 HttpClient: Setting Accept-Language header to:', localeCode);
+    return headers.set('Accept-Language', localeCode);
   }
 
   post<T>(url: string, body: any, options?: { params?: HttpParams | { [param: string]: string | number | boolean | ReadonlyArray<string | number | boolean>; }; }): Observable<T> {

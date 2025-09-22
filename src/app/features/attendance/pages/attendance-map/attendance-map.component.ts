@@ -73,7 +73,12 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    // Check if we're on Vercel
+    const isVercel = window.location.hostname.includes('vercel.app');
+    console.log('🌐 Environment check - Vercel:', isVercel, 'Hostname:', window.location.hostname);
+    
     this.initializeMap().then(() => {
+      console.log('🗺️ Map initialization promise resolved');
       // After map is initialized, load the attendance data
       this.route.queryParams.subscribe(params => {
         console.log('Query params received:', params);
@@ -103,115 +108,162 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         console.log('No snapshot params, loading today\'s data:', today);
         this.getAttendanceData(undefined, today);
       }
+    }).catch((error) => {
+      console.error('❌ Map initialization failed:', error);
+      this.showMapError('Failed to initialize map. Please check your internet connection and refresh the page.');
     });
   }
 
   private async initializeMap(): Promise<void> {
-    // Import Leaflet and marker cluster dynamically
-    const L = await import('leaflet');
-    await import('leaflet.markercluster');
-    
-    console.log('Leaflet loaded:', L);
-    
-    // Wait a bit for the plugin to be fully loaded
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Ensure markerClusterGroup is available on L object
-    if (!(L as any).markerClusterGroup) {
-      console.log('markerClusterGroup not found on L, trying to access it from window');
-      const LeafletMarkerCluster = (window as any).L?.markerClusterGroup || 
-                                   (window as any).L?.MarkerClusterGroup;
-      if (LeafletMarkerCluster) {
-        (L as any).markerClusterGroup = LeafletMarkerCluster;
-        console.log('Successfully added markerClusterGroup to L object');
-      } else {
-        console.error('markerClusterGroup not available anywhere');
-      }
-    }
-    
-    // Fix default marker icons
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    });
-    
-    // Clear any existing map
-    if (this.map) {
-      this.map.remove();
-    }
-
-    // Initialize the map with saved state or default coordinates
-    const savedState = this.getSavedMapState();
-    // Use much higher zoom level for mobile devices (much closer view)
-    const defaultZoom = this.isMobile ? 16 : 10;
-    const initialView = savedState || [31.7683, 35.2137, defaultZoom];
-    
-    console.log('Initializing map with view:', initialView);
-    this.map = L.map(this.mapContainer.nativeElement).setView([initialView[0], initialView[1]], initialView[2]);
-    
-    // Ensure map is fully rendered before proceeding
-    setTimeout(() => {
-      if (savedState) {
-        console.log('Restoring saved map state after delay');
-        this.map.setView([savedState[0], savedState[1]], savedState[2]);
-      }
-    }, 100);
-
-    // Add tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
-
-    // Create marker cluster group or fallback to layer group
     try {
-      console.log('Creating marker cluster group');
-      console.log('L.markerClusterGroup available:', !!(L as any).markerClusterGroup);
+      console.log('🗺️ Starting map initialization...');
       
-      if ((L as any).markerClusterGroup) {
-        this.markers = new (L as any).markerClusterGroup({
-          maxClusterRadius: 80, // Increase radius for better clustering
-          spiderfyOnMaxZoom: true,
-          showCoverageOnHover: false,
-          zoomToBoundsOnClick: true,
-          disableClusteringAtZoom: 16, // Disable clustering at zoom 16 and above (close zoom)
-          removeOutsideVisibleBounds: false,
-          animate: true,
-          animateAddingMarkers: true,
-          chunkedLoading: true
+      // Import Leaflet and marker cluster dynamically
+      const L = await import('leaflet');
+      console.log('✅ Leaflet imported successfully:', L);
+      
+      // Import marker cluster with error handling
+      try {
+        await import('leaflet.markercluster');
+        console.log('✅ Leaflet marker cluster imported successfully');
+      } catch (clusterError) {
+        console.warn('⚠️ Leaflet marker cluster import failed:', clusterError);
+        // Continue without clustering
+      }
+      
+      // Wait a bit for the plugin to be fully loaded
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Ensure markerClusterGroup is available on L object
+      if (!(L as any).markerClusterGroup) {
+        console.log('🔍 markerClusterGroup not found on L, trying to access it from window');
+        const LeafletMarkerCluster = (window as any).L?.markerClusterGroup || 
+                                     (window as any).L?.MarkerClusterGroup;
+        if (LeafletMarkerCluster) {
+          (L as any).markerClusterGroup = LeafletMarkerCluster;
+          console.log('✅ Successfully added markerClusterGroup to L object');
+        } else {
+          console.warn('⚠️ markerClusterGroup not available anywhere, continuing without clustering');
+        }
+      }
+    
+      // Fix default marker icons with fallback URLs
+      try {
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
         });
-        console.log('Marker cluster group created successfully:', this.markers);
-        console.log('Marker cluster group type:', this.markers.constructor.name);
-      } else {
-        // Try alternative import method
-        console.log('Trying alternative cluster creation method');
-        const markerClusterModule = await import('leaflet.markercluster');
-        this.markers = new (markerClusterModule as any).default({
-          maxClusterRadius: 40,
-          spiderfyOnMaxZoom: true,
-          showCoverageOnHover: false,
+        console.log('✅ Leaflet marker icons configured');
+      } catch (iconError) {
+        console.warn('⚠️ Failed to configure Leaflet marker icons:', iconError);
+      }
+      
+      // Clear any existing map
+      if (this.map) {
+        this.map.remove();
+      }
+
+      // Initialize the map with saved state or default coordinates
+      const savedState = this.getSavedMapState();
+      // Use much higher zoom level for mobile devices (much closer view)
+      const defaultZoom = this.isMobile ? 16 : 10;
+      const initialView = savedState || [31.7683, 35.2137, defaultZoom];
+      
+      console.log('🗺️ Initializing map with view:', initialView);
+      this.map = L.map(this.mapContainer.nativeElement).setView([initialView[0], initialView[1]], initialView[2]);
+    
+      // Ensure map is fully rendered before proceeding
+      setTimeout(() => {
+        if (savedState) {
+          console.log('🔄 Restoring saved map state after delay');
+          this.map.setView([savedState[0], savedState[1]], savedState[2]);
+        }
+      }, 100);
+
+      // Add tile layer with error handling
+      try {
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19,
+          errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+        }).addTo(this.map);
+        console.log('✅ Tile layer added successfully');
+      } catch (tileError) {
+        console.error('❌ Failed to add tile layer:', tileError);
+        // Try fallback tile layer
+        try {
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(this.map);
+          console.log('✅ Fallback tile layer added');
+        } catch (fallbackError) {
+          console.error('❌ Fallback tile layer also failed:', fallbackError);
+        }
+      }
+
+      // Create marker cluster group or fallback to layer group
+      try {
+        console.log('🔧 Creating marker cluster group');
+        console.log('L.markerClusterGroup available:', !!(L as any).markerClusterGroup);
+        
+        if ((L as any).markerClusterGroup) {
+          this.markers = new (L as any).markerClusterGroup({
+            maxClusterRadius: 80, // Increase radius for better clustering
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            disableClusteringAtZoom: 16, // Disable clustering at zoom 16 and above (close zoom)
+            removeOutsideVisibleBounds: false,
+            animate: true,
+            animateAddingMarkers: true,
+            chunkedLoading: true
+          });
+          console.log('✅ Marker cluster group created successfully:', this.markers);
+          console.log('Marker cluster group type:', this.markers.constructor.name);
+        } else {
+          // Try alternative import method
+          console.log('🔄 Trying alternative cluster creation method');
+          const markerClusterModule = await import('leaflet.markercluster');
+          this.markers = new (markerClusterModule as any).default({
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
           zoomToBoundsOnClick: true
         });
-        console.log('Marker cluster group created via alternative method:', this.markers);
+          console.log('✅ Marker cluster group created via alternative method:', this.markers);
+        }
+      } catch (error) {
+        console.error('❌ Error creating marker cluster group:', error);
+        console.log('🔄 Falling back to layer group');
+        this.markers = L.layerGroup();
       }
+
+      this.map.addLayer(this.markers);
+      console.log('✅ Marker layer added to map');
+
+      // Add event listeners to save map state and handle clustering
+      this.map.on('moveend', () => this.saveMapState());
+      this.map.on('zoomend', () => {
+        this.saveMapState();
+        this.handleZoomLevelChange();
+      });
+
+      // Map is now ready for markers
+      console.log('🎉 Map initialization completed successfully');
+      
     } catch (error) {
-      console.error('Error creating marker cluster group:', error);
-      console.log('Falling back to layer group');
-      this.markers = L.layerGroup();
+      console.error('❌ Critical error during map initialization:', error);
+      // Show user-friendly error message
+      this.showMapError('Failed to initialize map. Please refresh the page.');
     }
+  }
 
-    this.map.addLayer(this.markers);
-
-    // Add event listeners to save map state and handle clustering
-    this.map.on('moveend', () => this.saveMapState());
-    this.map.on('zoomend', () => {
-      this.saveMapState();
-      this.handleZoomLevelChange();
-    });
-
-    // Map is now ready for markers
-    console.log('Map initialized and ready');
+  private showMapError(message: string): void {
+    console.error('🗺️ Map Error:', message);
+    // You can implement a user-friendly error display here
+    // For now, we'll just log it
   }
 
   private async updateMapMarkers(): Promise<void> {

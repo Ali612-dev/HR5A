@@ -132,9 +132,9 @@ export class AdminDashboardComponent implements OnInit {
     this.statsError = null;
     this.dashboardService.getDashboardStats().pipe(
       catchError(err => {
-        this.statsError = 'Failed to load dashboard statistics.';
+        this.statsError = this.translate.instant('ERROR.FAILED_TO_LOAD_DASHBOARD_STATISTICS');
         console.error('Error fetching dashboard stats:', err);
-        return of({ isSuccess: false, data: null, message: 'Error', errors: [err] });
+        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
       })
     ).subscribe(response => {
       if (response.isSuccess && response.data) {
@@ -143,7 +143,7 @@ export class AdminDashboardComponent implements OnInit {
         this.pendingCount = data.pendingRequestsCount;
         this.approvedCount = data.approvedRequestsCount;
       } else if (!this.statsError) { // Only set if not already set by catchError
-        this.statsError = response.message || 'Unknown error fetching dashboard statistics.';
+        this.statsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_DASHBOARD_STATISTICS');
       }
       this.isLoadingStats = false;
     });
@@ -153,15 +153,15 @@ export class AdminDashboardComponent implements OnInit {
     this.pendingRequestsError = null;
     this.requestService.getRequests({ status: RequestStatus.Pending, pageNumber: 1, pageSize: 10 }).pipe(
       catchError(err => {
-        this.pendingRequestsError = 'Failed to load pending requests.';
+        this.pendingRequestsError = this.translate.instant('ERROR.FAILED_TO_LOAD_PENDING_REQUESTS');
         console.error('Error fetching pending requests:', err);
-        return of({ isSuccess: false, data: null, message: 'Error', errors: [err] });
+        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
       })
     ).subscribe(response => {
       if (response.isSuccess && response.data) {
         this.pendingRequests = response.data.requests;
       } else if (!this.pendingRequestsError) { // Only set if not already set by catchError
-        this.pendingRequestsError = response.message || 'Unknown error fetching pending requests.';
+        this.pendingRequestsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_PENDING_REQUESTS');
       }
       this.isLoadingPendingRequests = false;
     });
@@ -171,15 +171,15 @@ export class AdminDashboardComponent implements OnInit {
     this.approvedRequestsError = null;
     this.requestService.getLatestApprovedRequests(RequestStatus.Approved).pipe(
       catchError(err => {
-        this.approvedRequestsError = 'Failed to load approved requests.';
+        this.approvedRequestsError = this.translate.instant('ERROR.FAILED_TO_LOAD_APPROVED_REQUESTS');
         console.error('Error fetching approved requests:', err);
-        return of({ isSuccess: false, data: null, message: 'Error', errors: [err] });
+        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
       })
     ).subscribe(response => {
       if (response.isSuccess && response.data) {
         this.recentApprovals = (response.data as LatestRequestsResponseData).requests;
       } else if (!this.approvedRequestsError) { // Only set if not already set by catchError
-        this.approvedRequestsError = response.message || 'Unknown error fetching approved requests.';
+        this.approvedRequestsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_APPROVED_REQUESTS');
       }
       this.isLoadingApprovedRequests = false;
     });

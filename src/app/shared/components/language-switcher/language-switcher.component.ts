@@ -99,6 +99,12 @@ export class LanguageSwitcherComponent implements OnInit {
       const directCheck = localStorage.getItem('selectedLanguage');
       console.log('🌐 LanguageSwitcher: Direct localStorage check:', directCheck);
     }
+    
+    // Listen for language changes from the translate service
+    this.translate.onLangChange.subscribe(event => {
+      console.log('🌐 LanguageSwitcher: Language change detected:', event.lang);
+      this.currentLang = event.lang;
+    });
   }
 
   toggleDropdown(): void {
@@ -106,10 +112,27 @@ export class LanguageSwitcherComponent implements OnInit {
   }
 
   selectLanguage(lang: string): void {
+    console.log('🌐 LanguageSwitcher: User selected language:', lang);
+    
+    // Test translation loading first
+    this.languageService.testTranslationLoading(lang);
+    
     // Use language service to change and persist language
     this.languageService.changeLanguage(lang);
+    
+    // Update local state immediately for UI responsiveness
     this.currentLang = lang;
     this.langChange.emit(lang);
     this.isOpen = false;
+    
+    // Verify the change after a short delay
+    setTimeout(() => {
+      const actualLang = this.languageService.getCurrentLanguage();
+      console.log('🌐 LanguageSwitcher: Language after change:', actualLang);
+      if (actualLang !== lang) {
+        console.warn('🌐 LanguageSwitcher: Language mismatch! Expected:', lang, 'Got:', actualLang);
+        this.currentLang = actualLang;
+      }
+    }, 100);
   }
 }

@@ -50,16 +50,16 @@ export class ApprovedRequestsComponent implements OnInit {
       pageSize: 50 
     }).pipe(
       catchError(err => {
-        this.error = 'Failed to load approved requests.';
+        this.error = this.translate.instant('ERROR.FAILED_TO_LOAD_APPROVED_REQUESTS');
         console.error('Error fetching approved requests:', err);
-        return of({ isSuccess: false, data: null, message: 'Error', errors: [err] });
+        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
       })
     ).subscribe(response => {
       if (response.isSuccess && response.data) {
         this.approvedRequests = response.data.requests;
         this.totalCount = response.data.totalCount;
       } else if (!this.error) {
-        this.error = response.message || 'Unknown error fetching approved requests.';
+        this.error = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_APPROVED_REQUESTS');
       }
       this.isLoading = false;
     });

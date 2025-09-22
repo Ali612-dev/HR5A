@@ -57,16 +57,16 @@ export class PendingRequestsComponent implements OnInit {
       pageSize: 50 
     }).pipe(
       catchError(err => {
-        this.error = 'Failed to load pending requests.';
+        this.error = this.translate.instant('ERROR.FAILED_TO_LOAD_PENDING_REQUESTS');
         console.error('Error fetching pending requests:', err);
-        return of({ isSuccess: false, data: null, message: 'Error', errors: [err] });
+        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
       })
     ).subscribe(response => {
       if (response.isSuccess && response.data) {
         this.pendingRequests = response.data.requests;
         this.totalCount = response.data.totalCount;
       } else if (!this.error) {
-        this.error = response.message || 'Unknown error fetching pending requests.';
+        this.error = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_PENDING_REQUESTS');
       }
       this.isLoading = false;
     });
@@ -97,7 +97,7 @@ export class PendingRequestsComponent implements OnInit {
             isSuccess: false
           }
         });
-        return of({ isSuccess: false, data: null, message: 'Error', errors: [err] });
+        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
       })
     ).subscribe(response => {
       loadingDialog.close();

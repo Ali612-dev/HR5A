@@ -34,6 +34,8 @@ export class AuthService {
 
   register(request: RegisterRequest): Observable<ApiResponse<any>> {
     const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
+    console.log('🔗 AuthService: Register endpoint URL:', url);
+    console.log('🔗 AuthService: Register request data:', request);
     return this.http.post<ApiResponse<any>>(url, request);
   }
 

@@ -31,8 +31,16 @@ export class LanguageService {
     
     if (savedLanguage) {
       console.log('🌐 LanguageService: Restoring saved language:', savedLanguage);
-      this.translate.use(savedLanguage);
-      console.log('🌐 LanguageService: Language set to:', savedLanguage);
+      this.translate.use(savedLanguage).subscribe({
+        next: () => {
+          console.log('🌐 LanguageService: Language successfully restored to:', savedLanguage);
+        },
+        error: (error) => {
+          console.error('🌐 LanguageService: Error restoring saved language:', error);
+          console.log('🌐 LanguageService: Falling back to default language');
+          this.translate.use(this.DEFAULT_LANGUAGE);
+        }
+      });
     } else {
       console.log('🌐 LanguageService: No saved language found, using default:', this.DEFAULT_LANGUAGE);
       this.translate.use(this.DEFAULT_LANGUAGE);
@@ -54,8 +62,34 @@ export class LanguageService {
     }
 
     console.log('🌐 LanguageService: Changing language to:', language);
-    this.translate.use(language);
+    console.log('🌐 LanguageService: Available languages:', this.AVAILABLE_LANGUAGES);
+    
+    // Save to localStorage first
     this.saveLanguage(language);
+    
+    // Then update the translate service
+    this.translate.use(language).subscribe({
+      next: () => {
+        console.log('🌐 LanguageService: Language successfully changed to:', language);
+        console.log('🌐 LanguageService: Current language after change:', this.translate.currentLang);
+        
+        // Double-check that the language was actually set
+        if (this.translate.currentLang !== language) {
+          console.error('🌐 LanguageService: Language mismatch! Expected:', language, 'Got:', this.translate.currentLang);
+          // Force the language again
+          this.translate.use(language);
+        }
+      },
+      error: (error) => {
+        console.error('🌐 LanguageService: Error changing language:', error);
+        console.error('🌐 LanguageService: Error details:', error);
+        
+        // If there's an error, try to fallback to English
+        console.log('🌐 LanguageService: Falling back to English due to error');
+        this.translate.use('en');
+        this.saveLanguage('en');
+      }
+    });
   }
 
   /**
@@ -121,5 +155,26 @@ export class LanguageService {
    */
   isLanguageSupported(language: string): boolean {
     return this.AVAILABLE_LANGUAGES.includes(language);
+  }
+
+  /**
+   * Test if a translation file can be loaded
+   */
+  testTranslationLoading(language: string): void {
+    console.log('🌐 LanguageService: Testing translation loading for:', language);
+    
+    // Use the translate service to test loading
+    this.translate.use(language).subscribe({
+      next: () => {
+        console.log('🌐 LanguageService: Successfully loaded translations for:', language);
+        // Test a simple translation to verify it's working
+        const testTranslation = this.translate.instant('NAV.HOME');
+        console.log('🌐 LanguageService: Test translation (NAV.HOME):', testTranslation);
+      },
+      error: (error: any) => {
+        console.error('🌐 LanguageService: Failed to load translations for:', language);
+        console.error('🌐 LanguageService: Error details:', error);
+      }
+    });
   }
 }

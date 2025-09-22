@@ -13,6 +13,7 @@ import { tap } from 'rxjs/operators';
 import { LanguageService } from './shared/services/language.service';
 
 export function HttpLoaderFactory(http: HttpClient) {
+  console.log('🌐 HttpLoaderFactory: Creating translation loader for /locale/');
   return new TranslateHttpLoader(http, '/locale/', '.json');
 }
 
@@ -46,11 +47,29 @@ function appInitializer(languageService: LanguageService, translate: TranslateSe
       translate.use(currentLanguage).subscribe({
         next: () => {
           console.log('🌐 App Initializer: TranslateService successfully loaded language:', currentLanguage);
+          console.log('🌐 App Initializer: Final current language:', translate.currentLang);
           resolveOnce();
         },
         error: (err) => {
           console.error('🌐 App Initializer: TranslateService error:', err);
-          resolveOnce(); // Continue even if translations fail
+          console.error('🌐 App Initializer: Error details:', err);
+          
+          // If there's an error loading the language, fallback to English
+          if (currentLanguage !== 'en') {
+            console.log('🌐 App Initializer: Falling back to English due to error');
+            translate.use('en').subscribe({
+              next: () => {
+                console.log('🌐 App Initializer: Fallback to English successful');
+                resolveOnce();
+              },
+              error: (fallbackErr) => {
+                console.error('🌐 App Initializer: Even English fallback failed:', fallbackErr);
+                resolveOnce();
+              }
+            });
+          } else {
+            resolveOnce(); // Continue even if translations fail
+          }
         }
       });
       

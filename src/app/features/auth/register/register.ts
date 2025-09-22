@@ -37,24 +37,40 @@ export class RegisterComponent implements OnInit {
       email: ['', [Validators.email]],
       department: ['']
     });
+    
+    // Log current language for debugging
+    console.log('Registration: Current language:', this.translate.currentLang);
+    console.log('Registration: Default language:', this.translate.defaultLang);
   }
 
   onSubmit(): void {
     if (this.registerForm.valid) {
       const registerRequest: RegisterRequest = this.registerForm.value;
 
-      // Show loading dialog
-      this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
-        panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
-        data: {
-          title: this.translate.instant('LOADING.TITLE'),
-          message: this.translate.instant('LOADING.REGISTER_EMPLOYEE'),
-          isSuccess: true // Use true for loading state to show spinner if implemented
-        },
-        disableClose: true // Prevent closing by clicking outside
-      });
+      // Ensure translations are loaded before showing dialog
+      this.translate.get(['LOADING.TITLE', 'LOADING.REGISTER_EMPLOYEE']).subscribe(translations => {
+        const loadingTitle = translations['LOADING.TITLE'];
+        const loadingMessage = translations['LOADING.REGISTER_EMPLOYEE'];
+        
+        console.log('Registration: Loading dialog translations:', { loadingTitle, loadingMessage });
 
-      this.authService.register(registerRequest).subscribe({
+        // Show loading dialog
+        this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
+          panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+          data: {
+            title: loadingTitle,
+            message: loadingMessage,
+            isSuccess: true // Use true for loading state to show spinner if implemented
+          },
+          disableClose: true // Prevent closing by clicking outside
+        });
+
+        // Log the current language before making API call
+        console.log('Registration: Current language before API call:', this.translate.currentLang);
+        console.log('Registration: Register request data:', registerRequest);
+        
+        // Make API call after dialog is shown
+        this.authService.register(registerRequest).subscribe({
         next: (response) => {
           // Close loading dialog
           if (this.loadingDialogRef) {
@@ -62,24 +78,38 @@ export class RegisterComponent implements OnInit {
           }
 
           if (response.isSuccess) {
-            this.dialog.open(NotificationDialogComponent, {
-              panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
-              data: {
-                title: this.translate.instant('SUCCESS.TITLE'),
-                message: this.translate.instant('SUCCESS.REGISTER_EMPLOYEE'),
-                isSuccess: true
-              }
+            this.translate.get(['SUCCESS.TITLE', 'SUCCESS.REGISTER_EMPLOYEE']).subscribe(translations => {
+              const successTitle = translations['SUCCESS.TITLE'];
+              const successMessage = translations['SUCCESS.REGISTER_EMPLOYEE'];
+              
+              console.log('Registration: Success dialog translations:', { successTitle, successMessage });
+              
+              this.dialog.open(NotificationDialogComponent, {
+                panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+                data: {
+                  title: successTitle,
+                  message: successMessage,
+                  isSuccess: true
+                }
+              });
             });
             
           } else {
-                      this.dialog.open(NotificationDialogComponent, {
-            panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
-            data: {
-              title: this.translate.instant('ERROR.TITLE'),
-              message: response.message || this.translate.instant('ERROR.REGISTER_EMPLOYEE_FAILED'),
-              isSuccess: false
-            }
-          });
+            this.translate.get(['ERROR.TITLE', 'ERROR.REGISTER_EMPLOYEE_FAILED']).subscribe(translations => {
+              const errorTitle = translations['ERROR.TITLE'];
+              const errorMessage = response.message || translations['ERROR.REGISTER_EMPLOYEE_FAILED'];
+              
+              console.log('Registration: Error dialog translations:', { errorTitle, errorMessage });
+              
+              this.dialog.open(NotificationDialogComponent, {
+                panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+                data: {
+                  title: errorTitle,
+                  message: errorMessage,
+                  isSuccess: false
+                }
+              });
+            });
           }
         },
         error: (error: HttpErrorResponse) => {
@@ -88,28 +118,38 @@ export class RegisterComponent implements OnInit {
             this.loadingDialogRef.close();
           }
 
-          let errorMessage = this.translate.instant('ERROR.REGISTER_EMPLOYEE_ERROR');
+          this.translate.get(['ERROR.TITLE', 'ERROR.REGISTER_EMPLOYEE_ERROR', 'ERROR.SERVER_ERROR']).subscribe(translations => {
+            let errorMessage = translations['ERROR.REGISTER_EMPLOYEE_ERROR'];
 
-          if (error.status === 500) {
-            errorMessage = this.translate.instant('ERROR.SERVER_ERROR');
-          } else if (error.error?.message) {
-            errorMessage = error.error.message;
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
-
-          this.dialog.open(NotificationDialogComponent, {
-            panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
-            data: {
-              title: this.translate.instant('ERROR.TITLE'),
-              message: errorMessage,
-              isSuccess: false
+            if (error.status === 500) {
+              errorMessage = translations['ERROR.SERVER_ERROR'];
+            } else if (error.error?.message) {
+              errorMessage = error.error.message;
+            } else if (error.message) {
+              errorMessage = error.message;
             }
+
+            const errorTitle = translations['ERROR.TITLE'];
+            
+            console.log('Registration: Error handler dialog translations:', { errorTitle, errorMessage });
+
+            this.dialog.open(NotificationDialogComponent, {
+              panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+              data: {
+                title: errorTitle,
+                message: errorMessage,
+                isSuccess: false
+              }
+            });
           });
         }
+        });
       });
     } else {
-      alert(this.translate.instant('PleaseFillAllRequiredFields'));
+      this.translate.get('PleaseFillAllRequiredFields').subscribe(validationMessage => {
+        console.log('Registration: Validation error message:', validationMessage);
+        alert(validationMessage);
+      });
     }
   }
 }

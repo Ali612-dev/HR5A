@@ -125,8 +125,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     // Restore saved state from localStorage
     const savedState = this.getSavedAttendanceState();
     
+    // Get current date as default
+    const currentDate = new Date().toISOString().split('T')[0];
+    console.log('📅 Attendance: Current date set to:', currentDate);
+    
     this.filterForm = this.fb.group({
-      date: [savedState.date || this.store.request().date || null],
+      date: [savedState.date || this.store.request().date || currentDate],
       employeeName: [savedState.employeeName || '']
     });
 
@@ -144,7 +148,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.store.loadDailyAttendances();
+    // Update store with current date if not already set
+    if (!this.store.request().date) {
+      this.store.updateRequest({ date: currentDate });
+    } else {
+      this.store.loadDailyAttendances();
+    }
 
     this.filterForm.get('employeeName')?.valueChanges.pipe(
       debounceTime(300), // Wait for 300ms after the last keystroke
