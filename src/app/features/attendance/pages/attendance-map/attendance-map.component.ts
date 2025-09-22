@@ -231,8 +231,8 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
 
       // Initialize the map with saved state or default coordinates
       const savedState = this.getSavedMapState();
-      // Use much higher zoom level for mobile devices (much closer view)
-      const defaultZoom = this.isMobile ? 16 : 10;
+      // Use appropriate zoom level - closer for mobile, wider for desktop
+      const defaultZoom = this.isMobile ? 14 : 8;
       const initialView = savedState || [31.7683, 35.2137, defaultZoom];
       
       console.log('🗺️ Initializing map with view:', initialView);
@@ -447,28 +447,65 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     // Clear existing markers from cluster group
     this.markers.clearLayers();
 
-    // Create custom icons for check-in (green) and check-out (red)
-    const checkInIcon = L.icon({
-      iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-        <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
-          <path fill="#4CAF50" d="M12.5 0C5.596 0 0 5.596 0 12.5c0 12.5 12.5 28.5 12.5 28.5s12.5-16 12.5-28.5C25 5.596 19.404 0 12.5 0zm0 17c-2.485 0-4.5-2.015-4.5-4.5s2.015-4.5 4.5-4.5 4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5z"/>
-        </svg>
-      `),
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: this.isMobile ? [0, -20] : [1, -34]
-    });
+    // Check if L.icon is available (Vercel compatibility)
+    let checkInIcon: any;
+    let checkOutIcon: any;
+    let mixedAttendanceIcon: any;
+    
+    if (!L.icon || typeof L.icon !== 'function') {
+      console.error('❌ L.icon is not available, using default markers');
+      // Use default markers as fallback
+      checkInIcon = L.Icon.Default;
+      checkOutIcon = L.Icon.Default;
+      mixedAttendanceIcon = L.Icon.Default;
+    } else {
+      console.log('✅ L.icon is available, creating custom icons');
+      
+      try {
+        // Create custom icons for check-in (green) and check-out (red)
+        checkInIcon = L.icon({
+          iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#4CAF50" d="M12.5 0C5.596 0 0 5.596 0 12.5c0 12.5 12.5 28.5 12.5 28.5s12.5-16 12.5-28.5C25 5.596 19.404 0 12.5 0zm0 17c-2.485 0-4.5-2.015-4.5-4.5s2.015-4.5 4.5-4.5 4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5z"/>
+            </svg>
+          `),
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: this.isMobile ? [0, -20] : [1, -34]
+        });
 
-    const checkOutIcon = L.icon({
-      iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-        <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
-          <path fill="#f44336" d="M12.5 0C5.596 0 0 5.596 0 12.5c0 12.5 12.5 28.5 12.5 28.5s12.5-16 12.5-28.5C25 5.596 19.404 0 12.5 0zm0 17c-2.485 0-4.5-2.015-4.5-4.5s2.015-4.5 4.5-4.5 4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5z"/>
-        </svg>
-      `),
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: this.isMobile ? [0, -20] : [1, -34]
-    });
+        checkOutIcon = L.icon({
+          iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#f44336" d="M12.5 0C5.596 0 0 5.596 0 12.5c0 12.5 12.5 28.5 12.5 28.5s12.5-16 12.5-28.5C25 5.596 19.404 0 12.5 0zm0 17c-2.485 0-4.5-2.015-4.5-4.5s2.015-4.5 4.5-4.5 4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5z"/>
+            </svg>
+          `),
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: this.isMobile ? [0, -20] : [1, -34]
+        });
+
+        // Create custom icon for mixed attendance (purple)
+        mixedAttendanceIcon = L.icon({
+          iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#9C27B0" d="M12.5 0C5.596 0 0 5.596 0 12.5c0 12.5 12.5 28.5 12.5 28.5s12.5-16 12.5-28.5C25 5.596 19.404 0 12.5 0zm0 17c-2.485 0-4.5-2.015-4.5-4.5s2.015-4.5 4.5-4.5 4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5z"/>
+            </svg>
+          `),
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: this.isMobile ? [0, -20] : [1, -34]
+        });
+        
+        console.log('✅ Custom icons created successfully');
+      } catch (iconError) {
+        console.error('❌ Failed to create custom icons:', iconError);
+        console.log('🔄 Falling back to default icons');
+        checkInIcon = L.Icon.Default;
+        checkOutIcon = L.Icon.Default;
+        mixedAttendanceIcon = L.Icon.Default;
+      }
+    }
 
     const bounds = L.latLngBounds([]);
     let hasValidPoints = false;
@@ -477,18 +514,6 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     const popupWidth = this.isMobile ? '120px' : '200px';
     const fontSize = this.isMobile ? '0.7rem' : '1rem';
     const titleFontSize = this.isMobile ? '0.8rem' : '1.1rem';
-
-    // Create custom icon for mixed attendance (purple)
-    const mixedAttendanceIcon = L.icon({
-      iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-        <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
-          <path fill="#9C27B0" d="M12.5 0C5.596 0 0 5.596 0 12.5c0 12.5 12.5 28.5 12.5 28.5s12.5-16 12.5-28.5C25 5.596 19.404 0 12.5 0zm0 17c-2.485 0-4.5-2.015-4.5-4.5s2.015-4.5 4.5-4.5 4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5z"/>
-        </svg>
-      `),
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: this.isMobile ? [0, -20] : [1, -34]
-    });
 
     // Group attendance by location (latitude, longitude) only
     // This allows same employee to have multiple markers at different locations
