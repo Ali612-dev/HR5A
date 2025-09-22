@@ -88,7 +88,9 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     const isVercel = window.location.hostname.includes('vercel.app');
     console.log('🌐 Environment check - Vercel:', isVercel, 'Hostname:', window.location.hostname);
     
-    this.initializeMap().then(() => {
+    // Add a small delay to ensure DOM is fully ready (important for Vercel)
+    setTimeout(() => {
+      this.initializeMap().then(() => {
       console.log('🗺️ Map initialization promise resolved');
       // After map is initialized, load the attendance data
       this.route.queryParams.subscribe(params => {
@@ -119,10 +121,11 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         console.log('No snapshot params, loading today\'s data:', today);
         this.getAttendanceData(undefined, today);
       }
-    }).catch((error) => {
-      console.error('❌ Map initialization failed:', error);
-      this.showMapError('Failed to initialize map. Please check your internet connection and refresh the page.');
-    });
+      }).catch((error) => {
+        console.error('❌ Map initialization failed:', error);
+        this.showMapError('Failed to initialize map. Please check your internet connection and refresh the page.');
+      });
+    }, 100); // Small delay to ensure DOM is ready
   }
 
   private async initializeMap(): Promise<void> {
@@ -132,9 +135,37 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       // Ensure Leaflet CSS is loaded (critical for Vercel)
       this.ensureLeafletCSS();
       
-      // Import Leaflet and marker cluster dynamically
-      const L = await import('leaflet');
-      console.log('✅ Leaflet imported successfully:', L);
+      // Import Leaflet and marker cluster dynamically (Vercel-safe approach)
+      let L: any;
+      try {
+        const leafletModule = await import('leaflet');
+        L = leafletModule.default || leafletModule;
+        console.log('✅ Leaflet imported successfully:', L);
+        console.log('Leaflet type:', typeof L);
+        console.log('Leaflet has map method:', typeof L.map);
+        
+        // Validate that L has the required methods
+        if (!L || typeof L.map !== 'function') {
+          throw new Error('Leaflet import is invalid - missing map method');
+        }
+      } catch (leafletError) {
+        console.error('❌ Failed to import Leaflet from module:', leafletError);
+        console.log('🔄 Falling back to CDN loading...');
+        
+        // Try loading from CDN as fallback
+        try {
+          L = await this.loadLeafletFromCDN();
+          console.log('✅ Leaflet loaded from CDN:', L);
+          console.log('Leaflet has map method:', typeof L.map);
+          
+          if (!L || typeof L.map !== 'function') {
+            throw new Error('Leaflet from CDN is invalid - missing map method');
+          }
+        } catch (cdnError) {
+          console.error('❌ Failed to load Leaflet from CDN:', cdnError);
+          throw new Error('Leaflet library could not be loaded from any source');
+        }
+      }
       
       // Import marker cluster with error handling
       try {
@@ -348,6 +379,50 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     document.head.appendChild(clusterDefaultCSS);
     
     console.log('✅ Leaflet CSS files loaded dynamically for Vercel compatibility');
+  }
+
+  private async loadLeafletFromCDN(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // Check if Leaflet is already loaded
+      if ((window as any).L) {
+        console.log('✅ Leaflet already available on window');
+        resolve((window as any).L);
+        return;
+      }
+
+      // Load Leaflet JS from CDN
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+      script.crossOrigin = 'anonymous';
+      
+      script.onload = () => {
+        console.log('✅ Leaflet loaded from CDN');
+        // Load marker cluster plugin
+        const clusterScript = document.createElement('script');
+        clusterScript.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+        clusterScript.crossOrigin = 'anonymous';
+        
+        clusterScript.onload = () => {
+          console.log('✅ Leaflet marker cluster loaded from CDN');
+          resolve((window as any).L);
+        };
+        
+        clusterScript.onerror = () => {
+          console.warn('⚠️ Failed to load marker cluster from CDN, continuing without clustering');
+          resolve((window as any).L);
+        };
+        
+        document.head.appendChild(clusterScript);
+      };
+      
+      script.onerror = () => {
+        console.error('❌ Failed to load Leaflet from CDN');
+        reject(new Error('Failed to load Leaflet from CDN'));
+      };
+      
+      document.head.appendChild(script);
+    });
   }
 
   private async updateMapMarkers(): Promise<void> {
