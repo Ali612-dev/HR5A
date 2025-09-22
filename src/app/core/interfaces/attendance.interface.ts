@@ -1,5 +1,5 @@
 export interface AddAttendanceDto {
-  employeeId: number;
+  phoneNumber: string;
   date: string; // ISO date string
   timeIn?: string; // ISO datetime string
   timeOut?: string; // ISO datetime string
@@ -29,6 +29,11 @@ export interface AttendanceViewModel {
   time: string; // TimeSpan as string
   status?: string;
   attType: number;
+  checkInLat?: number;
+  checkInLng?: number;
+  checkOutLat?: number;
+  checkOutLng?: number;
+  department?: string;
 }
 
 export interface GetDailyAttendanceDto {

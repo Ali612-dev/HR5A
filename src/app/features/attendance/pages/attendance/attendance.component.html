@@ -5,16 +5,23 @@
       <h2 class="page-title">{{ 'DailyAttendance' | translate }}</h2>
       <div class="header-actions">
         <button class="btn btn-secondary" routerLink="/attendance/add">
-          <fa-icon [icon]="faPlus" class="me-1"></fa-icon> {{ 'AddAttendance' | translate }}
+          <fa-icon [icon]="faPlus" class="me-1"></fa-icon> 
+          <span class="desktop-text">{{ 'AddAttendance' | translate }}</span>
+          <span class="mobile-text">{{ 'AddAttendance' | translate }}</span>
         </button>
         <button class="btn btn-secondary" (click)="toggleFilter()">
           <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
         </button>
+        <button class="btn btn-secondary" (click)="onViewAllOnMap()">
+          <fa-icon [icon]="faMapMarkerAlt" class="me-1"></fa-icon> 
+          <span class="desktop-text">{{ 'ViewAllOnMap' | translate }}</span>
+          <span class="mobile-text">{{ 'ViewAllOnMap' | translate }}</span>
+        </button>
       </div>
     </div>
 
-    <!-- Filtering -->
-    <div *ngIf="!isFilterCollapsed" class="glass-card filter-card">
+    <!-- Desktop Filtering -->
+    <div *ngIf="!isFilterCollapsed && !isMobile" class="glass-card filter-card">
       <h5 class="mb-2">{{ 'Filters' | translate }}</h5>
       <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="filters-container">
         <input type="date" class="form-control" formControlName="date" [placeholder]="'Date' | translate">
@@ -38,5 +45,49 @@
       (delete)="onDelete($event)"
       (retry)="onRetryLoadAttendances()">
     </app-responsive-attendance-table>
+  </div>
+
+  <!-- Mobile Bottom Sheet Filter -->
+  <div *ngIf="isMobile" class="mobile-bottom-sheet" [class.open]="!isFilterCollapsed">
+    <!-- Backdrop -->
+    <div class="bottom-sheet-backdrop" (click)="closeMobileFilter()"></div>
+    
+    <!-- Bottom Sheet Content -->
+    <div class="bottom-sheet-content">
+      <!-- Handle Bar -->
+      <div class="bottom-sheet-handle" (click)="toggleFilter()"></div>
+      
+      <!-- Filter Header -->
+      <div class="bottom-sheet-header">
+        <h5>{{ 'Filters' | translate }}</h5>
+        <button class="btn-close" (click)="closeMobileFilter()">
+          <fa-icon [icon]="faFilter"></fa-icon>
+        </button>
+      </div>
+      
+      <!-- Filter Form -->
+      <div class="bottom-sheet-body">
+        <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="mobile-filters-form">
+          <div class="form-group">
+            <label>{{ 'Date' | translate }}</label>
+            <input type="date" class="form-control" formControlName="date" [placeholder]="'Date' | translate">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'EmployeeName' | translate }}</label>
+            <input type="text" class="form-control" formControlName="employeeName" [placeholder]="'EmployeeName' | translate">
+          </div>
+          
+          <div class="mobile-filter-buttons">
+            <button type="submit" class="btn btn-primary btn-full">
+              {{ 'ApplyFilters' | translate }}
+            </button>
+            <button type="button" class="btn btn-secondary btn-full" (click)="onResetFilters()">
+              {{ 'Reset' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </div>

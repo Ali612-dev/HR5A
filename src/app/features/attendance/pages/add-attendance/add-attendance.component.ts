@@ -11,9 +11,25 @@ declare module '@angular/forms' {
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faSave, 
+  faTimes, 
+  faCalendarPlus, 
+  faArrowLeft, 
+  faUser, 
+  faSearch, 
+  faClock, 
+  faCalendarAlt, 
+  faSignInAlt, 
+  faSignOutAlt, 
+  faInfoCircle, 
+  faMapMarkerAlt, 
+  faCheckCircle, 
+  faList, 
+  faExclamationTriangle, 
+  faSpinner 
+} from '@fortawesome/free-solid-svg-icons';
 import { AddAttendanceStore } from '../../../../store/add-attendance.store';
-import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
 import { CustomDropdownComponent } from '../../../../shared/components/custom-dropdown/custom-dropdown.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
@@ -30,7 +46,6 @@ import { EmployeeDto } from '../../../../core/interfaces/employee.interface';
     ReactiveFormsModule,
     TranslateModule,
     FontAwesomeModule,
-    ShimmerComponent,
     CustomDropdownComponent
   ],
   providers: [TranslateService],
@@ -44,10 +59,26 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
   employeeSearchTerm = new FormControl('', [Validators.required]);
   suggestions: EmployeeDto[] = [];
   selectedEmployeeId: number | null = null;
+  selectedEmployeePhone: string | null = null;
   attTypeOptions: { value: number | null; label: string }[] = [];
 
+  // FontAwesome Icons
   faSave = faSave;
   faTimes = faTimes;
+  faCalendarPlus = faCalendarPlus;
+  faArrowLeft = faArrowLeft;
+  faUser = faUser;
+  faSearch = faSearch;
+  faClock = faClock;
+  faCalendarAlt = faCalendarAlt;
+  faSignInAlt = faSignInAlt;
+  faSignOutAlt = faSignOutAlt;
+  faInfoCircle = faInfoCircle;
+  faMapMarkerAlt = faMapMarkerAlt;
+  faCheckCircle = faCheckCircle;
+  faList = faList;
+  faExclamationTriangle = faExclamationTriangle;
+  faSpinner = faSpinner;
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -99,11 +130,14 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
           });
           this.store.resetState();
         } else if (this.store.error()) {
+          const errorMessage = this.store.error()!;
+          const translatedMessage = this.translate.instant(errorMessage);
+          
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
             data: {
               title: this.translate.instant('ERROR.TITLE'),
-              message: this.store.error(),
+              message: translatedMessage !== errorMessage ? translatedMessage : errorMessage,
               isSuccess: false
             }
           });
@@ -137,7 +171,7 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
     this.employeeSearchTerm = new FormControl('', [Validators.required]);
 
     this.attendanceForm = this.fb.group({
-      employeeId: [null, Validators.required],
+      phoneNumber: ['', Validators.required],
       date: [new Date().toISOString().split('T')[0], Validators.required],
       timeIn: [null],
       timeOut: [null],
@@ -164,8 +198,9 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
         } else {
           this.suggestions = []; // Clear suggestions if term is too short or empty
           this.selectedEmployeeId = null; // Reset selected employee if search term changes
-          this.attendanceForm.get('employeeId')?.setValue(null); // Clear employeeId in form
-          this.attendanceForm.get('employeeId')?.updateValueAndValidity(); // Re-validate employeeId
+          this.selectedEmployeePhone = null; // Reset selected employee phone
+          this.attendanceForm.get('phoneNumber')?.setValue(''); // Clear phoneNumber in form
+          this.attendanceForm.get('phoneNumber')?.updateValueAndValidity(); // Re-validate phoneNumber
           // If the term is empty, ensure required error is set
           if (!term || term.trim() === '') {
             this.employeeSearchTerm.setErrors({ required: true });
@@ -189,15 +224,15 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
           this.employeeSearchTerm.setErrors(null);
         }
       }
-      // Ensure employeeId control is updated and validated based on selectedEmployeeId
-      if (this.selectedEmployeeId) {
-        this.attendanceForm.get('employeeId')?.setValue(this.selectedEmployeeId);
-        this.attendanceForm.get('employeeId')?.setErrors(null);
+      // Ensure phoneNumber control is updated and validated based on selectedEmployeePhone
+      if (this.selectedEmployeePhone) {
+        this.attendanceForm.get('phoneNumber')?.setValue(this.selectedEmployeePhone);
+        this.attendanceForm.get('phoneNumber')?.setErrors(null);
       } else {
-        this.attendanceForm.get('employeeId')?.setValue(null);
-        this.attendanceForm.get('employeeId')?.setErrors({ required: true });
+        this.attendanceForm.get('phoneNumber')?.setValue('');
+        this.attendanceForm.get('phoneNumber')?.setErrors({ required: true });
       }
-      this.attendanceForm.get('employeeId')?.updateValueAndValidity();
+      this.attendanceForm.get('phoneNumber')?.updateValueAndValidity();
       this.cdr.detectChanges();
     });
 
@@ -238,7 +273,7 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
 
     const newAttendance: AddAttendanceDto = {
       ...formValue,
-      employeeId: this.selectedEmployeeId || 0, // Use selectedEmployeeId
+      phoneNumber: this.selectedEmployeePhone || '', // Use selectedEmployeePhone
       timeIn: timeInIso,
       timeOut: timeOutIso,
     };
@@ -266,7 +301,7 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
 
   private resetForm(): void {
     this.attendanceForm.reset({
-      employeeId: null,
+      phoneNumber: '',
       date: new Date().toISOString().split('T')[0],
       timeIn: null,
       timeOut: null,
@@ -282,14 +317,16 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
     this.employeeSearchTerm.reset();
     this.suggestions = [];
     this.selectedEmployeeId = null;
+    this.selectedEmployeePhone = null;
     this.initializeAttTypeOptions(); // Re-initialize options to reset selected value in custom dropdown
   }
 
   public selectEmployee(employee: EmployeeDto): void {
     if (employee && employee.id) {
       this.selectedEmployeeId = employee.id;
+      this.selectedEmployeePhone = employee.phone;
       this.attendanceForm.patchValue({
-        employeeId: employee.id
+        phoneNumber: employee.phone
       });
       // Set the value without emitting an event to prevent re-triggering the search
       this.employeeSearchTerm.setValue(employee.name, { emitEvent: false });
@@ -362,14 +399,14 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       if (searchControl.hasError('required')) {
         const errorKey = 'ERROR.EMPLOYEE_ID_REQUIRED';
         const translatedMessage = this.translate.instant(errorKey);
-        errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage('employeeId', 'required'));
+        errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage('phoneNumber', 'required'));
       }
 
       // Handle not found validation - only show if we've searched and got no results
       if (searchControl.hasError('employeeNotFound')) {
         const errorKey = 'ERROR.EMPLOYEE_NOT_FOUND';
         const translatedMessage = this.translate.instant(errorKey);
-        errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage('employeeId', 'employeeNotFound'));
+        errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage('phoneNumber', 'employeeNotFound'));
       }
 
       return errorMessages;
@@ -397,7 +434,7 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
   private getRequiredErrorKey(controlName: string): string {
     // Map of control names to their corresponding translation keys
     const fieldKeyMap: { [key: string]: string } = {
-      'employeeId': 'ERROR.EMPLOYEE_ID_REQUIRED',
+      'phoneNumber': 'ERROR.EMPLOYEE_ID_REQUIRED',
       'employeeSearchTerm': 'ERROR.EMPLOYEE_ID_REQUIRED',
       'date': 'ERROR.DATE_REQUIRED',
       'time': 'ERROR.TIME_REQUIRED',
@@ -441,8 +478,8 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
 
   private getDefaultErrorMessage(controlName: string, errorType: string): string {
     const defaultMessages: { [key: string]: { [key: string]: string } } = {
-      'employeeId': {
-        'required': 'Employee ID is required',
+      'phoneNumber': {
+        'required': 'Employee phone number is required',
         'employeeNotFound': 'Employee not found.'
       },
       'date': {

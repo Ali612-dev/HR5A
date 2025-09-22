@@ -1,0 +1,961 @@
+﻿// @model CustomAttendance.Models.ViewModels.AttendanceMapViewModel
+// @using Microsoft.AspNetCore.Mvc.Localization
+// @inject IViewLocalizer Localizer
+// @{
+//   ViewData["Title"] = Localizer["AttendanceMapTitle"];
+//   Layout = "_LayoutMinimal";
+//
+//   var date = Model.Filters.Date?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd");
+//   var employeeId = Model.Filters.EmployeeId?.ToString() ?? "";
+//   var department = Model.Filters.Department ?? "";
+// }
+//
+// <!DOCTYPE html>
+// <html lang="en">
+// <head>
+//   <meta charset="utf-8" />
+// <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+//   <title>@ViewData["Title"] - CustomAttendance</title>
+//   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+// <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+// <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+// <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+//   <style>
+//     #map {
+//   position: absolute;
+//   top: 0;
+//   bottom: 0;
+//   right: 0;
+//   left: 0;
+//   z-index: 1;
+// }
+//
+// /* Mobile-first styles */
+// #sidePanel {
+//   position: fixed;
+//   top: auto;
+//   bottom: 0;
+//   left: 0;
+//   right: 0;
+//   z-index: 1000;
+//   max-width: 100%;
+//   max-height: 85vh;
+//   overflow: auto;
+//   backdrop-filter: blur(10px);
+//   -webkit-backdrop-filter: blur(10px);
+//   border: 1px solid rgba(255, 255, 255, 0.1);
+//   box-shadow: 0 4px 16px rgba(31, 38, 135, 0.2);
+//   transition: all 0.3s ease;
+//   margin: 0 auto;
+//   -webkit-overflow-scrolling: touch;
+//   border-radius: 8px;
+//   background: rgba(255, 255, 255, 0.85);
+// }
+//
+// #sidePanel.expanded {
+//   max-height: 90vh;
+//   overflow-y: auto;
+// }
+//
+// /* Desktop styles */
+// @@media (min-width: 992px) {
+//   #sidePanel {
+//     position: absolute;
+//     top: 20px;
+//     left: 20px;
+//     right: auto;
+//     width: 350px;
+//     max-height: 90vh;
+//     margin: 0;
+//     overflow-y: auto;
+//   }
+//
+//   #sidePanel.expanded {
+//     max-height: 90vh;
+//   }
+// }
+//
+// @@media (min-width: 768px) {
+//   #sidePanel {
+//     position: absolute;
+//     top: 20px;
+//     left: 20px;
+//     right: auto;
+//     width: 320px;
+//     max-height: 90vh;
+//     margin: 0;
+//   }
+// }
+//
+// #sidePanel:hover {
+//   transform: translateY(-2px);
+//   box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.3);
+// }
+//
+// .glass-card {
+//   background: rgba(255, 255, 255, 0.8);
+//   border-radius: 12px;
+//   overflow: hidden;
+//   backdrop-filter: blur(10px);
+//   -webkit-backdrop-filter: blur(10px);
+//   border: 1px solid rgba(255, 255, 255, 0.9);
+//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+// }
+//
+// .filter-header {
+//   background: rgba(255, 255, 255, 0.9);
+//   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+//   transition: all 0.3s ease;
+// }
+//
+// .filter-header:hover {
+//   background: rgba(255, 255, 255, 0.95);
+// }
+//
+// .glass-body {
+//   padding: 1.5rem;
+// }
+//
+// .bg-glass {
+//   background: rgba(255, 255, 255, 0.1) !important;
+//   backdrop-filter: blur(5px);
+//   -webkit-backdrop-filter: blur(5px);
+//   color: white !important;
+// }
+//
+// .bg-glass::placeholder {
+//   color: rgba(255, 255, 255, 0.6) !important;
+// }
+//
+// .btn-primary {
+//   background: #0d6efd;
+//   border: none;
+//   padding: 0.5rem 1.5rem;
+//   border-radius: 6px;
+//   font-weight: 500;
+//   transition: all 0.2s ease;
+// }
+//
+// .btn-primary:hover {
+//   background: #0b5ed7;
+//   transform: translateY(-1px);
+//   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+// }
+//
+// .form-control, .form-select {
+//   background: #ffffff !important;
+//   border: 1px solid #dee2e6 !important;
+//   color: #212529 !important;
+//   border-radius: 6px !important;
+//   padding: 0.5rem 1rem !important;
+//   transition: all 0.2s ease;
+// }
+//
+// .form-control::placeholder {
+//   color: #6c757d !important;
+//   opacity: 0.7;
+// }
+//
+// .form-control:focus, .form-select:focus {
+//   border-color: #86b7fe !important;
+//   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
+//   color: #212529 !important;
+// }
+//
+// .form-label, label {
+//   color: #343a40 !important;
+//   font-weight: 500;
+//   margin-bottom: 0.4rem;
+// }
+//
+// .input-group-text {
+//   background: #f8f9fa !important;
+//   border: 1px solid #dee2e6 !important;
+//   color: #495057 !important;
+//   border-right: none !important;
+//   border-radius: 6px 0 0 6px !important;
+// }
+//
+// .input-group .form-control, .input-group .form-select {
+//   border-left: none !important;
+//   border-radius: 0 8px 8px 0 !important;
+// }
+//
+// h3 {
+//   color: white;
+//   font-weight: 600;
+//   margin-bottom: 1.5rem;
+//   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+// }
+//
+// label {
+//   font-weight: 500;
+//   margin-bottom: 0.5rem;
+//   display: block;
+// }
+//
+// .map-legend {
+//   position: absolute;
+//   bottom: 15px;
+//   right: 10px;
+//   left: 10px;
+//   z-index: 1000;
+//   background: rgba(255, 255, 255, 0.95);
+//   padding: 6px 8px;
+//   border-radius: 5px;
+//   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+//   display: flex;
+//   justify-content: space-around;
+//   max-width: 280px;
+//   margin: 0 auto;
+//   font-size: 0.8rem;
+// }
+//
+// @@media (min-width: 768px) {
+// .map-legend {
+//     bottom: 20px;
+//     right: 20px;
+//     left: auto;
+//     display: block;
+//     width: auto;
+//   }
+// }
+//
+// .legend-item {
+//   display: flex;
+//   align-items: center;
+//   margin: 10px 0;
+//   color: #333;
+//   font-weight: 500;
+// }
+//
+// .legend-color {
+//   width: 16px;
+//   height: 16px;
+//   border-radius: 50%;
+//   margin-right: 12px;
+//   border: 2px solid #fff;
+//   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+// }
+//
+// .attendance-count {
+//   text-align: center;
+//   font-weight: 500;
+//   color: rgba(255, 255, 255, 0.8);
+//   margin-top: 15px;
+//   padding: 8px;
+//   background: rgba(0, 0, 0, 0.2);
+//   border-radius: 6px;
+//   font-size: 0.9rem;
+// }
+//
+// .location-marker {
+//   border-radius: 50%;
+//   border: 2px solid white;
+//   box-shadow: 0 0 5px rgba(0,0,0,0.3);
+// }
+//
+// .check-in {
+//   background-color: #2ecc71;
+// }
+//
+// .check-out {
+//   background-color: #e74c3c;
+// }
+//
+// @@media (max-width: 768px) {
+//   #sidePanel {
+//     width: 250px;
+//     padding: 10px;
+//   }
+// }
+//
+// .filter-section {
+//   margin-bottom: 15px;
+// }
+//
+// .form-group {
+//   margin-bottom: 10px;
+// }
+//
+// .form-control {
+//   width: 100%;
+//   padding: 8px;
+//   border: 1px solid #ddd;
+//   border-radius: 4px;
+// }
+//
+// .btn {
+//   background-color: #3498db;
+//   color: white;
+//   border: none;
+//   padding: 8px 15px;
+//   border-radius: 4px;
+//   cursor: pointer;
+//   width: 100%;
+// }
+//
+// .btn:hover {
+//   background-color: #2980b9;
+// }
+//
+// .attendance-count {
+//   text-align: center;
+//   font-weight: bold;
+//   color: #555;
+//   margin-top: 10px;
+//   padding: 5px;
+//   background: #f1f1f1;
+//   border-radius: 4px;
+// }
+//
+// /* Employee list panel */
+// .employee-item {
+//   background: rgba(255, 255, 255, 0.05);
+//   border: 1px solid rgba(255, 255, 255, 0.1);
+//   margin-bottom: 0.5rem;
+//   border-radius: 12px !important;
+//   transition: all 0.2s;
+//   padding: 0.5rem 1rem !important;
+//   list-style: none;
+// }
+//
+// .employee-item:hover {
+//   background: rgba(255, 255, 255, 0.1);
+//   transform: translateX(2px);
+// }
+//
+// .employee-item .avatar {
+//   width: 36px;
+//   height: 36px;
+//   font-size: 0.875rem;
+//   flex-shrink: 0;
+//   margin-right: 12px;
+//   background: rgba(255, 255, 255, 0.1) !important;
+// }
+//
+// .btn-focus {
+//   padding: 0.25rem 0.5rem;
+//   font-size: 0.7rem;
+//   opacity: 0.7;
+//   white-space: nowrap;
+//   transition: all 0.2s;
+//   flex-shrink: 0;
+//   margin-left: 0.5rem;
+//   min-width: 60px;
+// }
+//
+// .employee-item:hover .btn-focus {
+//   opacity: 1;
+//   transform: scale(0.95);
+// }
+//
+// .collapse-icon {
+//   transition: transform 0.2s;
+// }
+//
+// [aria-expanded="true"] .collapse-icon {
+//   transform: rotate(180deg);
+// }
+// </style>
+// </head>
+// <body>
+// <div id="map" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; width: 100%; height: 100%; background: #f0f2f5;"></div>
+//
+//   <!-- Mobile Toggle Button (hidden on desktop) -->
+//   <div id="mobileToggleBtn" class="d-lg-none" style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;">
+// <button class="btn btn-primary shadow" style="border-radius: 50%; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+// <i class="bi bi-funnel" style="font-size: 1.25rem;"></i>
+//   </button>
+//   </div>
+//
+//   <div id="sidePanel" class="glass-card mobile-collapsed">
+// <div class="glass-header d-flex justify-content-between align-items-center p-2" style="cursor: pointer;">
+// <h5 class="mb-0 fs-6"><i class="bi bi-geo-alt-fill me-2"></i>@Localizer["AttendanceMap"]</h5>
+// <i id="mobileToggleIcon" class="bi bi-chevron-down"></i>
+//   </div>
+//   <div class="glass-body p-0" id="panelContent">
+//   <!-- Stats Overview -->
+// <div class="p-3">
+// <div class="row g-2 mb-3">
+// <div class="col-6">
+// <div class="glass-card p-3 h-100">
+// <div class="d-flex justify-content-between align-items-center mb-2">
+// <span class="text-muted small">@Localizer["TotalEmployees"]</span>
+//   <div class="bg-primary bg-opacity-10 p-2 rounded">
+// <i class="bi bi-people-fill text-primary"></i>
+//   </div>
+//   </div>
+//   <h4 class="mb-0">@Model.TotalEmployees</h4>
+//   </div>
+//   </div>
+//   <div class="col-6">
+// <div class="glass-card p-3 h-100">
+// <div class="d-flex justify-content-between align-items-center mb-2">
+// <span class="text-muted small">@Localizer["PresentToday"]</span>
+//   <div class="bg-success bg-opacity-10 p-2 rounded">
+// <i class="bi bi-check-circle-fill text-success"></i>
+//   </div>
+//   </div>
+//   <h4 class="mb-0">@Model.PresentCount</h4>
+//   </div>
+//   </div>
+//   <div class="col-6">
+// <div class="glass-card p-3 h-100">
+// <div class="d-flex justify-content-between align-items-center mb-2">
+// <span class="text-muted small">@Localizer["AbsentToday"]</span>
+//   <div class="bg-danger bg-opacity-10 p-2 rounded">
+// <i class="bi bi-x-circle-fill text-danger"></i>
+//   </div>
+//   </div>
+//   <h4 class="mb-0">@Model.AbsentCount</h4>
+//   </div>
+//   </div>
+//   <div class="col-6">
+// <div class="glass-card p-3 h-100">
+// <div class="d-flex justify-content-between align-items-center mb-2">
+// <span class="text-muted small">@Localizer["AttendancePercent"]</span>
+//   <div class="bg-info bg-opacity-10 p-2 rounded">
+// <i class="bi bi-graph-up-arrow text-info"></i>
+//   </div>
+//   </div>
+//   <h4 class="mb-0">@(Model.TotalEmployees > 0 ? ((Model.PresentCount * 100) / Model.TotalEmployees) : 0)%</h4>
+//   </div>
+//   </div>
+//   </div>
+//   </div>
+//
+//   <!-- Department Stats -->
+//   <div class="glass-card mx-3 mb-3">
+// <div class="glass-header d-flex justify-content-between align-items-center p-3">
+// <h6 class="mb-0"><i class="bi bi-building me-2"></i>@Localizer["Departments"]</h6>
+// <small class="text-muted">@Model.DepartmentStats.Count</small>
+//   </div>
+//   <div class="p-3">
+//   @foreach (var dept in Model.DepartmentStats)
+// {
+//   var percentage = dept.Value.TotalCount > 0 ? (dept.Value.PresentCount * 100) / dept.Value.TotalCount : 0;
+//   <div class="mb-3">
+//   <div class="d-flex justify-content-between mb-1">
+//   <span class="small">@dept.Key</span>
+//     <span class="small fw-medium">@percentage%</span>
+//   </div>
+//   <div class="progress" style="height: 4px; background: rgba(0,0,0,0.1);">
+// <div class="progress-bar bg-primary" role="progressbar" style="width: @percentage%"
+//   aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+//   </div>
+//   <div class="d-flex justify-content-between mt-1">
+// <small class="text-muted">@dept.Value.PresentCount/@dept.Value.TotalCount @Localizer["Present"]</small>
+//   </div>
+//   </div>
+// }
+// </div>
+// </div>
+// <div class="col-6">
+// <div class="glass-card p-3 h-100">
+// <div class="d-flex justify-content-between align-items-center mb-2">
+// <span class="text-muted small">@Localizer["AbsentToday"]</span>
+//   <div class="bg-danger bg-opacity-10 p-2 rounded">
+// <i class="bi bi-x-circle-fill text-danger"></i>
+//   </div>
+//   </div>
+//   <h4 class="mb-0">@Model.AbsentCount</h4>
+//   </div>
+//   </div>
+//   <div class="col-6">
+// <div class="glass-card p-3 h-100">
+// <div class="d-flex justify-content-between align-items-center mb-2">
+// <span class="text-muted small">@Localizer["AttendancePercent"]</span>
+//   <div class="bg-info bg-opacity-10 p-2 rounded">
+// <i class="bi bi-graph-up-arrow text-info"></i>
+//   </div>
+//   </div>
+//   <h4 class="mb-0">@(Model.TotalEmployees > 0 ? ((Model.PresentCount * 100) / Model.TotalEmployees) : 0)%</h4>
+//   </div>
+//   </div>
+//   </div>
+//   </div>
+//
+//   <!-- Department Stats -->
+//   <div class="glass-card mx-3 mb-3">
+// <div class="glass-header d-flex justify-content-between align-items-center p-3">
+// <h6 class="mb-0"><i class="bi bi-building me-2"></i>@Localizer["Departments"]</h6>
+// <small class="text-muted">@Model.DepartmentStats.Count</small>
+//   </div>
+//   <div class="p-3">
+//   @foreach (var dept in Model.DepartmentStats)
+// {
+//   var percentage = dept.Value.TotalCount > 0 ? (dept.Value.PresentCount * 100) / dept.Value.TotalCount : 0;
+//   <div class="mb-3">
+//   <div class="d-flex justify-content-between mb-1">
+//   <span class="small">@dept.Key</span>
+//     <span class="small fw-medium">@percentage%</span>
+//   </div>
+//   <div class="progress" style="height: 4px; background: rgba(0,0,0,0.1);">
+// <div class="progress-bar bg-primary" role="progressbar" style="width: @percentage%"
+//   aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+//   </div>
+//   <div class="d-flex justify-content-between mt-1">
+// <small class="text-muted">@dept.Value.PresentCount/@dept.Value.TotalCount @Localizer["Present"]</small>
+//   </div>
+//   </div>
+// }
+// </div>
+// </div>
+//
+// <!-- Filter Section -->
+// <div class="filter-header p-3 d-flex justify-content-between align-items-center" onclick="toggleFilterPanel()" style="cursor: pointer;">
+// <h5 class="mb-0 text-dark fw-bold">
+// <i class="bi bi-funnel me-2"></i>@Localizer["AttendanceMapFilters"]
+//   </h5>
+//   <i id="filterToggleIcon" class="bi bi-chevron-down fs-5"></i>
+//   </div>
+//
+//   <div id="filterContent" class="px-3 pb-3" style="display: block;">
+// <form method="get" asp-action="AttendanceMap" class="filter-form pt-2">
+// <div class="form-group mb-3">
+//   <label for="date" class="form-label text-dark mb-1 fw-medium">
+// <i class="bi bi-calendar3 me-2"></i>@Localizer["Date"]
+//   </label>
+//   <div class="input-group">
+// <span class="input-group-text bg-white border-end-0">
+// <i class="bi bi-calendar3"></i>
+//   </span>
+//   <input type="date" id="date" name="date" class="form-control bg-white"
+// value="@date" />
+//   </div>
+//   </div>
+//
+//   <div class="form-group mb-3">
+//   <label for="department" class="form-label text-dark mb-1 fw-medium">
+// <i class="bi bi-building me-2"></i>@Localizer["Department"]
+//   </label>
+//   <div class="input-group">
+// <span class="input-group-text bg-white border-end-0">
+// <i class="bi bi-building"></i>
+//   </span>
+//   <select id="department" name="department" class="form-select"
+// onchange="this.form.submit()">
+// <option value="">@Localizer["AllDepartments"]</option>
+// @foreach (var dept in Model.Departments)
+// {
+//   <option value="@dept" selected="@(dept == department)">@dept</option>
+// }
+// </select>
+// </div>
+// </div>
+//
+// <div class="form-group mb-4">
+//   <label for="employeeId" class="form-label text-dark mb-1 fw-medium">
+// <i class="bi bi-person-badge me-2"></i>@Localizer["EmployeeID"]
+//   </label>
+//   <div class="input-group">
+// <span class="input-group-text bg-white border-end-0">
+// <i class="bi bi-person-badge"></i>
+//   </span>
+//   <input type="number" id="employeeId" name="employeeId"
+// class="form-control"
+// placeholder="@Localizer["EnterEmployeeID"]"
+// value="@(employeeId == "" ? "" : employeeId)" />
+// </div>
+// </div>
+//
+// <div class="d-grid gap-2">
+// <button type="submit" class="btn btn-primary">
+// <i class="bi bi-funnel me-2"></i>@Localizer["ApplyFilters"]
+//   </button>
+//   <a id="viewTableBtn" class="btn btn-outline-primary">
+// <i class="bi bi-table me-2"></i>@Localizer["ViewTable"]
+//   </a>
+//   </div>
+//   </form>
+//   </div>
+//
+//   <!-- Employee List Panel -->
+//   <div class="glass-card mb-3">
+// <div class="glass-header d-flex justify-content-between align-items-center p-3" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#employeeListPanel" aria-expanded="true">
+// <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>@Localizer["EmployeesOnMap"]</h6>
+// <i class="bi bi-chevron-down collapse-icon"></i>
+//   </div>
+//   <div class="collapse show" id="employeeListPanel">
+// <div class="glass-body p-3">
+// <div class="input-group mb-3">
+// <span class="input-group-text"><i class="bi bi-search"></i></span>
+// <input type="text" id="employeeSearch" class="form-control" placeholder="@Localizer["SearchEmployees"]">
+// </div>
+// <div id="employeeList" class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+//   @foreach (var emp in Model.AttendancePoints.GroupBy(p => p.EmployeeId).Select(g => g.First()))
+// {
+//   <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center employee-item"
+//   data-employee-id="@emp.EmployeeId"
+//   data-lat="@emp.CheckInLat"
+//   data-lng="@emp.CheckInLng">
+//   <div class="d-flex align-items-center flex-grow-1">
+//   <div class="avatar d-flex align-items-center justify-content-center">
+//   <span class="text-uppercase fw-bold">
+//   @emp.EmployeeName?[0]
+//     </span>
+//     </div>
+//     <div class="text-truncate">
+//   <div class="fw-medium text-truncate">@emp.EmployeeName</div>
+//     <small class="text-muted text-truncate d-block">@emp.Department</small>
+//   </div>
+//   </div>
+//   <button class="btn btn-xs glass-btn btn-focus p-0" style="font-size: 0.6rem; width: 40px; height: 20px; line-height: 1;">
+// <i class="bi bi-eye"></i>
+//   </button>
+//   </div>
+// }
+// </div>
+// </div>
+// </div>
+// <div class="glass-card mb-3">
+// <div class="glass-header d-flex justify-content-between align-items-center p-3" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#employeeListPanel" aria-expanded="true">
+// <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>@Localizer["EmployeesOnMap"]</h6>
+// <i class="bi bi-chevron-down collapse-icon"></i>
+//   </div>
+//   <div class="collapse show" id="employeeListPanel">
+// <div class="glass-body p-3">
+// <div class="input-group mb-3">
+// <span class="input-group-text"><i class="bi bi-search"></i></span>
+// <input type="text" id="employeeSearch" class="form-control" placeholder="@Localizer["SearchEmployees"]">
+// </div>
+// <div id="employeeList" class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+//   @foreach (var emp in Model.AttendancePoints.GroupBy(p => p.EmployeeId).Select(g => g.First()))
+// {
+//   <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center employee-item"
+//   data-employee-id="@emp.EmployeeId"
+//   data-lat="@emp.CheckInLat"
+//   data-lng="@emp.CheckInLng">
+//   <div class="d-flex align-items-center flex-grow-1">
+//   <div class="avatar d-flex align-items-center justify-content-center">
+//   <span class="text-uppercase fw-bold">
+//   @emp.EmployeeName?[0]
+//     </span>
+//     </div>
+//     <div class="text-truncate">
+//   <div class="fw-medium text-truncate">@emp.EmployeeName</div>
+//     <small class="text-muted text-truncate d-block">@emp.Department</small>
+//   </div>
+//   </div>
+//   <button class="btn btn-xs glass-btn btn-focus p-0" style="font-size: 0.6rem; width: 40px; height: 20px; line-height: 1;">
+// <i class="bi bi-eye"></i>
+//   </button>
+//   </div>
+// }
+// </div>
+// </div>
+// </div>
+// </div>
+//
+// <!-- Map Legend is now moved to top right of map -->
+// </div>
+//
+// <div class="attendance-count">
+//   @Localizer["ShowingLocations", Model.AttendancePoints.Count]
+//   </div>
+//
+//
+//   <!-- Status Indicator with Text -->
+//   <div class="status-indicator" style="position: fixed; top: 15px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+// <div style="display: flex; align-items: center; gap: 8px;">
+// <div style="width: 14px; height: 14px; border-radius: 3px; background: #2ecc71; flex-shrink: 0;"></div>
+//   <span style="font-size: 0.85rem; white-space: nowrap;">@Localizer["CheckIn"]</span>
+//   </div>
+//   <div style="display: flex; align-items: center; gap: 8px;">
+// <div style="width: 14px; height: 14px; border-radius: 3px; background: #e74c3c; flex-shrink: 0;"></div>
+//   <span style="font-size: 0.85rem; white-space: nowrap;">@Localizer["CheckOut"]</span>
+//   </div>
+//   </div>
+//
+//   <style>
+//   /* Mobile panel styles */
+//   #sidePanel.mobile-collapsed {
+//   transform: translateY(calc(100% - 50px));
+//   transition: transform 0.3s ease-in-out;
+// }
+//
+// #sidePanel.mobile-expanded {
+//   transform: translateY(0);
+//   transition: transform 0.3s ease-in-out;
+// }
+//
+// #mobileToggleBtn .bi-funnel {
+//   transition: transform 0.3s ease-in-out;
+// }
+//
+// #mobileToggleBtn.active .bi-funnel {
+//   transform: rotate(180deg);
+// }
+//
+// /* Status indicator responsive adjustments */
+// @@media (max-width: 991.98px) {
+// .status-indicator {
+//     top: 10px;
+//     right: 10px;
+//     padding: 8px;
+//     font-size: 0.8rem;
+//   }
+// .status-indicator > div > div {
+//     width: 12px !important;
+//     height: 12px !important;
+//   }
+// }
+// </style>
+//
+// <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+//   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+//   <script>
+//   // Toggle mobile panel
+//   function toggleMobilePanel(forceClose = false) {
+//     const panel = document.getElementById('sidePanel');
+//     const toggleBtn = document.getElementById('mobileToggleBtn');
+//     const icon = document.getElementById('mobileToggleIcon');
+//
+//     if (window.innerWidth < 992) {
+//       if (forceClose === true || panel.classList.contains('mobile-expanded')) {
+//         // Collapse panel
+//         panel.classList.remove('mobile-expanded');
+//         panel.classList.add('mobile-collapsed');
+//         toggleBtn.classList.remove('active');
+//         document.getElementById('map').style.pointerEvents = 'auto';
+//       } else {
+//         // Expand panel
+//         panel.classList.remove('mobile-collapsed');
+//         panel.classList.add('mobile-expanded');
+//         toggleBtn.classList.add('active');
+//         document.getElementById('map').style.pointerEvents = 'none';
+//       }
+//     } else {
+//       // Desktop behavior
+//       const isExpanded = panel.classList.toggle('expanded');
+//       icon.className = isExpanded ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+//     }
+//   }
+//
+// // Initialize mobile toggle button
+// document.addEventListener('DOMContentLoaded', function() {
+//   const mobileToggleBtn = document.getElementById('mobileToggleBtn');
+//   const sidePanel = document.getElementById('sidePanel');
+//
+//   // Toggle panel on button click
+//   mobileToggleBtn.addEventListener('click', function(e) {
+//     e.stopPropagation();
+//     toggleMobilePanel();
+//   });
+//
+//   // Close panel when clicking outside on mobile
+//   document.addEventListener('click', function(event) {
+//     if (window.innerWidth < 992 &&
+//       !sidePanel.contains(event.target) &&
+//       !mobileToggleBtn.contains(event.target)) {
+//       toggleMobilePanel(true);
+//     }
+//   });
+//
+//   // Handle window resize
+//   function handleResize() {
+//     if (window.innerWidth >= 992) {
+//       // Desktop view
+//       sidePanel.classList.remove('mobile-collapsed', 'mobile-expanded');
+//       document.getElementById('map').style.pointerEvents = 'auto';
+//       mobileToggleBtn.style.display = 'none';
+//     } else {
+//       // Mobile view
+//       mobileToggleBtn.style.display = 'block';
+//       if (!sidePanel.classList.contains('mobile-expanded')) {
+//         sidePanel.classList.add('mobile-collapsed');
+//       }
+//     }
+//   }
+//
+//   // Initial setup
+//   handleResize();
+//   window.addEventListener('resize', handleResize);
+// });
+//
+// // Initialize employee list search
+// document.addEventListener('DOMContentLoaded', function() {
+//   // Employee search functionality
+//   const employeeSearch = document.getElementById('employeeSearch');
+//   const employeeItems = document.querySelectorAll('.employee-item');
+//
+//   if (employeeSearch) {
+//     employeeSearch.addEventListener('input', function() {
+//       const searchTerm = this.value.toLowerCase();
+//       employeeItems.forEach(item => {
+//         const text = item.textContent.toLowerCase();
+//         item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+//       });
+//     });
+//   }
+//
+//   // Handle focus on employee
+//   document.querySelectorAll('.btn-focus').forEach(btn => {
+//     btn.addEventListener('click', function(e) {
+//       e.stopPropagation();
+//       const item = this.closest('.employee-item');
+//       const lat = parseFloat(item.getAttribute('data-lat'));
+//       const lng = parseFloat(item.getAttribute('data-lng'));
+//
+//       if (!isNaN(lat) && !isNaN(lng)) {
+//         // Fly to the employee's location
+//         map.flyTo([lat, lng], 17, {
+//           duration: 1,
+//           easeLinearity: 0.25
+//         });
+//
+//         // Highlight the employee's marker
+//         const employeeId = item.getAttribute('data-employee-id');
+//         highlightEmployeeMarker(employeeId);
+//
+//         // Add a temporary highlight class
+//         item.classList.add('bg-primary', 'bg-opacity-10');
+//         setTimeout(() => {
+//           item.classList.remove('bg-primary', 'bg-opacity-10');
+//         }, 2000);
+//       }
+//     });
+//   });
+//
+//   // Make entire employee item clickable
+//   document.querySelectorAll('.employee-item').forEach(item => {
+//     item.addEventListener('click', function() {
+//       const btn = this.querySelector('.btn-focus');
+//       if (btn) btn.click();
+//     });
+//   });
+// });
+//
+// // Function to highlight employee marker
+// function highlightEmployeeMarker(employeeId) {
+//   // Reset all markers to default
+//   Object.values(markers._layers).forEach(layer => {
+//     if (layer._icon) {
+//       layer._icon.style.transform = '';
+//       layer._icon.style.transition = 'transform 0.3s';
+//     }
+//   });
+//
+//   // Find and highlight the selected marker
+//   const selectedMarker = Object.values(markers._layers).find(layer => {
+//     return layer.options && layer.options.employeeId == employeeId;
+//   });
+//
+//   if (selectedMarker && selectedMarker._icon) {
+//     // Add bounce effect
+//     selectedMarker._icon.style.transform = 'translateY(-10px)';
+//     setTimeout(() => {
+//       if (selectedMarker._icon) {
+//         selectedMarker._icon.style.transform = '';
+//       }
+//     }, 1000);
+//   }
+// }
+//
+// // Handle view table button click
+// document.getElementById('viewTableBtn').addEventListener('click', function() {
+//   const form = document.querySelector('form');
+//   const url = new URL('@Url.Action("AttendanceTable", "Admin")', window.location.origin);
+//
+//   // Add form parameters to URL
+//   const formData = new FormData(form);
+//   for (const [key, value] of formData.entries()) {
+//     if (value) {
+//       url.searchParams.append(key, value);
+//     }
+//   }
+//
+//   // Open in new tab
+//   window.open(url, '_blank');
+// });
+//
+// // Toggle filter panel
+// function toggleFilterPanel() {
+//   const content = document.getElementById('filterContent');
+//   const icon = document.getElementById('filterToggleIcon');
+//
+//   if (content.style.display === 'none') {
+//     content.style.display = 'block';
+//     icon.classList.remove('bi-chevron-left');
+//     icon.classList.add('bi-chevron-down');
+//   } else {
+//     content.style.display = 'none';
+//     icon.classList.remove('bi-chevron-down');
+//     icon.classList.add('bi-chevron-left');
+//   }
+// }
+//
+// // Initialize the map
+// var map = L.map('map').setView([24.7136, 46.6753], 12); // Default to Riyadh coordinates
+//
+// // Add OpenStreetMap tiles
+// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+// }).addTo(map);
+//
+// // Create marker clusters
+// const markers = L.markerClusterGroup({
+//   maxClusterRadius: 40,
+//   spiderfyOnMaxZoom: true,
+//   showCoverageOnHover: false,
+//   zoomToBoundsOnClick: true
+// });
+//
+// // Add markers for each attendance point
+// const attendanceData = @Html.Raw(Json.Serialize(Model.AttendancePoints));
+//
+// attendanceData.forEach(point => {
+//   // Add check-in marker if available
+//   if (point.checkInLat && point.checkInLng) {
+//     const checkInMarker = L.marker(
+//       [point.checkInLat, point.checkInLng],
+//       {
+//         icon: L.divIcon({
+//           className: 'location-marker check-in',
+//           iconSize: [14, 14]
+//         })
+//       }
+//     ).bindPopup(`
+//                     <strong>${point.employeeName}</strong><br>
+//                     <strong>@Localizer["ID"]:</strong> ${point.employeeId}<br>
+//                     <strong>@Localizer["Card"]:</strong> ${point.cardNumber}<br>
+//                     <strong>@Localizer["Department"]:</strong> ${point.department || '@Localizer["NA"]'}<br>
+//                     <strong>@Localizer["CheckIn"]:</strong> ${new Date(point.checkInTime).toLocaleString()}<br>
+//                     <strong>@Localizer["Location"]:</strong> ${point.checkInLat.toFixed(6)}, ${point.checkInLng.toFixed(6)}
+//                 `);
+//     markers.addLayer(checkInMarker);
+//   }
+//
+//   // Add check-out marker if available
+//   if (point.checkOutLat && point.checkOutLng) {
+//     const checkOutMarker = L.marker(
+//       [point.checkOutLat, point.checkOutLng],
+//       {
+//         icon: L.divIcon({
+//           className: 'location-marker check-out',
+//           iconSize: [14, 14]
+//         })
+//       }
+//     ).bindPopup(`
+//                     <strong>${point.employeeName}</strong><br>
+//                     <strong>@Localizer["ID"]:</strong> ${point.employeeId}<br>
+//                     <strong>@Localizer["Card"]:</strong> ${point.cardNumber}<br>
+//                     <strong>@Localizer["Department"]:</strong> ${point.department || '@Localizer["NA"]'}<br>
+//                     <strong>@Localizer["CheckOut"]:</strong> ${new Date(point.checkOutTime).toLocaleString()}<br>
+//                     <strong>@Localizer["Location"]:</strong> ${point.checkOutLat.toFixed(6)}, ${point.checkOutLng.toFixed(6)}
+//                 `);
+//     markers.addLayer(checkOutMarker);
+//   }
+// });
+//
+// // Add markers to the map
+// map.addLayer(markers);
+//
+// // Fit map to bounds if we have markers
+// if (attendanceData.length > 0) {
+//   map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+// }
+// </script>
+// </body>
+// </html>

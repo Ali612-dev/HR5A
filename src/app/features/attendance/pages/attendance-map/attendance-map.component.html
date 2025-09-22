@@ -1,242 +1,471 @@
 <div class="attendance-map-container">
-  <a routerLink="/test/map" class="test-map-link">Test Simple Map</a>
-  <a routerLink="/attendance/map-simple" class="test-map-link" style="top: 50px;">Simplified Map</a>
-
-  <!-- Map Container -->
-  <div style="width: 100%; height: 100%;">
-    <div #mapContainer id="map"></div>
-  </div>
-
-  <!-- Mobile Toggle Button -->
-  <div *ngIf="isMobile" class="mobile-toggle-btn" (click)="togglePanel()">
-    <fa-icon [icon]="faFilter" class="toggle-icon"></fa-icon>
-  </div>
-
-  <!-- Side Panel -->
-  <div class="side-panel" [class.mobile-collapsed]="isMobile && !isPanelExpanded" [class.mobile-expanded]="isMobile && isPanelExpanded">
-    <!-- Panel Header -->
-    <div class="panel-header" (click)="togglePanel()">
-      <h5 class="panel-title">
-        <fa-icon [icon]="faMapMarkerAlt" class="me-2"></fa-icon>
-        {{ 'AttendanceMap' | translate }}
-      </h5>
-      <fa-icon [icon]="isPanelExpanded ? faChevronUp : faChevronDown" class="toggle-icon"></fa-icon>
+  <!-- Header -->
+  <div class="map-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="btn btn-secondary" (click)="goBack()">
+          <fa-icon [icon]="faChevronDown" class="rotate-90"></fa-icon>
+          {{ 'Back' | translate }}
+        </button>
+        <h2 class="page-title">
+          <fa-icon [icon]="faMapMarkerAlt"></fa-icon>
+          <span class="desktop-title">{{ 'AttendanceMap' | translate }}</span>
+          <span class="mobile-title">{{ 'Map' | translate }}</span>
+        </h2>
+      </div>
+      <div class="header-right" *ngIf="!isMobile">
+        <button class="btn btn-primary" (click)="goToAttendanceTable()">
+          <fa-icon [icon]="faEye"></fa-icon>
+          {{ 'ViewTable' | translate }}
+        </button>
+      </div>
     </div>
+  </div>
 
-    <!-- Panel Content -->
-    <div class="panel-content">
-      <!-- Stats Overview -->
-      <div class="stats-section">
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-label">{{ 'TotalEmployees' | translate }}</span>
-                <div class="stat-icon">
-                  <fa-icon [icon]="faUsers"></fa-icon>
-                </div>
-              </div>
-              <h4 class="stat-value">{{ attendanceData.totalEmployees }}</h4>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-label">{{ 'PresentToday' | translate }}</span>
-                <div class="stat-icon success">
-                  <fa-icon [icon]="faUsers"></fa-icon>
-                </div>
-              </div>
-              <h4 class="stat-value">{{ attendanceData.presentCount }}</h4>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-label">{{ 'AbsentToday' | translate }}</span>
-                <div class="stat-icon danger">
-                  <fa-icon [icon]="faUsers"></fa-icon>
-                </div>
-              </div>
-              <h4 class="stat-value">{{ attendanceData.absentCount }}</h4>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-label">{{ 'AttendancePercent' | translate }}</span>
-                <div class="stat-icon info">
-                  <fa-icon [icon]="faUsers"></fa-icon>
-                </div>
-              </div>
-              <h4 class="stat-value">{{ attendancePercentage }}%</h4>
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- Main Content -->
+  <div class="main-content" [class.mobile-view]="isMobile">
+    
+    <!-- Side Panel (Desktop Only) -->
+    <div *ngIf="!isMobile" class="side-panel" 
+         [class.expanded]="isPanelExpanded">
+      
 
-      <!-- Department Stats -->
-      <div class="department-section">
-        <div class="section-header">
-          <h6 class="section-title">
-            <fa-icon [icon]="faBuilding" class="me-2"></fa-icon>
-            {{ 'Departments' | translate }}
-          </h6>
-          <small class="section-count">{{ attendanceData.departments.length }}</small>
-        </div>
-        <div class="department-list">
-          <div *ngFor="let dept of attendanceData.departments" class="department-item">
-            <div class="department-header">
-              <span class="department-name">{{ dept }}</span>
-              <span class="department-percentage">
-                {{ getDepartmentPercentage(dept) }}%
-              </span>
+      <div class="panel-content">
+        <!-- Statistics Cards (Desktop Only) -->
+        <div *ngIf="!isMobile" class="stats-grid">
+          <div class="stat-card total">
+            <div class="stat-icon">
+              <fa-icon [icon]="faUsers"></fa-icon>
             </div>
-            <div class="progress-bar">
-              <div class="progress-fill" 
-                   [style.width.%]="getDepartmentProgressWidth(dept)">
-              </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ totalEmployees }}</div>
+              <div class="stat-label">{{ 'TotalEmployees' | translate }}</div>
             </div>
-            <div class="department-stats">
-              <small class="department-count">
-                {{ attendanceData.departmentStats[dept].presentCount || 0 }}/{{ attendanceData.departmentStats[dept].totalCount || 0 }} {{ 'Present' | translate }}
-              </small>
+          </div>
+
+          <div class="stat-card present">
+            <div class="stat-icon">
+              <fa-icon [icon]="faUsers"></fa-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ presentCount }}</div>
+              <div class="stat-label">{{ 'Present' | translate }}</div>
+            </div>
+          </div>
+
+          <div class="stat-card absent">
+            <div class="stat-icon">
+              <fa-icon [icon]="faUsers"></fa-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ absentCount }}</div>
+              <div class="stat-label">{{ 'Absent' | translate }}</div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Filter Section -->
-      <div class="filter-section">
-        <div class="filter-header" (click)="toggleFilter()">
-          <h5 class="filter-title">
-            <fa-icon [icon]="faFilter" class="me-2"></fa-icon>
-            {{ 'AttendanceMapFilters' | translate }}
-          </h5>
-          <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" class="filter-toggle"></fa-icon>
+        <!-- Attendance Percentage -->
+        <div class="attendance-percentage">
+          <div class="percentage-header">
+            <span>{{ 'AttendanceRate' | translate }}</span>
+            <span class="percentage-value">{{ attendancePercent }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" 
+                 [style.width]="attendancePercent + '%'">
+            </div>
+          </div>
         </div>
-        
-        <div class="filter-content" [class.collapsed]="!isFilterExpanded">
-          <form [formGroup]="filterForm" class="filter-form">
-            <div class="form-group">
-              <label class="form-label">
-                <fa-icon [icon]="faCalendar" class="me-2"></fa-icon>
-                {{ 'Date' | translate }}
-              </label>
-              <div class="input-group">
-                <span class="input-group-text">
+
+        <!-- Filters -->
+        <div class="filters-section">
+          <div class="filter-header" (click)="toggleFilter()">
+            <fa-icon [icon]="faFilter"></fa-icon>
+            {{ 'Filters' | translate }}
+            <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" 
+                     class="toggle-icon"></fa-icon>
+          </div>
+
+          <div class="filter-content" [class.expanded]="isFilterExpanded">
+            <form [formGroup]="filterForm" class="filter-form">
+              <div class="form-group">
+                <label>
                   <fa-icon [icon]="faCalendar"></fa-icon>
-                </span>
-                <input type="date" formControlName="date" class="form-control">
+                  {{ 'Date' | translate }}
+                </label>
+                <input type="date" 
+                       class="form-control" 
+                       formControlName="date">
               </div>
-            </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                <fa-icon [icon]="faBuilding" class="me-2"></fa-icon>
-                {{ 'Department' | translate }}
-              </label>
-              <div class="input-group">
-                <span class="input-group-text">
+              <div class="form-group">
+                <label>
                   <fa-icon [icon]="faBuilding"></fa-icon>
-                </span>
-                <select formControlName="department" class="form-select">
+                  {{ 'Department' | translate }}
+                </label>
+                <select class="form-control" formControlName="department">
                   <option value="">{{ 'AllDepartments' | translate }}</option>
-                  <option *ngFor="let dept of attendanceData.departments" [value]="dept">{{ dept }}</option>
+                  <option *ngFor="let dept of departments" [value]="dept">
+                    {{ dept }}
+                  </option>
                 </select>
               </div>
-            </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
-                {{ 'EmployeeID' | translate }}
-              </label>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <fa-icon [icon]="faUsers"></fa-icon>
-                </span>
-                <input type="number" formControlName="employeeId" class="form-control" 
-                       [placeholder]="'EnterEmployeeID' | translate">
+              <div class="form-group">
+                <label>
+                  <fa-icon [icon]="faSearch"></fa-icon>
+                  {{ 'EmployeeSearch' | translate }}
+                </label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="employeeId"
+                       [placeholder]="'SearchByIdOrName' | translate">
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Department Statistics (Desktop Only) -->
+        <div *ngIf="!isMobile && departments.length > 0" class="department-stats">
+          <h4>{{ 'DepartmentStats' | translate }}</h4>
+          <div class="dept-list">
+            <div class="dept-item" *ngFor="let dept of departments">
+              <div class="dept-header">
+                <span class="dept-name">{{ dept }}</span>
+                <span class="dept-percentage">{{ getDepartmentPercentage(dept) }}%</span>
+              </div>
+              <div class="dept-progress">
+                <div class="dept-progress-fill" 
+                     [style.width]="getDepartmentProgressWidth(dept)">
+                </div>
+              </div>
+              <div class="dept-details">
+                <small>
+                  {{ getDepartmentPresentCount(dept) }} / 
+                  {{ getDepartmentTotalCount(dept) }} 
+                  {{ 'Present' | translate }}
+                </small>
               </div>
             </div>
-
-            <div class="filter-actions">
-              <button type="button" class="btn btn-primary" (click)="loadAttendanceData()">
-                <fa-icon [icon]="faFilter" class="me-2"></fa-icon>
-                {{ 'ApplyFilters' | translate }}
-              </button>
-              <button type="button" class="btn btn-outline-primary" (click)="goToAttendanceTable()">
-                <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
-                {{ 'ViewTable' | translate }}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
 
-      <!-- Employee List -->
-      <div class="employee-section">
-        <div class="section-header">
-          <h6 class="section-title">
-            <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
-            {{ 'EmployeesOnMap' | translate }}
-          </h6>
-        </div>
-        <div class="employee-list">
-          <div class="search-box">
-            <div class="input-group">
-              <span class="input-group-text">
-                <fa-icon [icon]="faSearch"></fa-icon>
-              </span>
-              <input type="text" class="form-control" 
+        <!-- Employee List (Desktop Only) -->
+        <div *ngIf="!isMobile" class="employee-list">
+          <div class="list-header">
+            <h4>{{ 'PresentEmployees' | translate }} ({{ uniqueEmployees.length }})</h4>
+            <div class="search-box">
+              <fa-icon [icon]="faSearch"></fa-icon>
+              <input type="text" 
                      [placeholder]="'SearchEmployees' | translate"
                      (input)="onSearchChange($any($event.target).value)">
             </div>
           </div>
-          <div class="employee-items">
-            <div *ngFor="let employee of uniqueEmployees" 
-                 class="employee-item"
+
+          <div class="employee-items" *ngIf="!isLoading">
+            <div class="employee-item" 
+                 *ngFor="let employee of uniqueEmployees" 
                  (click)="focusOnEmployee(employee.employeeId)">
-              <div class="employee-avatar">
-                <span class="avatar-text">{{ employee.employeeName[0] }}</span>
-              </div>
               <div class="employee-info">
                 <div class="employee-name">{{ employee.employeeName }}</div>
-                <small class="employee-department">{{ employee.department || 'N/A' }}</small>
+                <div class="employee-details">
+                  <span class="employee-id">ID: {{ employee.employeeId }}</span>
+                  <span class="employee-dept">{{ employee.department }}</span>
+                </div>
+                <div class="employee-times">
+                  <small *ngIf="employee.timeIn">
+                    In: {{ employee.timeIn | date:'short' }}
+                  </small>
+                  <small *ngIf="employee.timeOut">
+                    Out: {{ employee.timeOut | date:'short' }}
+                  </small>
+                </div>
               </div>
-              <button class="btn-focus">
-                <fa-icon [icon]="faEye"></fa-icon>
-              </button>
+              <div class="employee-status">
+                <span class="status-indicator checkin" *ngIf="employee.timeIn"></span>
+                <span class="status-indicator checkout" *ngIf="employee.timeOut"></span>
+              </div>
             </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-state" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <p>{{ 'LoadingData' | translate }}</p>
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state" *ngIf="!isLoading && uniqueEmployees.length === 0">
+            <fa-icon [icon]="faUsers" class="empty-icon"></fa-icon>
+            <p>{{ 'NoDataFound' | translate }}</p>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Attendance Count -->
-      <div class="attendance-count">
-        {{ 'ShowingLocations' | translate: { count: attendanceData.attendancePoints.length } }}
+    <!-- Map Container -->
+    <div class="map-wrapper">
+      <div class="map-container-wrapper">
+        <div #mapContainer class="map-container"></div>
+        
+        <!-- Loading Overlay -->
+        <div class="map-loading" *ngIf="isLoading">
+          <div class="spinner"></div>
+          <p>{{ 'LoadingMap' | translate }}</p>
+        </div>
+        
+        <!-- Map Legend -->
+        <div class="map-legend" (click)="toggleLegendDetails()" [class.active]="isLegendDetailsOpen">
+          <div class="legend-item">
+            <div class="legend-marker check-in">
+              <svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="2" cy="2" r="2" fill="#4CAF50"/>
+              </svg>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker check-out">
+              <svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="2" cy="2" r="2" fill="#f44336"/>
+              </svg>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker mixed">
+              <svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="2" cy="2" r="2" fill="#9C27B0"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend Details Tooltip -->
+        <div class="legend-details" [class.show]="isLegendDetailsOpen">
+          <div class="legend-detail-item">
+            <div class="legend-detail-marker check-in">
+              <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="6" cy="6" r="6" fill="#4CAF50"/>
+              </svg>
+            </div>
+            <span class="legend-detail-text">{{ 'CheckIn' | translate }} - {{ 'Attendance' | translate }}</span>
+          </div>
+          <div class="legend-detail-item">
+            <div class="legend-detail-marker check-out">
+              <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="6" cy="6" r="6" fill="#f44336"/>
+              </svg>
+            </div>
+            <span class="legend-detail-text">{{ 'CheckOut' | translate }} - {{ 'Departure' | translate }}</span>
+          </div>
+          <div class="legend-detail-item">
+            <div class="legend-detail-marker mixed">
+              <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="6" cy="6" r="6" fill="#9C27B0"/>
+              </svg>
+            </div>
+            <span class="legend-detail-text">{{ 'Multiple' | translate }} - {{ 'MultipleRecords' | translate }}</span>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Floating Statistics Button (Mobile Only) -->
+    <button *ngIf="isMobile" class="floating-stats-btn" (click)="toggleStatsPanel()">
+      <fa-icon [icon]="faUsers"></fa-icon>
+    </button>
+
+    <!-- Floating View Table Button (Mobile Only) -->
+    <button *ngIf="isMobile" class="floating-view-table-btn" (click)="goToAttendanceTable()">
+      <fa-icon [icon]="faEye"></fa-icon>
+      {{ 'Table' | translate }}
+    </button>
+
   </div>
 
-  <!-- Status Legend -->
-  <div class="status-legend">
-    <div class="legend-item">
-      <div class="legend-color check-in"></div>
-      <span>{{ 'CheckIn' | translate }}</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color check-out"></div>
-      <span>{{ 'CheckOut' | translate }}</span>
-    </div>
-  </div>
+  <!-- Mobile Statistics Bottom Sheet -->
+  <div *ngIf="isMobile" class="mobile-stats-sheet" [class.open]="isStatsPanelExpanded">
+    <!-- Backdrop -->
+    <div class="stats-sheet-backdrop" (click)="closeStatsPanel()"></div>
+    
+    <!-- Bottom Sheet Content -->
+    <div class="stats-sheet-content">
+      <!-- Handle Bar -->
+      <div class="stats-sheet-handle" (click)="toggleStatsPanel()"></div>
+      
+      <!-- Statistics Header -->
+      <div class="stats-sheet-header">
+        <h5>{{ 'Statistics' | translate }}</h5>
+        <button class="btn-close" (click)="closeStatsPanel()">
+          <fa-icon [icon]="faUsers"></fa-icon>
+        </button>
+      </div>
+      
+        <!-- Statistics Content -->
+        <div class="stats-sheet-body">
+          <!-- Filters Section -->
+          <div class="mobile-filters-section">
+            <div class="mobile-filter-header" (click)="toggleFilter()">
+              <fa-icon [icon]="faFilter"></fa-icon>
+              {{ 'Filters' | translate }}
+              <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" 
+                       class="toggle-icon"></fa-icon>
+            </div>
 
-  <!-- Loading Overlay -->
-  <div *ngIf="isLoading" class="loading-overlay">
-    <div class="loading-spinner">
-      <div class="spinner"></div>
-      <p>{{ 'Loading' | translate }}...</p>
+            <div class="mobile-filter-content" [class.expanded]="isFilterExpanded">
+              <form [formGroup]="filterForm" class="mobile-filter-form">
+                <div class="mobile-form-group">
+                  <label>
+                    <fa-icon [icon]="faCalendar"></fa-icon>
+                    {{ 'Date' | translate }}
+                  </label>
+                  <input type="date" 
+                         class="mobile-form-control" 
+                         formControlName="date">
+                </div>
+
+                <div class="mobile-form-group">
+                  <label>
+                    <fa-icon [icon]="faBuilding"></fa-icon>
+                    {{ 'Department' | translate }}
+                  </label>
+                  <select class="mobile-form-control" formControlName="department">
+                    <option value="">{{ 'AllDepartments' | translate }}</option>
+                    <option *ngFor="let dept of departments" [value]="dept">
+                      {{ dept }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="mobile-form-group">
+                  <label>
+                    <fa-icon [icon]="faSearch"></fa-icon>
+                    {{ 'EmployeeSearch' | translate }}
+                  </label>
+                  <input type="text" 
+                         class="mobile-form-control" 
+                         formControlName="employeeId"
+                         [placeholder]="'SearchByIdOrName' | translate">
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Statistics Cards -->
+        <div class="mobile-stats-grid">
+          <div class="mobile-stat-card total">
+            <div class="mobile-stat-icon">
+              <fa-icon [icon]="faUsers"></fa-icon>
+            </div>
+            <div class="mobile-stat-info">
+              <div class="mobile-stat-value">{{ totalEmployees }}</div>
+              <div class="mobile-stat-label">{{ 'TotalEmployees' | translate }}</div>
+            </div>
+          </div>
+
+          <div class="mobile-stat-card present">
+            <div class="mobile-stat-icon">
+              <fa-icon [icon]="faUsers"></fa-icon>
+            </div>
+            <div class="mobile-stat-info">
+              <div class="mobile-stat-value">{{ presentCount }}</div>
+              <div class="mobile-stat-label">{{ 'Present' | translate }}</div>
+            </div>
+          </div>
+
+          <div class="mobile-stat-card absent">
+            <div class="mobile-stat-icon">
+              <fa-icon [icon]="faUsers"></fa-icon>
+            </div>
+            <div class="mobile-stat-info">
+              <div class="mobile-stat-value">{{ absentCount }}</div>
+              <div class="mobile-stat-label">{{ 'Absent' | translate }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Percentage -->
+        <div class="mobile-attendance-percentage">
+          <div class="mobile-percentage-header">
+            <span>{{ 'AttendanceRate' | translate }}</span>
+            <span class="mobile-percentage-value">{{ attendancePercent }}%</span>
+          </div>
+          <div class="mobile-progress-bar">
+            <div class="mobile-progress-fill" 
+                 [style.width]="attendancePercent + '%'">
+            </div>
+          </div>
+        </div>
+
+        <!-- Department Statistics -->
+        <div class="mobile-department-stats" *ngIf="departments.length > 0">
+          <h6>{{ 'DepartmentStats' | translate }}</h6>
+          <div class="mobile-dept-list">
+            <div class="mobile-dept-item" *ngFor="let dept of departments">
+              <div class="mobile-dept-header">
+                <span class="mobile-dept-name">{{ dept }}</span>
+                <span class="mobile-dept-percentage">{{ getDepartmentPercentage(dept) }}%</span>
+              </div>
+              <div class="mobile-dept-progress">
+                <div class="mobile-dept-progress-fill" 
+                     [style.width]="getDepartmentProgressWidth(dept)">
+                </div>
+              </div>
+              <div class="mobile-dept-details">
+                <small>
+                  {{ getDepartmentPresentCount(dept) }} / 
+                  {{ getDepartmentTotalCount(dept) }} 
+                  {{ 'Present' | translate }}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Employee List -->
+        <div class="mobile-employee-list">
+          <div class="mobile-list-header">
+            <h6>{{ 'PresentEmployees' | translate }} ({{ uniqueEmployees.length }})</h6>
+          </div>
+
+          <div class="mobile-employee-items" *ngIf="!isLoading">
+            <div class="mobile-employee-item" 
+                 *ngFor="let employee of uniqueEmployees" 
+                 (click)="focusOnEmployee(employee.employeeId)">
+              <div class="mobile-employee-info">
+                <div class="mobile-employee-name">{{ employee.employeeName }}</div>
+                <div class="mobile-employee-details">
+                  <span class="mobile-employee-id">ID: {{ employee.employeeId }}</span>
+                  <span class="mobile-employee-dept">{{ employee.department }}</span>
+                </div>
+                <div class="mobile-employee-times">
+                  <small *ngIf="employee.timeIn">
+                    In: {{ employee.timeIn | date:'short' }}
+                  </small>
+                  <small *ngIf="employee.timeOut">
+                    Out: {{ employee.timeOut | date:'short' }}
+                  </small>
+                </div>
+              </div>
+              <div class="mobile-employee-status">
+                <span class="mobile-status-indicator checkin" *ngIf="employee.timeIn"></span>
+                <span class="mobile-status-indicator checkout" *ngIf="employee.timeOut"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="mobile-loading-state" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <p>{{ 'LoadingData' | translate }}</p>
+          </div>
+
+          <!-- Empty State -->
+          <div class="mobile-empty-state" *ngIf="!isLoading && uniqueEmployees.length === 0">
+            <fa-icon [icon]="faUsers" class="empty-icon"></fa-icon>
+            <p>{{ 'NoDataFound' | translate }}</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

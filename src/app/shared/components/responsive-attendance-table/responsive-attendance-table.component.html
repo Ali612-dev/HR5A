@@ -117,6 +117,9 @@
         <button class="btn btn-sm btn-primary" [routerLink]="['/attendance/update', attendance.id]" appCustomTooltip [appCustomTooltipText]="'EditAttendance' | translate">
           <fa-icon [icon]="faEdit"></fa-icon> {{ 'Edit' | translate }}
         </button>
+        <button *ngIf="attendance.latitude && attendance.longitude" class="btn btn-sm btn-success" [routerLink]="['/attendance/map']" [queryParams]="{ employeeId: attendance.employeeId, date: attendance.date }" appCustomTooltip [appCustomTooltipText]="'ViewOnMap' | translate">
+          <fa-icon [icon]="faMapMarkerAlt"></fa-icon> {{ 'Map' | translate }}
+        </button>
         <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip [appCustomTooltipText]="'DeleteAttendance' | translate">
           <fa-icon [icon]="faTrash"></fa-icon> {{ 'Delete' | translate }}
         </button>

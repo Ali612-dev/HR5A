@@ -1,146 +1,235 @@
-<div class="add-attendance-container">
-  <div class="container-fluid py-4">
-    <!-- Header -->
+<div class="update-attendance-container">
+  <div class="container-fluid">
+    <!-- Header Section -->
     <div class="page-header">
-      <h2 class="page-title">{{ 'UpdateAttendance' | translate }}</h2>
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="page-title">
+            <fa-icon [icon]="faEdit" class="title-icon"></fa-icon>
+            {{ 'UpdateAttendance' | translate }}
+          </h1>
+          <p class="page-subtitle">{{ 'UpdateAttendanceRecord' | translate }}</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-ghost" (click)="onCancel()">
+            <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+            {{ 'Back' | translate }}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Update Attendance Form -->
-    <div class="card">
-      <div *ngIf="store.isLoading()">
-        <app-shimmer></app-shimmer>
+    <!-- Main Form Card -->
+    <div class="form-card">
+      <div *ngIf="store.isLoading()" class="loading-container">
+        <div class="loading-spinner">
+          <fa-icon [icon]="faSpinner" class="fa-spin"></fa-icon>
+        </div>
+        <p class="loading-text">{{ 'Loading' | translate }}...</p>
       </div>
-      <div *ngIf="!store.isLoading()">
-        <form [formGroup]="attendanceForm" (ngSubmit)="onSubmit()">
-          <div class="row g-4">
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="employeeSearch" class="form-label">{{ 'EmployeeNameOrPhone' | translate }}</label>
-                  <div class="input-wrapper">
-                    <input 
-                      type="text" 
-                      class="form-control" 
-                      id="employeeSearch" 
-                      [formControl]="employeeSearchTerm" 
-                      placeholder="{{ 'SearchEmployee' | translate }}"
-                      (blur)="onEmployeeSearchBlur()"
-                    >
-                    <div *ngIf="suggestions.length > 0" class="autocomplete-suggestions">
-                      <div *ngFor="let suggestion of suggestions" class="suggestion-item" (click)="selectEmployee(suggestion)">
-                        {{ suggestion.name }} ({{ suggestion.phone }})
-                      </div>
-                    </div>
-                    <div *ngIf="getValidationErrors('employeeSearchTerm').length > 0 && !selectedEmployeeId" class="form-error-message">
-                      <div *ngFor="let error of getValidationErrors('employeeSearchTerm')">{{ error }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+
+      <div *ngIf="!store.isLoading()" class="form-content">
+        <form [formGroup]="attendanceForm" (ngSubmit)="onSubmit()" class="attendance-form">
+          
+          <!-- Employee Search Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">
+                <fa-icon [icon]="faUser" class="section-icon"></fa-icon>
+                {{ 'EmployeeInformation' | translate }}
+              </h3>
             </div>
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="date" class="form-label">{{ 'Date' | translate }}</label>
-                  <div class="input-wrapper">
-                    <input type="date" class="form-control" id="date" formControlName="date">
-                    <div *ngIf="getValidationErrors('date').length > 0" class="form-error-message">
-                      <div *ngFor="let error of getValidationErrors('date')">{{ error }}</div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="employeeSearch" class="field-label">
+                  <fa-icon [icon]="faSearch" class="label-icon"></fa-icon>
+                  {{ 'EmployeeNameOrPhone' | translate }}
+                </label>
+                <div class="input-container">
+                  <input 
+                    type="text" 
+                    class="modern-input"
+                    id="employeeSearch" 
+                    [formControl]="employeeSearchTerm" 
+                    [placeholder]="'SearchEmployee' | translate"
+                    (blur)="onEmployeeSearchBlur()"
+                  >
+                  <div *ngIf="suggestions.length > 0" class="autocomplete-dropdown">
+                    <div *ngFor="let suggestion of suggestions" 
+                         class="suggestion-item" 
+                         (click)="selectEmployee(suggestion)">
+                      {{ suggestion.name }} ({{ suggestion.phone }})
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="timeIn" class="form-label">{{ 'TimeIn' | translate }}</label>
-                  <div class="input-wrapper">
-                    <input type="time" class="form-control" id="timeIn" formControlName="timeIn">
-                    <div *ngIf="getValidationErrors('timeIn').length > 0" class="form-error-message">
-                      <div *ngFor="let error of getValidationErrors('timeIn')">{{ error }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="timeOut" class="form-label">{{ 'TimeOut' | translate }}</label>
-                  <div class="input-wrapper">
-                    <input type="time" class="form-control" id="timeOut" formControlName="timeOut">
-                    <div *ngIf="getValidationErrors('timeOut').length > 0" class="form-error-message">
-                      <div *ngFor="let error of getValidationErrors('timeOut')">{{ error }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="locationName" class="form-label">{{ 'LocationName' | translate }}</label>
-                  <div class="input-wrapper">
-                    <input type="text" class="form-control" id="locationName" formControlName="locationName">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="status" class="form-label">{{ 'Status' | translate }}</label>
-                  <div class="input-wrapper">
-                    <input type="text" class="form-control" id="status" formControlName="status">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="attType" class="form-label">{{ 'AttType' | translate }}</label>
-                  <div class="input-wrapper">
-                    <app-custom-dropdown
-                      [options]="attTypeOptions"
-                      [selectedValue]="attendanceForm.get('attType')?.value"
-                      (selectionChange)="onAttTypeChange($event)"
-                      class="form-select"
-                    ></app-custom-dropdown>
-                    <div *ngIf="getValidationErrors('attType').length > 0" class="form-error-message">
-                      <div *ngFor="let error of getValidationErrors('attType')">{{ error }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field-container">
-                <div class="form-field-group">
-                  <label for="time" class="form-label">{{ 'Time' | translate }}</label>
-                  <div class="input-wrapper">
-                    <input type="time" class="form-control" id="time" formControlName="time">
-                    <div *ngIf="getValidationErrors('time').length > 0" class="form-error-message">
-                      <div *ngFor="let error of getValidationErrors('time')">{{ error | translate }}</div>
-                    </div>
+                  <div *ngIf="getValidationErrors('employeeSearchTerm').length > 0 && !selectedEmployeeId" 
+                       class="error-message">
+                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+                    <span *ngFor="let error of getValidationErrors('employeeSearchTerm')">{{ error }}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="d-flex justify-content-end mt-4 button-group">
-            <button type="button" class="btn btn-secondary" (click)="onCancel()">
-              <fa-icon [icon]="faTimes" class="me-1"></fa-icon> {{ 'Cancel' | translate }}
+          <!-- Date & Time Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">
+                <fa-icon [icon]="faClock" class="section-icon"></fa-icon>
+                {{ 'DateTimeInformation' | translate }}
+              </h3>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="date" class="field-label">
+                  <fa-icon [icon]="faCalendarAlt" class="label-icon"></fa-icon>
+                  {{ 'Date' | translate }}
+                </label>
+                <div class="input-container">
+                  <input 
+                    type="date" 
+                    class="modern-input" 
+                    id="date" 
+                    formControlName="date"
+                    [disabled]="true">
+                  <div *ngIf="getValidationErrors('date').length > 0" class="error-message">
+                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+                    <span *ngFor="let error of getValidationErrors('date')">{{ error }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="timeIn" class="field-label">
+                  <fa-icon [icon]="faSignInAlt" class="label-icon"></fa-icon>
+                  {{ 'TimeIn' | translate }}
+                </label>
+                <div class="input-container">
+                  <input 
+                    type="time" 
+                    class="modern-input" 
+                    id="timeIn" 
+                    formControlName="timeIn">
+                  <div *ngIf="getValidationErrors('timeIn').length > 0" class="error-message">
+                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+                    <span *ngFor="let error of getValidationErrors('timeIn')">{{ error }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="timeOut" class="field-label">
+                  <fa-icon [icon]="faSignOutAlt" class="label-icon"></fa-icon>
+                  {{ 'TimeOut' | translate }}
+                </label>
+                <div class="input-container">
+                  <input 
+                    type="time" 
+                    class="modern-input" 
+                    id="timeOut" 
+                    formControlName="timeOut">
+                  <div *ngIf="getValidationErrors('timeOut').length > 0" class="error-message">
+                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+                    <span *ngFor="let error of getValidationErrors('timeOut')">{{ error }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="time" class="field-label">
+                  <fa-icon [icon]="faClock" class="label-icon"></fa-icon>
+                  {{ 'Time' | translate }}
+                </label>
+                <div class="input-container">
+                  <input 
+                    type="time" 
+                    class="modern-input" 
+                    id="time" 
+                    formControlName="time">
+                  <div *ngIf="getValidationErrors('time').length > 0" class="error-message">
+                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+                    <span *ngFor="let error of getValidationErrors('time')">{{ error | translate }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">
+                <fa-icon [icon]="faInfoCircle" class="section-icon"></fa-icon>
+                {{ 'AdditionalInformation' | translate }}
+              </h3>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="locationName" class="field-label">
+                  <fa-icon [icon]="faMapMarkerAlt" class="label-icon"></fa-icon>
+                  {{ 'LocationName' | translate }}
+                </label>
+                <div class="input-container">
+                  <input 
+                    type="text" 
+                    class="modern-input" 
+                    id="locationName" 
+                    formControlName="locationName"
+                    [placeholder]="'EnterLocation' | translate">
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="status" class="field-label">
+                  <fa-icon [icon]="faCheckCircle" class="label-icon"></fa-icon>
+                  {{ 'Status' | translate }}
+                </label>
+                <div class="input-container">
+                  <input 
+                    type="text" 
+                    class="modern-input" 
+                    id="status" 
+                    formControlName="status">
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="attType" class="field-label">
+                  <fa-icon [icon]="faList" class="label-icon"></fa-icon>
+                  {{ 'AttType' | translate }}
+                </label>
+                <div class="input-container">
+                  <app-custom-dropdown
+                    [options]="attTypeOptions"
+                    [selectedValue]="attendanceForm.get('attType')?.value"
+                    (selectionChange)="onAttTypeChange($event)"
+                    class="modern-dropdown">
+                  </app-custom-dropdown>
+                  <div *ngIf="getValidationErrors('attType').length > 0" class="error-message">
+                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+                    <span *ngFor="let error of getValidationErrors('attType')">{{ error }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button type="button" class="btn btn-cancel" (click)="onCancel()">
+              <fa-icon [icon]="faTimes" class="me-2"></fa-icon>
+              {{ 'Cancel' | translate }}
             </button>
-            <button type="submit" class="btn btn-primary" [disabled]="store.isLoading()">
-              <fa-icon [icon]="faSave" class="me-1"></fa-icon> {{ 'Save' | translate }}
+            <button type="submit" class="btn btn-submit" [disabled]="store.isLoading()">
+              <fa-icon *ngIf="!store.isLoading()" [icon]="faSave" class="me-2"></fa-icon>
+              <fa-icon *ngIf="store.isLoading()" [icon]="faSpinner" class="fa-spin me-2"></fa-icon>
+              {{ store.isLoading() ? ('Saving' | translate) : ('Save' | translate) }}
             </button>
           </div>
 
-          <div *ngIf="store.error()" class="alert alert-danger mt-3">
-            {{ store.error()! | translate }}
+          <!-- Error Alert -->
+          <div *ngIf="store.error()" class="error-alert">
+            <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+            <span>{{ store.error()! | translate }}</span>
           </div>
         </form>
       </div>

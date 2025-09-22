@@ -35,14 +35,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/attendance/pages/attendance-map/attendance-map.component').then(m => m.AttendanceMapComponent)
     },
     {
-        path: 'attendance/map-simple',
-        loadComponent: () => import('./features/attendance/pages/attendance-map/attendance-map-simple.component').then(m => m.AttendanceMapSimpleComponent)
-    },
-    {
-        path: 'test/map',
-        loadComponent: () => import('./features/test/pages/map-test/map-test.component').then(m => m.MapTestComponent)
-    },
-    {
         path: 'financial',
         loadComponent: () => import('./features/financial/pages/financial/financial.component').then(m => m.FinancialComponent)
     },
@@ -61,6 +53,18 @@ export const routes: Routes = [
     {
         path: 'admin-dashboard',
         loadComponent: () => import('./features/admin-dashboard/pages/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+    },
+    {
+        path: 'admin/requests/pending',
+        loadComponent: () => import('./features/admin-dashboard/pages/pending-requests/pending-requests.component').then(m => m.PendingRequestsComponent)
+    },
+    {
+        path: 'admin/requests/approved',
+        loadComponent: () => import('./features/admin-dashboard/pages/approved-requests/approved-requests.component').then(m => m.ApprovedRequestsComponent)
+    },
+    {
+        path: 'admin/work-rules',
+        loadComponent: () => import('./features/admin-dashboard/pages/work-rules/work-rules.component').then(m => m.WorkRulesComponent)
     },
     {
         path: 'employees',

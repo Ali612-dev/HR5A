@@ -140,6 +140,50 @@ body {
 /* Essential Leaflet styles */
 .leaflet-container {
   background: #f0f2f5;
+  height: 100%;
+  width: 100%;
+}
+
+/* Marker Cluster Styles - Global */
+.marker-cluster-small,
+.marker-cluster-small div {
+  background-color: rgba(76, 175, 80, 0.2) !important;
+  border: 3px solid rgba(76, 175, 80, 0.8) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.marker-cluster-medium,
+.marker-cluster-medium div {
+  background-color: rgba(255, 193, 7, 0.2) !important;
+  border: 3px solid rgba(255, 193, 7, 0.8) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.marker-cluster-large,
+.marker-cluster-large div {
+  background-color: rgba(244, 67, 54, 0.2) !important;
+  border: 3px solid rgba(244, 67, 54, 0.8) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.marker-cluster div {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 50% !important;
+  color: white !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  line-height: 36px !important;
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 14px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
 }
 
 
@@ -225,3 +269,61 @@ p, span, div, a {
 small {
   font-size: var(--font-size-sm);
 }
+/* Add this to the end of your src/styles.css file */
+
+/* Critical fix for Angular Material + Leaflet conflict */
+/* Add this to the end of your src/styles.css file */
+
+/* Critical fix for Angular Material + Leaflet conflict */
+/*.mat-sidenav-content,
+.mat-drawer-content,
+.cdk-overlay-container,
+.mat-app-background,
+.mat-drawer-backdrop,
+.cdk-overlay-backdrop {
+  transform: none !important;
+}*/
+
+/* Force Leaflet coordinate system reset - This is the key fix */
+/*.leaflet-container .leaflet-map-pane {
+  transform: translate3d(0px, 0px, 0px) !important;
+  left: 0px !important;
+  top: 0px !important;
+}*/
+
+/*.leaflet-container .leaflet-tile-container {
+  transform: translate3d(0px, 0px, 0px) !important;
+  left: 0px !important;
+  top: 0px !important;
+}*/
+
+/*.leaflet-container .leaflet-tile-pane {
+  transform: translate3d(0px, 0px, 0px) !important;
+  left: 0px !important;
+  top: 0px !important;
+}*/
+
+/*.leaflet-container .leaflet-overlay-pane {
+  transform: translate3d(0px, 0px, 0px) !important;
+  left: 0px !important;
+  top: 0px !important;
+}*/
+
+/* Prevent any transforms on map tiles */
+/*.leaflet-tile {
+  transform: none !important;
+  position: absolute !important;
+}*/
+
+/* Override any CSS that might interfere with Leaflet positioning */
+/*.leaflet-container * {
+  transform: none !important;
+  will-change: auto !important;
+}*/
+
+/* Ensure the map container itself has no transforms */
+/*.leaflet-container {
+  transform: none !important;
+  position: relative !important;
+  background: #f0f2f5 !important; */ /* You already have this */
+/*}*/

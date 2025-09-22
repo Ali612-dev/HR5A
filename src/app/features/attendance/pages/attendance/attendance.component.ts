@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, computed, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -34,6 +34,7 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
   readonly store = inject(AttendanceStore);
+  private router = inject(Router);
   filterForm!: FormGroup;
 
   faPlus = faPlus;
@@ -41,6 +42,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   faMapMarkerAlt = faMapMarkerAlt;
 
   isFilterCollapsed: boolean = true;
+  isMobile: boolean = false;
 
   private loadingDialogRef: any; // Declare loadingDialogRef
 
@@ -113,10 +115,34 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Detect mobile device
+    this.isMobile = window.innerWidth <= 768;
+    console.log('📱 Mobile detection:', this.isMobile, 'Screen width:', window.innerWidth);
+    
+    // Listen for window resize to update mobile state
+    window.addEventListener('resize', this.resizeHandler);
+
+    // Restore saved state from localStorage
+    const savedState = this.getSavedAttendanceState();
+    
     this.filterForm = this.fb.group({
-      date: [this.store.request().date || null],
-      employeeName: ['']
+      date: [savedState.date || this.store.request().date || null],
+      employeeName: [savedState.employeeName || '']
     });
+
+    // Restore filter collapsed state
+    this.isFilterCollapsed = savedState.isFilterCollapsed !== undefined ? savedState.isFilterCollapsed : true;
+
+    // Restore pagination and sorting if available
+    if (savedState.pageNumber) {
+      this.store.updateRequest({ pageNumber: savedState.pageNumber });
+    }
+    if (savedState.sortField && savedState.sortOrder) {
+      this.store.updateRequest({ 
+        sortField: savedState.sortField, 
+        sortOrder: savedState.sortOrder 
+      });
+    }
 
     this.store.loadDailyAttendances();
 
@@ -126,7 +152,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(() => {
       // The computed signal `filteredAttendances` will automatically react to changes
-      // No explicit action needed here other than triggering change detection if necessary
+      // Save state when employee name filter changes
+      this.saveAttendanceState();
     });
 
     this.filterForm.get('date')?.valueChanges.pipe(
@@ -136,9 +163,17 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
+  private resizeHandler = () => {
+    this.isMobile = window.innerWidth <= 768;
+    console.log('📱 Mobile detection on resize:', this.isMobile, 'Screen width:', window.innerWidth);
+  };
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    
+    // Remove resize event listener
+    window.removeEventListener('resize', this.resizeHandler);
   }
 
   onFilter(): void {
@@ -148,6 +183,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     // Explicitly trigger re-evaluation of employeeName filter
     const currentEmployeeName = this.filterForm.get('employeeName')?.value;
     this.filterForm.get('employeeName')?.setValue(currentEmployeeName, { emitEvent: true });
+
+    // Save state after filtering
+    this.saveAttendanceState();
   }
 
   onResetFilters(): void {
@@ -156,10 +194,18 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       employeeName: ''
     });
     this.onFilter(); // Re-apply date filter after reset
+    this.saveAttendanceState(); // Save state after reset
   }
 
   toggleFilter(): void {
     this.isFilterCollapsed = !this.isFilterCollapsed;
+    this.saveAttendanceState(); // Save filter collapsed state
+  }
+
+  closeMobileFilter(): void {
+    this.isFilterCollapsed = true;
+    console.log('❌ Close mobile filter:', this.isFilterCollapsed);
+    this.saveAttendanceState(); // Save filter collapsed state
   }
 
   onPageChange(pageNumber: number): void {
@@ -168,6 +214,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       currentRequest: this.store.request()
     });
     this.store.updateRequest({ pageNumber });
+    this.saveAttendanceState(); // Save pagination state
   }
 
   onSort(sortField: string): void {
@@ -185,6 +232,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
     
     this.store.updateRequest({ sortField, sortOrder });
+    this.saveAttendanceState(); // Save sorting state
   }
 
   onDelete(attendance: AttendanceViewModel): void {
@@ -210,5 +258,80 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   onRetryLoadAttendances(): void {
     this.store.loadDailyAttendances();
+  }
+
+  private saveAttendanceState(): void {
+    const state = {
+      date: this.filterForm.get('date')?.value,
+      employeeName: this.filterForm.get('employeeName')?.value || '',
+      isFilterCollapsed: this.isFilterCollapsed,
+      pageNumber: this.store.request().pageNumber,
+      sortField: this.store.request().sortField,
+      sortOrder: this.store.request().sortOrder
+    };
+
+    try {
+      localStorage.setItem('attendanceScreenState', JSON.stringify(state));
+      console.log('💾 Attendance state saved:', state);
+    } catch (error) {
+      console.error('Failed to save attendance state:', error);
+    }
+  }
+
+  private getSavedAttendanceState(): any {
+    try {
+      const saved = localStorage.getItem('attendanceScreenState');
+      if (saved) {
+        const state = JSON.parse(saved);
+        console.log('📂 Attendance state restored:', state);
+        return state;
+      }
+    } catch (error) {
+      console.error('Failed to restore attendance state:', error);
+    }
+    return {};
+  }
+
+  // Method to clear saved state (useful for logout or manual reset)
+  clearAttendanceState(): void {
+    localStorage.removeItem('attendanceScreenState');
+    console.log('🗑️ Attendance state cleared');
+  }
+
+  onViewAllOnMap(): void {
+    const currentAttendances = this.filteredAttendances();
+    
+    if (!currentAttendances || currentAttendances.length === 0) {
+      // Show localized toast message for no records
+      this.showNoRecordsToast();
+      return;
+    }
+
+    // Navigate to map with current date filter
+    const dateParam = this.filterForm.get('date')?.value;
+    this.router.navigate(['/attendance/map'], {
+      queryParams: { date: dateParam }
+    });
+  }
+
+  private showNoRecordsToast(): void {
+    const message = this.translate.instant('NoRecordsToShowOnMap');
+    
+    // Show notification dialog following exact shared dialog pattern
+    const dialogRef = this.dialog.open(NotificationDialogComponent, {
+      width: '400px',
+      panelClass: 'glass-dialog-panel',
+      backdropClass: 'transparent-backdrop',
+      data: {
+        title: this.translate.instant('Information'),
+        message: message,
+        isSuccess: false // This will show the close button and OK button
+      }
+    });
+
+    // Auto close after 3 seconds
+    setTimeout(() => {
+      dialogRef.close();
+    }, 3000);
   }
 }

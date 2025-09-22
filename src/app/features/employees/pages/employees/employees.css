@@ -327,58 +327,128 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+  .employees-container {
+    padding: 1rem;
+  }
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .header-actions {
-    margin-top: 1rem;
     width: 100%;
     display: flex;
-    justify-content: space-around;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .header-actions-top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    justify-content: center;
+  }
+
+  .whatsapp-button-container {
+    position: relative;
+    width: 100%;
+  }
+
+  .whatsapp-button-container .badge {
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    z-index: 10;
+  }
+
+  .header-actions-bottom {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .header-actions-bottom .btn {
+    width: 100%;
+  }
+
+  .filter-card {
+    margin-bottom: 1rem;
   }
 
   .filter-card .filters-container {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
   }
 
   .filter-card .form-control,
-  .filter-card .form-select,
-  .filter-card .btn {
-    width: 100%; /* Ensure elements take full width */
-    margin-bottom: 0.5rem; /* Add some space between stacked elements */
-  }
-
-  .filter-card .form-control[formControlName="name"],
-  .filter-card .form-control[formControlName="phone"],
-  .filter-card .form-control[formControlName="department"],
-  .filter-card .form-select[formControlName="isActive"] {
-    width: 80%;
+  .filter-card .form-select {
+    width: 100%;
+    margin-bottom: 0;
   }
 
   .filter-buttons {
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
+    gap: 0.5rem;
   }
 
   .filter-buttons .btn {
-    margin-left: 0; /* Remove margin for stacked buttons */
+    flex: 1;
+    margin-left: 0;
   }
 
-  .table thead th,
-  .table tbody td {
-    padding: 0.375rem 0.5rem; /* Even more compact for mobile */
-    font-size: 0.85rem; /* Slightly smaller font for mobile */
+  /* Hide desktop table on mobile - handled by responsive component */
+  .table-responsive-wrapper {
+    display: none;
+  }
+}
+
+/* Tablet responsiveness */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .employees-container {
+    padding: 1.5rem;
   }
 
-  .action-cell {
-    flex-wrap: wrap; /* Allow action buttons to wrap */
-    justify-content: center;
+  .page-header {
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
+  .header-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
   }
+
+  .filter-card .filters-container {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .filter-card .form-control,
+  .filter-card .form-select {
+    flex: 1 1 200px;
+    min-width: 150px;
+  }
+
+  .filter-buttons {
+    flex-shrink: 0;
+  }
+}
 
 /* Loading States for WhatsApp Buttons */
 .btn:disabled {

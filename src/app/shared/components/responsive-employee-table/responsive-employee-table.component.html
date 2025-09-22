@@ -41,8 +41,9 @@
   <app-error [errorMessage]="error" (retry)="onRetry()"></app-error>
 </div>
 
-<div class="table-container glass-card table-responsive-wrapper">
-  <table class="table table-striped table-hover glass-card">
+<!-- Desktop Table View -->
+<div *ngIf="!isMobile && !isLoading && !error" class="table-container glass-card table-responsive-wrapper">
+  <table class="table table-striped table-hover">
     <thead>
       <tr>
         <th (click)="onSort('id')">
@@ -86,6 +87,75 @@
       </tr>
     </tbody>
   </table>
+  <app-pagination
+    [totalCount]="totalCount"
+    [request]="request"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+</div>
+
+<!-- Mobile Card View -->
+<div *ngIf="isMobile && !isLoading && !error" class="mobile-employee-container">
+  <!-- Mobile Select All Header -->
+  <div class="mobile-select-all">
+    <label class="select-all-checkbox">
+      <input type="checkbox" [checked]="isAllSelected" [indeterminate]="isSomeSelected && !isAllSelected" (change)="onToggleSelection(null)" />
+      <span>{{ 'SelectAll' | translate }}</span>
+    </label>
+  </div>
+
+  <!-- Employee Cards -->
+  <div class="employee-cards-container">
+    <div class="employee-card glass-card" *ngFor="let employee of employees">
+      <div class="card-header">
+        <div class="employee-checkbox">
+          <input type="checkbox" [checked]="employee.selected" (change)="onToggleSelection(employee)" />
+        </div>
+        <div class="employee-info">
+          <h3 class="card-title">{{ employee.name }}</h3>
+          <span class="badge" [class.active]="employee.isActive" [class.inactive]="!employee.isActive">
+            {{ employee.isActive ? ('Active' | translate) : ('Inactive' | translate) }}
+          </span>
+        </div>
+        <div class="card-actions">
+          <div class="dropdown">
+            <a class="dropdown-toggle" (click)="toggleDropdown(employee, $event)">
+              <fa-icon [icon]="faEllipsisV"></fa-icon>
+            </a>
+            <div class="dropdown-menu glass-card" [class.show]="employee.showActions">
+              <a class="dropdown-item" [routerLink]="['/employees/view', employee.id]"><fa-icon [icon]="faEye"></fa-icon> {{ 'View' | translate }}</a>
+              <a class="dropdown-item" [routerLink]="['/employees/update', employee.id]"><fa-icon [icon]="faEdit"></fa-icon> {{ 'Edit' | translate }}</a>
+              <a class="dropdown-item" (click)="onDelete(employee)"><fa-icon [icon]="faTrash"></fa-icon> {{ 'Delete' | translate }}</a>
+              <a class="dropdown-item" (click)="openMessageDialog(employee)" [class.loading]="isWhatsappLoading(employee.id)">
+                <fa-icon [icon]="faWhatsapp" *ngIf="!isWhatsappLoading(employee.id)"></fa-icon>
+                <fa-icon [icon]="faSpinner" *ngIf="isWhatsappLoading(employee.id)" class="fa-spin"></fa-icon>
+                {{ isWhatsappLoading(employee.id) ? ('Sending...' | translate) : ('SendWhatsApp' | translate) }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <fa-icon [icon]="faEnvelope"></fa-icon>
+          <span class="label">{{ 'Email' | translate }}:</span>
+          <span class="value">{{ employee.email }}</span>
+        </div>
+        <div class="info-row">
+          <fa-icon [icon]="faPhone"></fa-icon>
+          <span class="label">{{ 'Phone' | translate }}:</span>
+          <span class="value">{{ employee.phone }}</span>
+        </div>
+        <div class="info-row">
+          <fa-icon [icon]="faBuilding"></fa-icon>
+          <span class="label">{{ 'Department' | translate }}:</span>
+          <span class="value">{{ employee.department }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Pagination -->
   <app-pagination
     [totalCount]="totalCount"
     [request]="request"

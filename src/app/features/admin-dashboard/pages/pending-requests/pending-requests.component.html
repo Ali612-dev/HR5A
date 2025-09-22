@@ -1,0 +1,86 @@
+<div class="pending-requests-container">
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn btn-ghost" routerLink="/admin-dashboard">
+        <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+        {{ 'Back' | translate }}
+      </button>
+      <div class="page-title">
+        <fa-icon [icon]="faHourglassHalf" class="me-2"></fa-icon>
+        {{ 'PendingRequests' | translate }}
+      </div>
+    </div>
+  </div>
+
+  <div class="content-container">
+    <ng-container *ngIf="isLoading; else loadedContent">
+      <div class="glass-card h-100">
+        <div class="glass-body p-4">
+          <app-shimmer></app-shimmer>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #loadedContent>
+      <div *ngIf="error" class="alert alert-danger" role="alert">
+        {{ error }}
+      </div>
+
+      <div *ngIf="!error" class="glass-card">
+        <div class="glass-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0">{{ 'PendingRequests' | translate }}</h5>
+            <span class="badge bg-purple-accent">{{ totalCount }}</span>
+          </div>
+
+          <div *ngIf="pendingRequests.length > 0; else noPendingRequests" class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>{{ 'Name' | translate }}</th>
+                  <th>{{ 'Phone' | translate }}</th>
+                  <th>{{ 'Department' | translate }}</th>
+                  <th>{{ 'Date' | translate }}</th>
+                  <th>{{ 'Actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let request of pendingRequests">
+                  <td>{{ request.fullName }}</td>
+                  <td>{{ request.phoneNumber }}</td>
+                  <td>{{ request.department }}</td>
+                  <td>{{ request.requestDate | date:'MMM dd, yyyy' }}</td>
+                  <td class="text-nowrap">
+                    <button 
+                      class="btn btn-sm btn-success me-1" 
+                      (click)="processRequest(request.id, true)" 
+                      appCustomTooltip 
+                      [appCustomTooltipText]="'TOOLTIP.ACCEPT_REQUEST' | translate">
+                      <fa-icon [icon]="faCheck" class="icon-button"></fa-icon>
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-danger" 
+                      (click)="rejectRequest(request)" 
+                      appCustomTooltip 
+                      [appCustomTooltipText]="'TOOLTIP.REJECT_REQUEST' | translate">
+                      <fa-icon [icon]="faXmark" class="icon-button"></fa-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <ng-template #noPendingRequests>
+            <div class="text-center py-5">
+              <fa-icon [icon]="faHourglassHalf" class="display-1 text-muted mb-3"></fa-icon>
+              <h5 class="text-muted">{{ 'NoPendingRequests' | translate }}</h5>
+              <p class="text-muted">{{ 'AllRequestsProcessed' | translate }}</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</div>
+

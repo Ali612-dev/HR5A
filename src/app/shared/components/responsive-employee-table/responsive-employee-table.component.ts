@@ -14,7 +14,6 @@ import { faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faPhone, faEnvelo
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { EmployeeDto, GetEmployeesRequest } from '../../../core/interfaces/employee.interface';
 import { ShimmerComponent } from '../shimmer/shimmer.component';
-import { CustomTooltipDirective } from '../../directives/custom-tooltip.directive';
 import { ScreenSizeService } from '../../services/screen-size.service';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -29,11 +28,7 @@ import { ErrorComponent } from '../error/error.component';
     FontAwesomeModule,
     RouterLink,
     ErrorComponent,
-    PaginationComponent,
-    CustomTooltipDirective,
-    MessageDialogComponent,
-    NotificationDialogComponent,
-    ErrorDialogComponent
+    PaginationComponent
   ],
   templateUrl: './responsive-employee-table.component.html',
   styleUrls: ['./responsive-employee-table.component.css']

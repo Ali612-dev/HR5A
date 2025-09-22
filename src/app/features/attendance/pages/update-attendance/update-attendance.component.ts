@@ -4,9 +4,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl, A
 import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTimes, faArrowLeft, faEdit, faSpinner, faUser, faSearch, faClock, faCalendarAlt, faSignInAlt, faSignOutAlt, faInfoCircle, faMapMarkerAlt, faCheckCircle, faList, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { UpdateAttendanceStore } from '../../../../store/update-attendance.store';
-import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
 import { CustomDropdownComponent } from '../../../../shared/components/custom-dropdown/custom-dropdown.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
@@ -27,7 +26,6 @@ import { AttendanceDataService } from '../../../../core/attendance-data.service'
     ReactiveFormsModule,
     TranslateModule,
     FontAwesomeModule,
-    ShimmerComponent,
     CustomDropdownComponent
   ],
   providers: [TranslateService],
@@ -37,19 +35,35 @@ import { AttendanceDataService } from '../../../../core/attendance-data.service'
 })
 export class UpdateAttendanceComponent implements OnInit, OnDestroy {
   readonly store = inject(UpdateAttendanceStore);
+  private translate = inject(TranslateService);
   attendanceForm!: FormGroup;
   employeeSearchTerm = new FormControl('', [Validators.required]);
   suggestions: EmployeeDto[] = [];
   selectedEmployeeId: number | null = null;
+  selectedEmployeePhone: string | null = null;
   attTypeOptions: { value: number | null; label: string }[] = [];
 
+  // FontAwesome Icons
   faSave = faSave;
   faTimes = faTimes;
+  faArrowLeft = faArrowLeft;
+  faEdit = faEdit;
+  faSpinner = faSpinner;
+  faUser = faUser;
+  faSearch = faSearch;
+  faClock = faClock;
+  faCalendarAlt = faCalendarAlt;
+  faSignInAlt = faSignInAlt;
+  faSignOutAlt = faSignOutAlt;
+  faInfoCircle = faInfoCircle;
+  faMapMarkerAlt = faMapMarkerAlt;
+  faCheckCircle = faCheckCircle;
+  faList = faList;
+  faExclamationTriangle = faExclamationTriangle;
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
-  private translate = inject(TranslateService);
   private employeeService = inject(EmployeeService);
   private attendanceService = inject(AttendanceService);
   private cdr = inject(ChangeDetectorRef);
@@ -157,6 +171,9 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       attType: attendance.attType
     });
     this.selectedEmployeeId = attendance.employeeId;
+    // For update, we'll need to get the phone from the employee service
+    // For now, set a placeholder that will be updated when employee is selected
+    this.selectedEmployeePhone = ''; // Will be updated when employee is selected
     this.employeeSearchTerm.setValue(attendance.employeeName, { emitEvent: false });
     this.cdr.detectChanges();
     this.onAttTypeChange(attendance.attType); // Call after patching attType
@@ -187,7 +204,7 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
     this.employeeSearchTerm = new FormControl('', [Validators.required]);
 
     this.attendanceForm = this.fb.group({
-      employeeId: [null, Validators.required],
+      phoneNumber: ['', Validators.required],
       date: [{ value: new Date().toISOString().split('T')[0], disabled: true }, Validators.required],
       timeIn: [{ value: null, disabled: false }], // Initialize as enabled
       timeOut: [{ value: null, disabled: false }], // Initialize as enabled
@@ -220,8 +237,8 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
         } else {
           this.suggestions = []; // Clear suggestions if term is too short or empty
           this.selectedEmployeeId = null; // Reset selected employee if search term changes
-          this.attendanceForm.get('employeeId')?.setValue(null); // Clear employeeId in form
-          this.attendanceForm.get('employeeId')?.updateValueAndValidity(); // Re-validate employeeId
+          this.attendanceForm.get('phoneNumber')?.setValue(''); // Clear phoneNumber in form
+          this.attendanceForm.get('phoneNumber')?.updateValueAndValidity(); // Re-validate phoneNumber
           // If the term is empty, ensure required error is set
           if (!term || term.trim() === '') {
             this.employeeSearchTerm.setErrors({ required: true });
@@ -245,15 +262,15 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
           this.employeeSearchTerm.setErrors(null);
         }
       }
-      // Ensure employeeId control is updated and validated based on selectedEmployeeId
-      if (this.selectedEmployeeId) {
-        this.attendanceForm.get('employeeId')?.setValue(this.selectedEmployeeId);
-        this.attendanceForm.get('employeeId')?.setErrors(null);
+      // Ensure phoneNumber control is updated and validated based on selectedEmployeePhone
+      if (this.selectedEmployeePhone) {
+        this.attendanceForm.get('phoneNumber')?.setValue(this.selectedEmployeePhone);
+        this.attendanceForm.get('phoneNumber')?.setErrors(null);
       } else {
-        this.attendanceForm.get('employeeId')?.setValue(null);
-        this.attendanceForm.get('employeeId')?.setErrors({ required: true });
+        this.attendanceForm.get('phoneNumber')?.setValue('');
+        this.attendanceForm.get('phoneNumber')?.setErrors({ required: true });
       }
-      this.attendanceForm.get('employeeId')?.updateValueAndValidity();
+      this.attendanceForm.get('phoneNumber')?.updateValueAndValidity();
       this.cdr.detectChanges();
     });
 
@@ -294,7 +311,7 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
     const updatedAttendance: UpdateAttendanceDto = {
       id: this.attendanceId!,
-      employeeId: this.selectedEmployeeId || 0,
+      phoneNumber: this.selectedEmployeePhone || '',
       date: formValue.date,
       timeIn: timeInIso ?? undefined,
       timeOut: timeOutIso ?? undefined,
@@ -353,8 +370,9 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
   public selectEmployee(employee: EmployeeDto): void {
     if (employee && employee.id) {
       this.selectedEmployeeId = employee.id;
+      this.selectedEmployeePhone = employee.phone;
       this.attendanceForm.patchValue({
-        employeeId: employee.id
+        phoneNumber: employee.phone
       });
       // Set the value without emitting an event to prevent re-triggering the search
       this.employeeSearchTerm.setValue(employee.name, { emitEvent: false });
@@ -499,8 +517,8 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
   private getDefaultErrorMessage(controlName: string, errorType: string): string {
     const defaultMessages: { [key: string]: { [key: string]: string } } = {
-      'employeeId': {
-        'required': 'Employee ID is required',
+      'phoneNumber': {
+        'required': 'Employee phone number is required',
         'employeeNotFound': 'Employee not found.'
       },
       'date': {
