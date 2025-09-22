@@ -436,7 +436,25 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const L = await import('leaflet');
+    // Use the Leaflet instance that was already loaded during map initialization
+    // We need to get it from the global scope or re-import it safely
+    let L: any;
+    try {
+      const leafletModule = await import('leaflet');
+      L = leafletModule.default || leafletModule;
+      
+      // Check if essential Leaflet functions are available (Vercel compatibility)
+      if (!L.marker || typeof L.marker !== 'function') {
+        console.error('❌ L.marker is not available, cannot create markers');
+        console.log('Available L methods:', Object.keys(L).filter(key => typeof L[key] === 'function'));
+        return;
+      }
+      
+      console.log('✅ L.marker is available for marker creation');
+    } catch (importError) {
+      console.error('❌ Failed to import Leaflet for markers:', importError);
+      return;
+    }
 
     console.log('Updating map markers with', this.attendancePoints.length, 'points');
     console.log('Markers object type:', this.markers.constructor.name);
