@@ -447,17 +447,31 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     // Clear existing markers from cluster group
     this.markers.clearLayers();
 
-    // Check if L.icon is available (Vercel compatibility)
+    // Check if L.icon and L.Icon are available (Vercel compatibility)
     let checkInIcon: any;
     let checkOutIcon: any;
     let mixedAttendanceIcon: any;
     
-    if (!L.icon || typeof L.icon !== 'function') {
-      console.error('❌ L.icon is not available, using default markers');
-      // Use default markers as fallback
-      checkInIcon = L.Icon.Default;
-      checkOutIcon = L.Icon.Default;
-      mixedAttendanceIcon = L.Icon.Default;
+    if (!L.icon || typeof L.icon !== 'function' || !L.Icon || !L.Icon.Default) {
+      console.error('❌ L.icon or L.Icon.Default is not available, using fallback markers');
+      console.log('L.icon available:', !!L.icon);
+      console.log('L.Icon available:', !!L.Icon);
+      console.log('L.Icon.Default available:', !!(L.Icon && L.Icon.Default));
+      
+      // Create simple fallback markers using basic Leaflet functionality
+      try {
+        // Try to create basic markers without custom icons
+        checkInIcon = null; // Will use default marker
+        checkOutIcon = null; // Will use default marker
+        mixedAttendanceIcon = null; // Will use default marker
+        console.log('✅ Using null icons - Leaflet will use default markers');
+      } catch (fallbackError) {
+        console.error('❌ Even fallback markers failed:', fallbackError);
+        // Last resort - try to create basic markers
+        checkInIcon = {};
+        checkOutIcon = {};
+        mixedAttendanceIcon = {};
+      }
     } else {
       console.log('✅ L.icon is available, creating custom icons');
       
@@ -747,12 +761,21 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         }
       }
       
-      const marker = L.marker([firstPoint.latitude, firstPoint.longitude], { icon })
+      // Create marker with or without custom icon
+      const markerOptions: any = {};
+      if (icon) {
+        markerOptions.icon = icon;
+      }
+      
+      const marker = L.marker([firstPoint.latitude, firstPoint.longitude], markerOptions)
         .bindPopup(popupContent);
       
       this.markers.addLayer(marker);
       markerCount++;
-      console.log(`✅ Added marker ${markerCount} (${points.length} records, icon: ${icon === mixedAttendanceIcon ? 'purple' : icon === checkInIcon ? 'green' : 'red'}) to cluster group`);
+      const iconType = icon === null ? 'default' : 
+                      icon === mixedAttendanceIcon ? 'purple' : 
+                      icon === checkInIcon ? 'green' : 'red';
+      console.log(`✅ Added marker ${markerCount} (${points.length} records, icon: ${iconType}) to cluster group`);
     });
 
     // Focus map on attendance points if we have valid data and no saved state
