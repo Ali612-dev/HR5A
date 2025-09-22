@@ -69,6 +69,17 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       employeeId: ['']
     });
     
+    // Add window resize listener for map compatibility
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth < 992;
+      // Trigger map resize if map exists (important for Vercel)
+      if (this.map) {
+        setTimeout(() => {
+          this.map.invalidateSize();
+        }, 100);
+      }
+    });
+    
     // Don't load data yet - wait for map to be ready
   }
 
@@ -118,6 +129,9 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     try {
       console.log('🗺️ Starting map initialization...');
       
+      // Ensure Leaflet CSS is loaded (critical for Vercel)
+      this.ensureLeafletCSS();
+      
       // Import Leaflet and marker cluster dynamically
       const L = await import('leaflet');
       console.log('✅ Leaflet imported successfully:', L);
@@ -134,22 +148,40 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       // Wait a bit for the plugin to be fully loaded
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Ensure markerClusterGroup is available on L object
-      if (!(L as any).markerClusterGroup) {
-        console.log('🔍 markerClusterGroup not found on L, trying to access it from window');
-        const LeafletMarkerCluster = (window as any).L?.markerClusterGroup || 
-                                     (window as any).L?.MarkerClusterGroup;
-        if (LeafletMarkerCluster) {
-          (L as any).markerClusterGroup = LeafletMarkerCluster;
-          console.log('✅ Successfully added markerClusterGroup to L object');
-        } else {
-          console.warn('⚠️ markerClusterGroup not available anywhere, continuing without clustering');
+      // Store markerClusterGroup reference without modifying L object (Vercel compatibility)
+      let MarkerClusterGroup: any = null;
+      
+      try {
+        // Try to get markerClusterGroup from the imported module
+        const markerClusterModule = await import('leaflet.markercluster');
+        MarkerClusterGroup = markerClusterModule.default || markerClusterModule;
+        console.log('✅ MarkerClusterGroup imported from module:', MarkerClusterGroup);
+      } catch (moduleError) {
+        console.warn('⚠️ Failed to import markerClusterGroup from module:', moduleError);
+        
+        // Try alternative methods without modifying L object
+        try {
+          MarkerClusterGroup = (window as any).L?.markerClusterGroup || 
+                              (window as any).L?.MarkerClusterGroup ||
+                              (L as any).markerClusterGroup;
+          console.log('✅ MarkerClusterGroup found from window/L:', MarkerClusterGroup);
+        } catch (windowError) {
+          console.warn('⚠️ MarkerClusterGroup not available anywhere, continuing without clustering');
         }
       }
     
-      // Fix default marker icons with fallback URLs
+      // Fix default marker icons with fallback URLs (Vercel-safe approach)
       try {
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        // Try to delete the problematic method if it exists
+        if ((L.Icon.Default.prototype as any)._getIconUrl) {
+          try {
+            delete (L.Icon.Default.prototype as any)._getIconUrl;
+          } catch (deleteError) {
+            console.warn('⚠️ Could not delete _getIconUrl (object may be frozen):', deleteError);
+          }
+        }
+        
+        // Configure marker icons
         L.Icon.Default.mergeOptions({
           iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
           iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -158,6 +190,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         console.log('✅ Leaflet marker icons configured');
       } catch (iconError) {
         console.warn('⚠️ Failed to configure Leaflet marker icons:', iconError);
+        // Continue without custom icons - Leaflet will use defaults
       }
       
       // Clear any existing map
@@ -172,7 +205,25 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       const initialView = savedState || [31.7683, 35.2137, defaultZoom];
       
       console.log('🗺️ Initializing map with view:', initialView);
-      this.map = L.map(this.mapContainer.nativeElement).setView([initialView[0], initialView[1]], initialView[2]);
+      
+      // Ensure map container has proper dimensions
+      const container = this.mapContainer.nativeElement;
+      console.log('📐 Map container dimensions:', {
+        width: container.offsetWidth,
+        height: container.offsetHeight,
+        clientWidth: container.clientWidth,
+        clientHeight: container.clientHeight
+      });
+      
+      // Force container to have dimensions if they're 0 (Vercel issue)
+      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+        console.log('⚠️ Map container has zero dimensions, setting fallback dimensions');
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.minHeight = '400px';
+      }
+      
+      this.map = L.map(container).setView([initialView[0], initialView[1]], initialView[2]);
     
       // Ensure map is fully rendered before proceeding
       setTimeout(() => {
@@ -206,10 +257,10 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       // Create marker cluster group or fallback to layer group
       try {
         console.log('🔧 Creating marker cluster group');
-        console.log('L.markerClusterGroup available:', !!(L as any).markerClusterGroup);
+        console.log('MarkerClusterGroup available:', !!MarkerClusterGroup);
         
-        if ((L as any).markerClusterGroup) {
-          this.markers = new (L as any).markerClusterGroup({
+        if (MarkerClusterGroup) {
+          this.markers = new MarkerClusterGroup({
             maxClusterRadius: 80, // Increase radius for better clustering
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
@@ -223,16 +274,8 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
           console.log('✅ Marker cluster group created successfully:', this.markers);
           console.log('Marker cluster group type:', this.markers.constructor.name);
         } else {
-          // Try alternative import method
-          console.log('🔄 Trying alternative cluster creation method');
-          const markerClusterModule = await import('leaflet.markercluster');
-          this.markers = new (markerClusterModule as any).default({
-            maxClusterRadius: 40,
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-          zoomToBoundsOnClick: true
-        });
-          console.log('✅ Marker cluster group created via alternative method:', this.markers);
+          console.log('⚠️ MarkerClusterGroup not available, using LayerGroup as fallback');
+          this.markers = L.layerGroup();
         }
       } catch (error) {
         console.error('❌ Error creating marker cluster group:', error);
@@ -250,6 +293,14 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         this.handleZoomLevelChange();
       });
 
+      // Force map resize to ensure proper rendering (critical for Vercel)
+      setTimeout(() => {
+        if (this.map) {
+          console.log('🔄 Triggering map resize for Vercel compatibility');
+          this.map.invalidateSize();
+        }
+      }, 500);
+
       // Map is now ready for markers
       console.log('🎉 Map initialization completed successfully');
       
@@ -264,6 +315,39 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     console.error('🗺️ Map Error:', message);
     // You can implement a user-friendly error display here
     // For now, we'll just log it
+  }
+
+  private ensureLeafletCSS(): void {
+    // Check if Leaflet CSS is already loaded
+    const existingLeafletCSS = document.querySelector('link[href*="leaflet.css"]');
+    if (existingLeafletCSS) {
+      console.log('✅ Leaflet CSS already loaded');
+      return;
+    }
+
+    // Dynamically load Leaflet CSS for Vercel compatibility
+    const leafletCSS = document.createElement('link');
+    leafletCSS.rel = 'stylesheet';
+    leafletCSS.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    leafletCSS.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+    leafletCSS.crossOrigin = 'anonymous';
+    
+    // Also load marker cluster CSS
+    const clusterCSS = document.createElement('link');
+    clusterCSS.rel = 'stylesheet';
+    clusterCSS.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
+    clusterCSS.crossOrigin = 'anonymous';
+    
+    const clusterDefaultCSS = document.createElement('link');
+    clusterDefaultCSS.rel = 'stylesheet';
+    clusterDefaultCSS.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
+    clusterDefaultCSS.crossOrigin = 'anonymous';
+
+    document.head.appendChild(leafletCSS);
+    document.head.appendChild(clusterCSS);
+    document.head.appendChild(clusterDefaultCSS);
+    
+    console.log('✅ Leaflet CSS files loaded dynamically for Vercel compatibility');
   }
 
   private async updateMapMarkers(): Promise<void> {
