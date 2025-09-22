@@ -231,8 +231,8 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
 
       // Initialize the map with saved state or default coordinates
       const savedState = this.getSavedMapState();
-      // Use appropriate zoom level - closer for mobile, wider for desktop
-      const defaultZoom = this.isMobile ? 14 : 8;
+      // Use closer zoom levels for better initial view
+      const defaultZoom = this.isMobile ? 16 : 12;
       const initialView = savedState || [31.7683, 35.2137, defaultZoom];
       
       console.log('🗺️ Initializing map with view:', initialView);
@@ -823,8 +823,9 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       if (this.map && locationGroups.size > 0) {
         const firstGroup = Array.from(locationGroups.values())[0];
         const firstPoint = firstGroup[0];
-        this.map.setView([firstPoint.latitude, firstPoint.longitude], 12);
-        console.log('Set default view to first attendance point');
+        const fallbackZoom = this.isMobile ? 16 : 14;
+        this.map.setView([firstPoint.latitude, firstPoint.longitude], fallbackZoom);
+        console.log(`Set default view to first attendance point with zoom ${fallbackZoom}`);
       }
     } else {
       console.log('No valid attendance points found');
