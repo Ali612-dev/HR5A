@@ -4,7 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faFilter, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faFilter, faMapMarkerAlt, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 import { AttendanceStore } from '../../../../store/attendance.store';
 import { AttendanceViewModel } from '../../../../core/interfaces/attendance.interface';
@@ -40,6 +40,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   faPlus = faPlus;
   faFilter = faFilter;
   faMapMarkerAlt = faMapMarkerAlt;
+  faArrowLeft = faArrowLeft;
 
   isFilterCollapsed: boolean = true;
   isMobile: boolean = false;
@@ -342,5 +343,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       dialogRef.close();
     }, 3000);
+  }
+
+  goBack(): void {
+    this.router.navigate(['/admin-dashboard']);
   }
 }

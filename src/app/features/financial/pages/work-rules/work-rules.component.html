@@ -1,0 +1,318 @@
+<div class="work-rules-container">
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <button class="btn btn-ghost" routerLink="/admin/financial">
+          <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+          {{ 'Back' | translate }}
+        </button>
+        <div class="page-title">
+          <fa-icon [icon]="faClock" class="me-2"></fa-icon>
+          {{ 'WorkRules' | translate }}
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="showAddForm()">
+          <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+          {{ 'AddWorkRule' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div *ngIf="isFormVisible" class="glass-card form-card mb-4">
+      <div class="glass-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">
+            {{ isEditing ? ('EditWorkRule' | translate) : ('AddWorkRule' | translate) }}
+          </h5>
+          <button class="btn btn-sm btn-outline-light" (click)="hideForm()" aria-label="close">
+            <fa-icon [icon]="faTimes"></fa-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="workRuleForm" (ngSubmit)="onSubmit()" class="work-rule-form">
+          <!-- Section: Basic Info -->
+          <div class="form-section">
+            <div class="section-title">{{ 'BasicInformation' | translate }}</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="field-inline">
+                  <label class="form-label mb-0">{{ 'Category' | translate }} *</label>
+                  <input type="text" class="form-control flex-grow-1" formControlName="category" [placeholder]="'EnterCategory' | translate">
+                </div>
+                <div *ngIf="getValidationErrors('category').length > 0" class="text-danger mt-1">
+                  <small *ngFor="let error of getValidationErrors('category')">{{ error }}</small>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="field-inline">
+                  <label class="form-label mb-0">{{ 'Type' | translate }} *</label>
+                  <app-custom-dropdown class="flex-grow-1" [options]="workRuleTypeOptions" [selectedValue]="workRuleForm.get('type')?.value" (selectionChange)="workRuleForm.get('type')?.setValue($event)">
+                  </app-custom-dropdown>
+                </div>
+                <div *ngIf="getValidationErrors('type').length > 0" class="text-danger mt-1">
+                  <small *ngFor="let error of getValidationErrors('type')">{{ error }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Time -->
+          <div class="form-section">
+            <div class="section-title">{{ 'Timing' | translate }}</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="field-inline">
+                  <label class="form-label mb-0">{{ 'StartTime' | translate }}</label>
+                  <input type="time" class="form-control flex-grow-1" formControlName="expectStartTime">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="field-inline">
+                  <label class="form-label mb-0">{{ 'EndTime' | translate }}</label>
+                  <input type="time" class="form-control flex-grow-1" formControlName="expectEndTime">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Expectations -->
+          <div class="form-section">
+            <div class="section-title">{{ 'Expectations' | translate }}</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="field-inline">
+                  <label class="form-label mb-0">{{ 'HoursPerDay' | translate }}</label>
+                  <input type="number" class="form-control flex-grow-1" formControlName="expectedHoursPerDay" min="1" max="24" [placeholder]="'e.g. 8'">
+                </div>
+                <small class="field-hint" *ngIf="!workRuleForm.get('expectedHoursPerDay')?.value">{{ 'Optional' | translate }}</small>
+                <div *ngIf="getValidationErrors('expectedHoursPerDay').length > 0" class="text-danger mt-1">
+                  <small *ngFor="let error of getValidationErrors('expectedHoursPerDay')">{{ error }}</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="field-inline">
+                  <label class="form-label mb-0">{{ 'DaysPerWeek' | translate }}</label>
+                  <input type="number" class="form-control flex-grow-1" formControlName="expectedDaysPerWeek" min="1" max="7" [placeholder]="'e.g. 5'">
+                </div>
+                <small class="field-hint" *ngIf="!workRuleForm.get('expectedDaysPerWeek')?.value">{{ 'Optional' | translate }}</small>
+                <div *ngIf="getValidationErrors('expectedDaysPerWeek').length > 0" class="text-danger mt-1">
+                  <small *ngFor="let error of getValidationErrors('expectedDaysPerWeek')">{{ error }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Details -->
+          <div class="form-section">
+            <div class="section-title">{{ 'Details' | translate }}</div>
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="field-inline">
+                  <label class="form-label mb-0">{{ 'Description' | translate }}</label>
+                  <textarea class="form-control flex-grow-1" formControlName="description" rows="3" [placeholder]="'EnterDescription' | translate"></textarea>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="private-rule-toggle-container">
+                  <label class="form-label mb-2">{{ 'PrivateRule' | translate }}</label>
+                  <div class="custom-toggle-wrapper">
+                    <div class="custom-toggle">
+                      <input type="checkbox" id="isPrivate" formControlName="isPrivate" class="toggle-input">
+                      <label for="isPrivate" class="toggle-label">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">
+                          {{ (workRuleForm.get('isPrivate')?.value ? 'Private' : 'Public') | translate }}
+                        </span>
+                      </label>
+                    </div>
+                    <small class="toggle-description">
+                      {{ (workRuleForm.get('isPrivate')?.value ? 'PrivateRuleDescription' : 'PublicRuleDescription') | translate }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 employee-assign-field" *ngIf="workRuleForm.get('isPrivate')?.value">
+                <div class="employee-assign-container">
+                  <label class="form-label mb-2">{{ 'AssignToEmployee' | translate }}</label>
+                  <div class="assign-button-wrapper">
+                    <button 
+                      type="button" 
+                      class="btn btn-assign-employee" 
+                      (click)="openAssignDialogForNewRule()"
+                      title="{{ 'AssignToEmployee' | translate }}">
+                      <fa-icon [icon]="faUserTie" class="me-2"></fa-icon>
+                      {{ 'AssignEmployee' | translate }}
+                    </button>
+                    <div class="assigned-employee-info" *ngIf="assignedEmployeeForNewRule">
+                      <div class="assigned-employee-card">
+                        <div class="employee-avatar">{{ assignedEmployeeForNewRule.name.charAt(0).toUpperCase() }}</div>
+                        <div class="employee-details">
+                          <div class="employee-name">{{ assignedEmployeeForNewRule.name }}</div>
+                          <div class="employee-id">ID: {{ assignedEmployeeForNewRule.cardNumber }}</div>
+                        </div>
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-outline-danger remove-employee-btn" 
+                          (click)="removeAssignedEmployee()"
+                          title="{{ 'RemoveEmployee' | translate }}">
+                          <fa-icon [icon]="faTimes"></fa-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <small class="field-hint">{{ 'OnlyForPrivateRule' | translate }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-3">
+            <button type="button" class="btn btn-secondary me-2" (click)="hideForm()">
+              <fa-icon [icon]="faTimes" class="me-1"></fa-icon>
+              {{ 'Cancel' | translate }}
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="workRuleForm.invalid">
+              <fa-icon [icon]="faSave" class="me-1"></fa-icon>
+              {{ isEditing ? ('Update' | translate) : ('Save' | translate) }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-container">
+      <ng-container *ngIf="isLoading; else loadedContent">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <app-shimmer></app-shimmer>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #loadedContent>
+        <div *ngIf="error" class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+
+        <div *ngIf="!error" class="glass-card">
+          <div class="glass-body p-4">
+            <div class="work-rules-header d-flex align-items-center mb-4 flex-nowrap">
+              <h5 class="mb-0 me-4 flex-shrink-0">{{ 'WorkRules' | translate }}</h5>
+              <span class="badge bg-purple-accent me-3 flex-shrink-0">{{ totalCount }}</span>
+              <span class="text-muted small flex-shrink-0">{{ 'TotalRules' | translate }}</span>
+            </div>
+
+            <div *ngIf="workRules.length > 0; else noWorkRules" class="rules-grid">
+              <div *ngFor="let rule of workRules" class="rule-card">
+                <div class="rule-header">
+                  <div class="rule-title">
+                    <h6 class="mb-1">{{ rule.category }}</h6>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                      <span class="badge bg-primary work-rule-category-badge">{{ getWorkRuleCategoryLabelArabic(rule.category) }}</span>
+                      <span class="badge bg-light-purple work-rule-type-badge">{{ getWorkRuleTypeLabelArabic(rule.type) }}</span>
+                    </div>
+                  </div>
+                  <div class="rule-actions">
+                    <div class="dropdown" #actionMenu>
+                      <button 
+                        class="btn btn-menu-toggle" 
+                        type="button" 
+                        (click)="toggleActionMenu($event, rule.id)"
+                        title="{{ 'Actions' | translate }}">
+                        <fa-icon [icon]="faEllipsisVertical"></fa-icon>
+                      </button>
+                      <div class="dropdown-menu" [class.show]="activeMenuId === rule.id" (click)="$event.stopPropagation()">
+                        <button 
+                          class="dropdown-item" 
+                          [routerLink]="['/admin/financial/work-rules', rule.id, 'details']">
+                          <fa-icon [icon]="faEye" class="me-2"></fa-icon>
+                          {{ 'ViewDetails' | translate }}
+                        </button>
+                        <button 
+                          class="dropdown-item" 
+                          (click)="openAssignDialog(rule)">
+                          <fa-icon [icon]="faUserTie" class="me-2"></fa-icon>
+                          {{ 'Assign' | translate }}
+                        </button>
+                        <button 
+                          class="dropdown-item" 
+                          (click)="showEditForm(rule)">
+                          <fa-icon [icon]="faEdit" class="me-2"></fa-icon>
+                          {{ 'Edit' | translate }}
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button 
+                          class="dropdown-item text-danger" 
+                          (click)="deleteWorkRule(rule)">
+                          <fa-icon [icon]="faTrash" class="me-2"></fa-icon>
+                          {{ 'Delete' | translate }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rule-description">
+                  <p class="mb-2">{{ rule.description || ('NoDescription' | translate) }}</p>
+                  <div class="rule-details">
+                    <div class="row g-2">
+                      <div class="col-6" *ngIf="rule.expectStartTime">
+                        <small class="text-muted">
+                          <fa-icon [icon]="faClock" class="me-1"></fa-icon>
+                          {{ 'Start' | translate }}: {{ formatTime(rule.expectStartTime) }}
+                        </small>
+                      </div>
+                      <div class="col-6" *ngIf="rule.expectEndTime">
+                        <small class="text-muted">
+                          <fa-icon [icon]="faClock" class="me-1"></fa-icon>
+                          {{ 'End' | translate }}: {{ formatTime(rule.expectEndTime) }}
+                        </small>
+                      </div>
+                      <div class="col-6" *ngIf="rule.expectedHoursPerDay">
+                        <small class="text-muted">
+                          {{ 'HoursPerDay' | translate }}: {{ rule.expectedHoursPerDay }}
+                        </small>
+                      </div>
+                      <div class="col-6" *ngIf="rule.expectedDaysPerWeek">
+                        <small class="text-muted">
+                          {{ 'DaysPerWeek' | translate }}: {{ rule.expectedDaysPerWeek }}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rule-footer">
+                    <small class="text-muted">
+                      <fa-icon [icon]="faUsers" class="me-1"></fa-icon>
+                      {{ rule.employeeCount }} {{ 'Employees' | translate }}
+                    </small>
+                    <div class="rule-status">
+                      <span class="badge" [ngClass]="rule.isPrivate ? 'bg-warning' : 'bg-success'">
+                        {{ rule.isPrivate ? ('Private' | translate) : ('Public' | translate) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <ng-template #noWorkRules>
+              <div class="text-center py-5">
+                <fa-icon [icon]="faClock" class="display-1 text-muted mb-3"></fa-icon>
+                <h5 class="text-muted">{{ 'NoWorkRules' | translate }}</h5>
+                <p class="text-muted">{{ 'CreateYourFirstWorkRule' | translate }}</p>
+                <button class="btn btn-primary" (click)="showAddForm()">
+                  <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+                  {{ 'AddWorkRule' | translate }}
+                </button>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

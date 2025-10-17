@@ -67,6 +67,30 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin-dashboard/pages/work-rules/work-rules.component').then(m => m.WorkRulesComponent)
     },
     {
+        path: 'admin/financial',
+        loadComponent: () => import('./features/financial/pages/financial-dashboard/financial-dashboard.component').then(m => m.FinancialDashboardComponent)
+    },
+    {
+        path: 'admin/financial/work-rules',
+        loadComponent: () => import('./features/financial/pages/work-rules/work-rules.component').then(m => m.WorkRulesComponent)
+    },
+    {
+        path: 'admin/financial/work-rules/:id/details',
+        loadComponent: () => import('./features/financial/pages/work-rules/work-rule-details.component').then(m => m.WorkRuleDetailsComponent)
+    },
+    {
+        path: 'admin/financial/employee-salaries',
+        loadComponent: () => import('./features/financial/pages/employee-salaries/employee-salaries.component').then(m => m.EmployeeSalariesComponent)
+    },
+    {
+        path: 'admin/financial/salary-reports',
+        loadComponent: () => import('./features/financial/pages/salary-reports/salary-reports.component').then(m => m.SalaryReportsComponent)
+    },
+    {
+        path: 'admin/financial/salary-reports/:id',
+        loadComponent: () => import('./features/financial/pages/salary-report-details/salary-report-details.component').then(m => m.SalaryReportDetailsComponent)
+    },
+    {
         path: 'employees',
         loadComponent: () => import('./features/employees/pages/employees/employees').then(m => m.Employees)
     },

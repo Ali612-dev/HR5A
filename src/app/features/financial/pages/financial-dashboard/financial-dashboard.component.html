@@ -1,0 +1,360 @@
+<div class="financial-dashboard-container">
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <button class="btn btn-ghost me-3" (click)="goBack()">
+              <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+              {{ 'Back' | translate }}
+            </button>
+            <h2 class="text-white mb-0">
+              <fa-icon [icon]="faDollarSign" class="me-2"></fa-icon>
+              {{ 'FinancialDashboard' | translate }}
+            </h2>
+          </div>
+          <div class="d-flex" style="gap: 10px;">
+            <button class="btn btn-outline-light" (click)="refreshData()">
+              <fa-icon [icon]="faChartLine" class="me-1"></fa-icon>
+              {{ 'Refresh' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial Stats Cards -->
+    <div class="stats-container" @staggerFadeInUp>
+      <ng-container *ngIf="isLoadingStats; else loadedStats">
+        <div *ngIf="statsError" class="alert alert-danger col-12" role="alert">
+          {{ statsError }}
+        </div>
+        <div class="stat-card" *ngFor="let i of [1,2,3,4]">
+          <div class="glass-card h-100">
+            <div class="glass-body p-4 text-center">
+              <div class="stat-icon mb-3 shimmer-placeholder shimmer-circle"></div>
+              <h3 class="mb-1 shimmer-placeholder shimmer-text-line"></h3>
+              <p class="mb-0 text-muted shimmer-placeholder shimmer-text-line"></p>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #loadedStats>
+        <div class="stat-card">
+          <a routerLink="/admin/financial/work-rules" class="text-decoration-none">
+            <div class="glass-card h-100 hover-scale">
+              <div class="glass-body p-4 text-center">
+                <div class="stat-icon mb-3">
+                  <fa-icon [icon]="faClock" class="icon-unified"></fa-icon>
+                </div>
+                <h3 class="mb-1 card-main-text">{{ financialStats?.totalWorkRules || 0 }}</h3>
+                <p class="mb-0 text-muted">{{ 'WorkRules' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="stat-card">
+          <a routerLink="/admin/financial/employee-salaries" class="text-decoration-none">
+            <div class="glass-card h-100 hover-scale">
+              <div class="glass-body p-4 text-center">
+                <div class="stat-icon mb-3">
+                  <fa-icon [icon]="faUsers" class="icon-unified"></fa-icon>
+                </div>
+                <h3 class="mb-1 card-main-text">{{ financialStats?.totalEmployeeSalaries || 0 }}</h3>
+                <p class="mb-0 text-muted">{{ 'EmployeeSalaries' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="stat-card">
+          <a routerLink="/admin/financial/salary-reports" class="text-decoration-none">
+            <div class="glass-card h-100 hover-scale">
+              <div class="glass-body p-4 text-center">
+                <div class="stat-icon mb-3">
+                  <fa-icon [icon]="faFileInvoice" class="icon-unified"></fa-icon>
+                </div>
+                <h3 class="mb-1 card-main-text">{{ financialStats?.totalSalaryReports || 0 }}</h3>
+                <p class="mb-0 text-muted">{{ 'SalaryReports' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="stat-card">
+          <a routerLink="/admin/financial/salary-reports" class="text-decoration-none">
+            <div class="glass-card h-100 hover-scale">
+              <div class="glass-body p-4 text-center">
+                <div class="stat-icon mb-3">
+                  <fa-icon [icon]="faTimes" class="icon-unified text-warning"></fa-icon>
+                </div>
+                <h3 class="mb-1 card-main-text">{{ financialStats?.unpaidReports || 0 }}</h3>
+                <p class="mb-0 text-muted">{{ 'UnpaidReports' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
+              </div>
+            </div>
+          </a>
+        </div>
+      </ng-template>
+    </div>
+
+    <div class="dashboard-main-content">
+      <!-- Recent Work Rules -->
+      <div class="recent-section" @fadeInUp>
+        <ng-container *ngIf="isLoadingWorkRules; else loadedWorkRules">
+          <div *ngIf="workRulesError" class="alert alert-danger col-12" role="alert">
+            {{ workRulesError }}
+          </div>
+          <div class="glass-card h-100">
+            <div class="glass-body p-4">
+              <app-shimmer></app-shimmer>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #loadedWorkRules>
+          <div class="glass-card h-100">
+            <div class="glass-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">{{ 'RecentWorkRules' | translate }}</h5>
+                <a routerLink="/admin/financial/work-rules" class="btn btn-sm btn-outline-light">
+                  {{ 'ViewAll' | translate }}
+                </a>
+              </div>
+
+              <div *ngIf="recentWorkRules.length > 0; else noWorkRules" class="list-group list-group-flush">
+                <div *ngFor="let rule of recentWorkRules" class="list-group-item bg-transparent border-0 px-0 py-3">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-2">
+                        <fa-icon [icon]="faClock" class="icon-unified"></fa-icon>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h6 class="mb-1">{{ rule.category }}</h6>
+                      <small class="text-muted">
+                        {{ getWorkRuleTypeLabel(rule.type) }} • 
+                        {{ rule.employeeCount }} {{ 'Employees' | translate }}
+                      </small>
+                    </div>
+                    <div class="flex-shrink-0">
+                      <span class="badge" [ngClass]="rule.isPrivate ? 'bg-warning' : 'bg-success'">
+                        {{ rule.isPrivate ? ('Private' | translate) : ('Public' | translate) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ng-template #noWorkRules>
+                <div class="text-center py-4">
+                  <fa-icon [icon]="faClock" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
+                  <p class="mt-2 mb-0">{{ 'NoWorkRules' | translate }}</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Recent Employee Salaries -->
+      <div class="recent-section" @fadeInUp>
+        <ng-container *ngIf="isLoadingSalaries; else loadedSalaries">
+          <div *ngIf="salariesError" class="alert alert-danger col-12" role="alert">
+            {{ salariesError }}
+          </div>
+          <div class="glass-card h-100">
+            <div class="glass-body p-4">
+              <app-shimmer></app-shimmer>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #loadedSalaries>
+          <div class="glass-card h-100">
+            <div class="glass-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">{{ 'RecentEmployeeSalaries' | translate }}</h5>
+                <a routerLink="/admin/financial/employee-salaries" class="btn btn-sm btn-outline-light">
+                  {{ 'ViewAll' | translate }}
+                </a>
+              </div>
+
+              <div *ngIf="recentSalaries.length > 0; else noSalaries" class="list-group list-group-flush">
+                <div *ngFor="let salary of recentSalaries" class="list-group-item bg-transparent border-0 px-0 py-3">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-2">
+                        <fa-icon [icon]="faUsers" class="icon-unified"></fa-icon>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h6 class="mb-1">{{ salary.employeeName || ('Employee' | translate) + ' #' + salary.employeeId }}</h6>
+                      <small class="text-muted">
+                        {{ getSalaryTypeLabel(salary.salaryType) }} • 
+                        {{ formatCurrency(salary.amount) }}
+                      </small>
+                    </div>
+                    <div class="flex-shrink-0 d-flex align-items-center gap-2">
+                      <span class="badge bg-info me-2">
+                        {{ getSalaryTypeLabel(salary.salaryType) }}
+                      </span>
+                      <button 
+                        class="btn btn-sm btn-outline-primary"
+                        (click)="openCreateReportDialog(salary)"
+                        [title]="'CreateSalaryReport' | translate"
+                      >
+                        <fa-icon [icon]="faCalculator" class="me-1"></fa-icon>
+                        {{ 'CreateSalaryReport' | translate }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ng-template #noSalaries>
+                <div class="text-center py-4">
+                  <fa-icon [icon]="faUsers" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
+                  <p class="mt-2 mb-0">{{ 'NoEmployeeSalaries' | translate }}</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Recent Salary Reports -->
+      <div class="recent-section" @fadeInUp>
+        <ng-container *ngIf="isLoadingReports; else loadedReports">
+          <div *ngIf="reportsError" class="alert alert-danger col-12" role="alert">
+            {{ reportsError }}
+          </div>
+          <div class="glass-card h-100">
+            <div class="glass-body p-4">
+              <app-shimmer></app-shimmer>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #loadedReports>
+          <div class="glass-card h-100">
+            <div class="glass-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">{{ 'RecentSalaryReports' | translate }}</h5>
+                <a routerLink="/admin/financial/salary-reports" class="btn btn-sm btn-outline-light">
+                  {{ 'ViewAll' | translate }}
+                </a>
+              </div>
+
+              <div *ngIf="recentReports.length > 0; else noReports" class="list-group list-group-flush">
+                <div *ngFor="let report of recentReports" class="list-group-item bg-transparent border-0 px-0 py-3">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-2">
+                        <fa-icon [icon]="faFileInvoice" class="icon-unified"></fa-icon>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h6 class="mb-1">{{ report.employeeName || ('Employee' | translate) + ' #' + report.employeeId }}</h6>
+                      <small class="text-muted">
+                        {{ report.reportMonth }}/{{ report.reportYear }} • 
+                        {{ formatCurrency(report.netCalculatedSalary) }}
+                      </small>
+                    </div>
+                    <div class="flex-shrink-0">
+                      <span class="badge" [ngClass]="report.isPaid ? 'bg-success' : 'bg-warning'">
+                        {{ report.isPaid ? ('Paid' | translate) : ('Unpaid' | translate) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ng-template #noReports>
+                <div class="text-center py-4">
+                  <fa-icon [icon]="faFileInvoice" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
+                  <p class="mt-2 mb-0">{{ 'NoSalaryReports' | translate }}</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Salary Report Modal -->
+<div *ngIf="showCreateReportDialog" class="modal-overlay" (click)="closeCreateReportDialog()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">
+        <fa-icon [icon]="faCalculator" class="me-2"></fa-icon>
+        {{ 'CreateReportFor' | translate | translate: {name: selectedEmployee?.employeeName || 'Employee #' + selectedEmployee?.employeeId} }}
+      </h5>
+      <button type="button" class="btn-close" (click)="closeCreateReportDialog()">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form (ngSubmit)="createSalaryReport()" #reportForm="ngForm">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label class="form-label">{{ 'ReportMonth' | translate }}</label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="createReportForm.reportMonth" 
+                name="reportMonth"
+                required
+              >
+                <option value="">{{ 'SelectReportMonth' | translate }}</option>
+                <option *ngFor="let month of monthOptions" [value]="month.value">
+                  {{ month.label | translate }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label class="form-label">{{ 'ReportYear' | translate }}</label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="createReportForm.reportYear" 
+                name="reportYear"
+                required
+              >
+                <option value="">{{ 'SelectReportYear' | translate }}</option>
+                <option *ngFor="let year of yearOptions" [value]="year">
+                  {{ year }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group mb-3">
+          <label class="form-label">{{ 'ReportNotes' | translate }}</label>
+          <textarea 
+            class="form-control" 
+            [(ngModel)]="createReportForm.notes" 
+            name="notes"
+            rows="3"
+            maxlength="500"
+            [placeholder]="'EnterReportNotes' | translate"
+          ></textarea>
+          <small class="form-text text-muted">{{ (createReportForm.notes || '').length }}/500 {{ 'CharactersMax' | translate }}</small>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeCreateReportDialog()">
+            {{ 'Cancel' | translate }}
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="!reportForm.form.valid || creatingReport"
+          >
+            <fa-icon *ngIf="creatingReport" [icon]="faSpinner" class="fa-spin me-2"></fa-icon>
+            <fa-icon *ngIf="!creatingReport" [icon]="faCalculator" class="me-2"></fa-icon>
+            {{ creatingReport ? ('CreatingReport' | translate) : ('GenerateReport' | translate) }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

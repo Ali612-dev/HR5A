@@ -17,6 +17,12 @@ export class ErrorInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
+        // Let 401 errors pass through to AuthInterceptor for token refresh
+        if (error.status === 401) {
+          console.log('🚨 ErrorInterceptor: Letting 401 error pass through to AuthInterceptor');
+          return throwError(() => error);
+        }
+
         let errorMessage = 'An unknown error occurred!';
         if (error.error instanceof ErrorEvent) {
           // Client-side errors
@@ -34,7 +40,7 @@ export class ErrorInterceptor implements HttpInterceptor {
             errorMessage = `Error: ${error.message}`;
           }
         }
-        console.error(error);
+        console.error('🚨 ErrorInterceptor: Non-401 error:', error);
         return throwError(() => error);
       })
     );

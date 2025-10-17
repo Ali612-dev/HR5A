@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Report Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { background-color: #ffebee; border-color: #f44336; }
+        .success { background-color: #e8f5e8; border-color: #4caf50; }
+        .warning { background-color: #fff3e0; border-color: #ff9800; }
+        .info { background-color: #e3f2fd; border-color: #2196f3; }
+        button { padding: 10px 20px; margin: 5px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1976d2; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .result { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Salary Report Debug Tool</h1>
+        
+        <div class="section info">
+            <h3>📋 Instructions</h3>
+            <p>1. Open your HR5A application in the browser</p>
+            <p>2. Login as admin</p>
+            <p>3. Open browser console (F12)</p>
+            <p>4. Copy and paste the code blocks below into the console</p>
+            <p>5. Run each test step by step</p>
+        </div>
+
+        <div class="section">
+            <h3>🔑 Step 1: Check Authentication</h3>
+            <p>Copy this code to console:</p>
+            <pre>
+// Check if user is authenticated
+const token = localStorage.getItem('authToken');
+console.log('🔑 Auth Token:', token ? 'Found' : 'Not Found');
+console.log('🔑 Token Preview:', token ? token.substring(0, 50) + '...' : 'null');
+            </pre>
+        </div>
+
+        <div class="section">
+            <h3>👤 Step 2: Check Employee Data</h3>
+            <p>Copy this code to console:</p>
+            <pre>
+// Check employee data
+async function checkEmployeeData() {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        console.error('❌ No auth token found');
+        return;
+    }
+    
+    try {
+        // Get employee salaries
+        const salariesResponse = await fetch('http://172.20.208.1:6365/api/EmployeeSalary?pageNumber=1&pageSize=5', {
+            headers: { 'Accept-Language': 'en-US' }
+        });
+        
+        const salariesData = await salariesResponse.json();
+        console.log('💰 Employee Salaries:', salariesData);
+        
+        if (salariesData.isSuccess && salariesData.data && salariesData.data.items) {
+            const firstEmployee = salariesData.data.items[0];
+            console.log('👤 First Employee:', firstEmployee);
+            
+            // Check specific employee salary
+            const empSalaryResponse = await fetch(`http://172.20.208.1:6365/api/EmployeeSalary/employee/${firstEmployee.employeeId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept-Language': 'en-US'
+                }
+            });
+            
+            const empSalaryData = await empSalaryResponse.json();
+            console.log('💼 Employee Salary Details:', empSalaryData);
+            
+            return firstEmployee;
+        }
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
+
+checkEmployeeData();
+            </pre>
+        </div>
+
+        <div class="section">
+            <h3>⏰ Step 3: Check Work Rules</h3>
+            <p>Copy this code to console:</p>
+            <pre>
+// Check work rules
+async function checkWorkRules(employeeId = 2) {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        console.error('❌ No auth token found');
+        return;
+    }
+    
+    try {
+        // Get work rules for employee
+        const workRuleResponse = await fetch(`http://172.20.208.1:6365/api/WorkRule?employeeId=${employeeId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept-Language': 'en-US'
+            }
+        });
+        
+        const workRuleData = await workRuleResponse.json();
+        console.log('⏰ Work Rules for Employee:', workRuleData);
+        
+        // Get all work rules
+        const allWorkRulesResponse = await fetch('http://172.20.208.1:6365/api/WorkRule?pageNumber=1&pageSize=10', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept-Language': 'en-US'
+            }
+        });
+        
+        const allWorkRulesData = await allWorkRulesResponse.json();
+        console.log('⏰ All Work Rules:', allWorkRulesData);
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
+
+checkWorkRules(2); // Replace 2 with actual employee ID
+            </pre>
+        </div>
+
+        <div class="section">
+            <h3>🧪 Step 4: Test Salary Report Creation</h3>
+            <p>Copy this code to console:</p>
+            <pre>
+// Test salary report creation
+async function testSalaryReportCreation() {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        console.error('❌ No auth token found');
+        return;
+    }
+    
+    const testData = {
+        employeeId: 2, // Replace with actual employee ID
+        reportMonth: 12,
+        reportYear: 2024,
+        notes: "Debug test salary report"
+    };
+    
+    console.log('🧪 Testing with data:', testData);
+    
+    try {
+        const response = await fetch('http://172.20.208.1:6365/api/SalaryReport/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Accept-Language': 'en-US'
+            },
+            body: JSON.stringify(testData)
+        });
+        
+        console.log('📡 Response Status:', response.status);
+        console.log('📡 Response Headers:', [...response.headers.entries()]);
+        
+        const responseText = await response.text();
+        console.log('📡 Response Text:', responseText);
+        
+        try {
+            const responseJson = JSON.parse(responseText);
+            console.log('📡 Response JSON:', responseJson);
+        } catch (e) {
+            console.log('📡 Response is not valid JSON');
+        }
+        
+        if (response.status === 500) {
+            console.error('❌ Server Error 500 - Check backend logs for details');
+        }
+        
+    } catch (error) {
+        console.error('❌ Network Error:', error);
+    }
+}
+
+testSalaryReportCreation();
+            </pre>
+        </div>
+
+        <div class="section">
+            <h3>📊 Step 5: Check Existing Salary Reports</h3>
+            <p>Copy this code to console:</p>
+            <pre>
+// Check existing salary reports
+async function checkExistingReports() {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        console.error('❌ No auth token found');
+        return;
+    }
+    
+    try {
+        // Get salary reports
+        const reportsResponse = await fetch('http://172.20.208.1:6365/api/SalaryReport?pageNumber=1&pageSize=10', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept-Language': 'en-US'
+            }
+        });
+        
+        const reportsData = await reportsResponse.json();
+        console.log('📊 Existing Salary Reports:', reportsData);
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
+
+checkExistingReports();
+            </pre>
+        </div>
+
+        <div class="section warning">
+            <h3>⚠️ Common Issues</h3>
+            <ul>
+                <li><strong>Employee has no WorkRule:</strong> The employee needs a work rule to calculate expected hours</li>
+                <li><strong>Employee has no EmployeeSalary:</strong> The employee needs salary configuration</li>
+                <li><strong>Missing Attendance data:</strong> The system might need attendance data for the specified month</li>
+                <li><strong>Backend validation error:</strong> Check backend logs for specific validation errors</li>
+                <li><strong>Database constraint violation:</strong> Check if there are duplicate reports or missing foreign keys</li>
+            </ul>
+        </div>
+
+        <div class="section info">
+            <h3>📝 Next Steps</h3>
+            <p>1. Run all the tests above</p>
+            <p>2. Check the console output for any errors</p>
+            <p>3. Verify that the employee has both WorkRule and EmployeeSalary</p>
+            <p>4. If all data exists, check backend logs for detailed error information</p>
+            <p>5. Consider testing with a different employee or different month/year</p>
+        </div>
+    </div>
+</body>
+</html>
+

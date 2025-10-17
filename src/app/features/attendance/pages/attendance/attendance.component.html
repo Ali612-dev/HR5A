@@ -2,7 +2,13 @@
   <div class="container-fluid py-4">
     <!-- Header -->
     <div class="page-header">
-      <h2 class="page-title">{{ 'DailyAttendance' | translate }}</h2>
+      <div class="header-left">
+        <button class="btn btn-ghost me-3" (click)="goBack()">
+          <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+          {{ 'Back' | translate }}
+        </button>
+        <h2 class="page-title">{{ 'DailyAttendance' | translate }}</h2>
+      </div>
       <div class="header-actions">
         <button class="btn btn-secondary" routerLink="/attendance/add">
           <fa-icon [icon]="faPlus" class="me-1"></fa-icon> 

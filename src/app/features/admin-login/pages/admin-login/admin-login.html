@@ -3,8 +3,8 @@
     <h1>{{ 'ADMIN_LOGIN.TITLE' | translate }}</h1>
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
-        <label for="username">{{ 'ADMIN_LOGIN.USERNAME_LABEL' | translate }}</label>
-        <input type="text" id="username" formControlName="username" class="input-field" placeholder="{{ 'ADMIN_LOGIN.USERNAME_PLACEHOLDER' | translate }}">
+        <label for="identifier">{{ 'ADMIN_LOGIN.USERNAME_OR_PHONE_LABEL' | translate }}</label>
+        <input type="text" id="identifier" formControlName="identifier" class="input-field" placeholder="{{ 'ADMIN_LOGIN.USERNAME_OR_PHONE_PLACEHOLDER' | translate }}">
       </div>
       <div class="form-group">
         <label for="password">{{ 'ADMIN_LOGIN.PASSWORD_LABEL' | translate }}</label>

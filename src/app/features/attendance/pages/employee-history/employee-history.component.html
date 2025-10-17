@@ -15,8 +15,14 @@
     <div *ngIf="!isFilterCollapsed" class="glass-card filter-card">
       <h5 class="mb-2">{{ 'Filters' | translate }}</h5>
       <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="filters-container">
-        <input type="date" class="form-control" formControlName="startDate" [placeholder]="'StartDate' | translate">
-        <input type="date" class="form-control" formControlName="endDate" [placeholder]="'EndDate' | translate">
+        <div class="date-input-group">
+          <label class="date-label">{{ 'StartPeriod' | translate }}</label>
+          <input type="date" class="form-control" formControlName="startDate">
+        </div>
+        <div class="date-input-group">
+          <label class="date-label">{{ 'EndPeriod' | translate }}</label>
+          <input type="date" class="form-control" formControlName="endDate">
+        </div>
         <div class="filter-buttons">
           <button type="submit" class="btn btn-primary">{{ 'Filters' | translate }}</button>
           <button type="button" class="btn btn-secondary" (click)="onResetFilters()">{{ 'Reset' | translate }}</button>

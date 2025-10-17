@@ -37,21 +37,39 @@
             <table class="table table-hover align-middle">
               <thead>
                 <tr>
-                  <th>{{ 'Name' | translate }}</th>
-                  <th>{{ 'Phone' | translate }}</th>
-                  <th>{{ 'Department' | translate }}</th>
-                  <th>{{ 'ApprovedDate' | translate }}</th>
-                  <th>{{ 'Status' | translate }}</th>
+                  <th class="table-header">{{ 'Name' | translate }}</th>
+                  <th class="table-header">{{ 'Phone' | translate }}</th>
+                  <th class="table-header">{{ 'Department' | translate }}</th>
+                  <th class="table-header">{{ 'ApprovedDate' | translate }}</th>
+                  <th class="table-header text-center">{{ 'Status' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let request of approvedRequests">
-                  <td>{{ request.fullName }}</td>
-                  <td>{{ request.phoneNumber }}</td>
-                  <td>{{ request.department }}</td>
-                  <td>{{ request.approvedDate | date:'MMM dd, yyyy HH:mm' }}</td>
-                  <td>
-                    <span class="badge bg-success-accent">
+                <tr *ngFor="let request of approvedRequests" class="table-row">
+                  <td class="table-cell name-cell">
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-sm me-2">
+                        <fa-icon [icon]="faCircleCheck" class="avatar-icon"></fa-icon>
+                      </div>
+                      <span class="name-text">{{ request.fullName }}</span>
+                    </div>
+                  </td>
+                  <td class="table-cell phone-cell">
+                    <span class="phone-text">{{ request.phoneNumber }}</span>
+                  </td>
+                  <td class="table-cell department-cell">
+                    <span class="department-text" *ngIf="request.department; else noDepartment">
+                      {{ request.department }}
+                    </span>
+                    <ng-template #noDepartment>
+                      <span class="text-muted">{{ 'NotSpecified' | translate }}</span>
+                    </ng-template>
+                  </td>
+                  <td class="table-cell date-cell">
+                    <span class="date-text">{{ request.approvedDate | date:'MMM dd, yyyy HH:mm' }}</span>
+                  </td>
+                  <td class="table-cell status-cell text-center">
+                    <span class="badge bg-success-accent status-badge">
                       <fa-icon [icon]="faCircleCheck" class="me-1"></fa-icon>
                       {{ 'Approved' | translate }}
                     </span>

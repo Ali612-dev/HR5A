@@ -20,8 +20,8 @@ export class ScreenSizeService {
       fromEvent(window, 'resize')
         .pipe(
           debounceTime(100), // Debounce to avoid excessive calls
-          map(() => window.innerWidth < 768), // Define mobile breakpoint
-          startWith(window.innerWidth < 768) // Emit initial value
+          map(() => window.innerWidth < 1024), // Define mobile breakpoint
+          startWith(window.innerWidth < 1024) // Emit initial value
         )
         .subscribe(isMobile => {
           this.isMobileSubject.next(isMobile);
@@ -31,7 +31,7 @@ export class ScreenSizeService {
 
   private checkScreenSize(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.isMobileSubject.next(window.innerWidth < 768);
+      this.isMobileSubject.next(window.innerWidth < 1024);
     }
   }
 }

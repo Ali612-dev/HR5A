@@ -7,16 +7,19 @@ export interface RegisterRequest {
 }
 
 export interface LoginRequest {
-  username: string;
+  userName: string;
+  phoneNumber: string;
   password: string;
 }
 
 export interface LoginResponseData {
+  employeeId: number;
   username: string;
   email: string;
   phoneNumber: string;
   token: string;
   fullName: string;
+  isAdmin: boolean;
 }
 
 export interface ApiResponse<T> {

@@ -7,6 +7,7 @@ export interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  isAdmin: boolean;
 }
 
 const initialState: AuthState = {
@@ -15,6 +16,7 @@ const initialState: AuthState = {
   token: localStorage.getItem('authToken') || null,
   loading: false,
   error: null,
+  isAdmin: false,
 };
 
 export const AuthStore = signalStore(
@@ -26,15 +28,22 @@ export const AuthStore = signalStore(
     },
     setLoginSuccess(user: any, token: string) {
       localStorage.setItem('authToken', token);
-      patchState(store, { isAuthenticated: true, user, token, loading: false, error: null });
+      patchState(store, { 
+        isAuthenticated: true, 
+        user, 
+        token, 
+        loading: false, 
+        error: null,
+        isAdmin: user?.isAdmin || false
+      });
     },
     setLoginFailure(error: string) {
       localStorage.removeItem('authToken');
-      patchState(store, { isAuthenticated: false, user: null, token: null, loading: false, error });
+      patchState(store, { isAuthenticated: false, user: null, token: null, loading: false, error, isAdmin: false });
     },
     logout() {
       localStorage.removeItem('authToken');
-      patchState(store, { isAuthenticated: false, user: null, token: null, loading: false, error: null });
+      patchState(store, { isAuthenticated: false, user: null, token: null, loading: false, error: null, isAdmin: false });
     },
   })),
 );

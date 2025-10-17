@@ -39,7 +39,7 @@ export class AdminLoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      username: ['', Validators.required],
+      identifier: ['', Validators.required], // username or phone in one field
       password: ['', Validators.required]
     });
     this.checkTokenAndRedirect();
@@ -63,7 +63,15 @@ export class AdminLoginComponent implements OnInit {
       console.log('📦 Form data:', this.loginForm.value);
       console.log('🔧 Environment:', environment);
       
-      this.authService.login(this.loginForm.value).subscribe({
+      // Map single identifier to both fields; backend will decide which to use
+      const formValue = this.loginForm.value;
+      const payload = {
+        userName: formValue.identifier || '',
+        phoneNumber: formValue.identifier || '',
+        password: formValue.password
+      };
+
+      this.authService.login(payload).subscribe({
         next: (response) => {
           console.log('📡 Login response received:', response);
           if (response.isSuccess) {

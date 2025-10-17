@@ -37,34 +37,54 @@
             <table class="table table-hover align-middle">
               <thead>
                 <tr>
-                  <th>{{ 'Name' | translate }}</th>
-                  <th>{{ 'Phone' | translate }}</th>
-                  <th>{{ 'Department' | translate }}</th>
-                  <th>{{ 'Date' | translate }}</th>
-                  <th>{{ 'Actions' | translate }}</th>
+                  <th class="table-header">{{ 'Name' | translate }}</th>
+                  <th class="table-header">{{ 'Phone' | translate }}</th>
+                  <th class="table-header">{{ 'Department' | translate }}</th>
+                  <th class="table-header">{{ 'Date' | translate }}</th>
+                  <th class="table-header text-center">{{ 'Actions' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let request of pendingRequests">
-                  <td>{{ request.fullName }}</td>
-                  <td>{{ request.phoneNumber }}</td>
-                  <td>{{ request.department }}</td>
-                  <td>{{ request.requestDate | date:'MMM dd, yyyy' }}</td>
-                  <td class="text-nowrap">
-                    <button 
-                      class="btn btn-sm btn-success me-1" 
-                      (click)="processRequest(request.id, true)" 
-                      appCustomTooltip 
-                      [appCustomTooltipText]="'TOOLTIP.ACCEPT_REQUEST' | translate">
-                      <fa-icon [icon]="faCheck" class="icon-button"></fa-icon>
-                    </button>
-                    <button 
-                      class="btn btn-sm btn-danger" 
-                      (click)="rejectRequest(request)" 
-                      appCustomTooltip 
-                      [appCustomTooltipText]="'TOOLTIP.REJECT_REQUEST' | translate">
-                      <fa-icon [icon]="faXmark" class="icon-button"></fa-icon>
-                    </button>
+                <tr *ngFor="let request of pendingRequests" class="table-row">
+                  <td class="table-cell name-cell">
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-sm me-2">
+                        <fa-icon [icon]="faHourglassHalf" class="avatar-icon"></fa-icon>
+                      </div>
+                      <span class="name-text">{{ request.fullName }}</span>
+                    </div>
+                  </td>
+                  <td class="table-cell phone-cell">
+                    <span class="phone-text">{{ request.phoneNumber }}</span>
+                  </td>
+                  <td class="table-cell department-cell">
+                    <span class="department-text" *ngIf="request.department; else noDepartment">
+                      {{ request.department }}
+                    </span>
+                    <ng-template #noDepartment>
+                      <span class="text-muted">{{ 'NotSpecified' | translate }}</span>
+                    </ng-template>
+                  </td>
+                  <td class="table-cell date-cell">
+                    <span class="date-text">{{ request.requestDate | date:'MMM dd, yyyy' }}</span>
+                  </td>
+                  <td class="table-cell actions-cell text-center">
+                    <div class="action-buttons">
+                      <button 
+                        class="btn btn-action btn-approve" 
+                        (click)="processRequest(request.id, true)" 
+                        appCustomTooltip 
+                        [appCustomTooltipText]="'TOOLTIP.ACCEPT_REQUEST' | translate">
+                        <fa-icon [icon]="faCheck" class="action-icon"></fa-icon>
+                      </button>
+                      <button 
+                        class="btn btn-action btn-reject" 
+                        (click)="rejectRequest(request)" 
+                        appCustomTooltip 
+                        [appCustomTooltipText]="'TOOLTIP.REJECT_REQUEST' | translate">
+                        <fa-icon [icon]="faXmark" class="action-icon"></fa-icon>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

@@ -1,0 +1,215 @@
+<!-- Enhanced Loading State -->
+<div *ngIf="isLoading" class="enhanced-loading-container">
+  <div class="loading-content">
+    <div class="spinner-container">
+      <div class="custom-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+    </div>
+    <div class="loading-text">
+      <h5 class="loading-title">{{ 'Loading' | translate }} {{ 'SalaryReports' | translate }}...</h5>
+      <p class="loading-subtitle">{{ 'PleaseWait' | translate }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced Error State -->
+<div *ngIf="error && !isLoading" class="enhanced-error-container">
+  <div class="error-content">
+    <div class="error-icon-container">
+      <fa-icon [icon]="faTimesCircle" class="error-icon"></fa-icon>
+    </div>
+    <div class="error-text">
+      <h5 class="error-title">{{ 'Error' | translate }}</h5>
+      <p class="error-message">{{ error | translate }}</p>
+    </div>
+    <div class="error-actions">
+      <button class="btn btn-retry" (click)="onRetry()">
+        <fa-icon [icon]="faRefresh" class="me-2"></fa-icon>
+        {{ 'Retry' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Desktop Table View -->
+<div *ngIf="!isLoading && !error && !isMobile" class="table-responsive desktop-table">
+  <table class="table table-hover glass-table">
+    <thead>
+      <tr>
+        <th scope="col" class="sortable" (click)="onSort('employeeName')">
+          {{ 'EmployeeName' | translate }}
+          <fa-icon [icon]="getSortIcon('employeeName')" class="ms-1"></fa-icon>
+        </th>
+        <th scope="col" class="sortable" (click)="onSort('reportMonth')">
+          {{ 'ReportMonth' | translate }}
+          <fa-icon [icon]="getSortIcon('reportMonth')" class="ms-1"></fa-icon>
+        </th>
+        <th scope="col" class="sortable" (click)="onSort('reportYear')">
+          {{ 'ReportYear' | translate }}
+          <fa-icon [icon]="getSortIcon('reportYear')" class="ms-1"></fa-icon>
+        </th>
+        <th scope="col" class="sortable" (click)="onSort('baseSalary')">
+          {{ 'BaseSalary' | translate }}
+          <fa-icon [icon]="getSortIcon('baseSalary')" class="ms-1"></fa-icon>
+        </th>
+        <th scope="col" class="sortable" (click)="onSort('netCalculatedSalary')">
+          {{ 'NetSalary' | translate }}
+          <fa-icon [icon]="getSortIcon('netCalculatedSalary')" class="ms-1"></fa-icon>
+        </th>
+        <th scope="col" class="sortable" (click)="onSort('isPaid')">
+          {{ 'Status' | translate }}
+          <fa-icon [icon]="getSortIcon('isPaid')" class="ms-1"></fa-icon>
+        </th>
+        <th scope="col" class="sortable" (click)="onSort('generatedDate')">
+          {{ 'GeneratedDate' | translate }}
+          <fa-icon [icon]="getSortIcon('generatedDate')" class="ms-1"></fa-icon>
+        </th>
+        <th scope="col">{{ 'Actions' | translate }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let report of reports; trackBy: trackByFn" class="glass-row">
+        <td>
+          <div class="employee-info">
+            <div class="employee-name">{{ report.employeeName }}</div>
+            <small class="text-muted">{{ report.employeePhoneNumber }}</small>
+          </div>
+        </td>
+        <td class="text-center">{{ report.reportMonth }}</td>
+        <td class="text-center">{{ report.reportYear }}</td>
+        <td class="text-end">{{ formatCurrency(report.baseSalary) }}</td>
+        <td class="text-end">
+          <strong class="text-success">{{ formatCurrency(report.netCalculatedSalary) }}</strong>
+        </td>
+        <td class="text-center">
+          <span class="badge" [ngClass]="getStatusBadgeClass(report.isPaid)">
+            <fa-icon [icon]="report.isPaid ? faCheckCircle : faTimesCircle" class="me-1"></fa-icon>
+            {{ getStatusText(report.isPaid) | translate }}
+          </span>
+        </td>
+        <td class="text-center">{{ formatDateTime(report.generatedDate) }}</td>
+        <td class="text-center">
+          <div class="action-buttons-horizontal">
+            <button class="btn btn-sm btn-outline-primary" (click)="onView(report)" [title]="'View' | translate">
+              <fa-icon [icon]="faEye"></fa-icon>
+            </button>
+            <button class="btn btn-sm btn-outline-success" (click)="onDownload(report)" [title]="'Download' | translate">
+              <fa-icon [icon]="faDownload"></fa-icon>
+            </button>
+            <button *ngIf="!report.isPaid" class="btn btn-sm btn-outline-info" (click)="onMarkAsPaid(report)" [title]="'MarkAsPaid' | translate">
+              <fa-icon [icon]="faCheckCircle"></fa-icon>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="onDelete(report)" [title]="'Delete' | translate">
+              <fa-icon [icon]="faTrash"></fa-icon>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Mobile/Tablet Card View -->
+<div *ngIf="!isLoading && !error && isMobile" class="card-container mobile-cards">
+  <div *ngFor="let report of reports; trackBy: trackByFn" class="salary-report-card">
+    <!-- Card Header -->
+    <div class="card-header">
+      <div class="employee-header">
+        <div class="employee-info">
+          <h6 class="employee-name">{{ report.employeeName }}</h6>
+          <small class="employee-id">{{ report.employeePhoneNumber }}</small>
+        </div>
+        <div class="status-badge">
+          <span class="badge" [ngClass]="getStatusBadgeClass(report.isPaid)">
+            <fa-icon [icon]="report.isPaid ? faCheckCircle : faTimesCircle" class="me-1"></fa-icon>
+            {{ getStatusText(report.isPaid) | translate }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body">
+      <div class="report-details">
+        <!-- Salary Information -->
+        <div class="salary-section">
+          <div class="salary-row">
+            <div class="salary-label">{{ 'BaseSalary' | translate }}</div>
+            <div class="salary-value">{{ formatCurrency(report.baseSalary) }}</div>
+          </div>
+          <div class="salary-row net-salary">
+            <div class="salary-label">{{ 'NetSalary' | translate }}</div>
+            <div class="salary-value text-success">{{ formatCurrency(report.netCalculatedSalary) }}</div>
+          </div>
+        </div>
+
+        <!-- Report Period -->
+        <div class="period-section">
+          <div class="period-row">
+            <div class="period-label">{{ 'ReportMonth' | translate }}</div>
+            <div class="period-value">{{ report.reportMonth }}</div>
+          </div>
+          <div class="period-row">
+            <div class="period-label">{{ 'ReportYear' | translate }}</div>
+            <div class="period-value">{{ report.reportYear }}</div>
+          </div>
+          <div class="period-row">
+            <div class="period-label">{{ 'GeneratedDate' | translate }}</div>
+            <div class="period-value">{{ formatDateTime(report.generatedDate) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card Footer -->
+    <div class="card-footer">
+      <div class="action-buttons">
+        <button class="btn btn-sm btn-outline-primary" (click)="onView(report)" [title]="'View' | translate">
+          <fa-icon [icon]="faEye" class="me-1"></fa-icon>
+          {{ 'View' | translate }}
+        </button>
+        <button class="btn btn-sm btn-outline-success" (click)="onDownload(report)" [title]="'Download' | translate">
+          <fa-icon [icon]="faDownload" class="me-1"></fa-icon>
+          {{ 'Download' | translate }}
+        </button>
+        <button *ngIf="!report.isPaid" class="btn btn-sm btn-outline-info" (click)="onMarkAsPaid(report)" [title]="'MarkAsPaid' | translate">
+          <fa-icon [icon]="faCheckCircle" class="me-1"></fa-icon>
+          {{ 'MarkAsPaid' | translate }}
+        </button>
+        <button class="btn btn-sm btn-outline-danger" (click)="onDelete(report)" [title]="'Delete' | translate">
+          <fa-icon [icon]="faTrash" class="me-1"></fa-icon>
+          {{ 'Delete' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Enhanced Empty State -->
+<div *ngIf="!isLoading && !error && reports.length === 0" class="enhanced-empty-state">
+  <div class="empty-content">
+    <div class="empty-icon-container">
+      <fa-icon [icon]="faFileInvoice" class="empty-icon"></fa-icon>
+    </div>
+    <div class="empty-text">
+      <h4 class="empty-title">{{ 'NoSalaryReports' | translate }}</h4>
+      <p class="empty-description">{{ 'NoSalaryReportsDescription' | translate }}</p>
+    </div>
+    <div class="empty-actions">
+      <button class="btn btn-primary btn-create" (click)="onCreateReport()">
+        <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+        {{ 'CreateFirstReport' | translate }}
+      </button>
+      <button class="btn btn-outline-secondary btn-refresh" (click)="onRetry()">
+        <fa-icon [icon]="faRefresh" class="me-2"></fa-icon>
+        {{ 'Refresh' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+

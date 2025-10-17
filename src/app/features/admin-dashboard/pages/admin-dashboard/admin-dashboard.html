@@ -23,7 +23,7 @@
         <div *ngIf="statsError" class="alert alert-danger col-12" role="alert">
           {{ statsError }}
         </div>
-        <div class="stat-card" *ngFor="let i of [1,2,3,4,5]">
+        <div class="stat-card" *ngFor="let i of [1,2,3,4]">
           <div class="glass-card h-100">
             <div class="glass-body p-4 text-center">
               <div class="stat-icon mb-3 shimmer-placeholder shimmer-circle"></div>
@@ -87,14 +87,14 @@
           </a>
         </div>
         <div class="stat-card">
-          <a routerLink="/admin/work-rules" class="text-decoration-none">
+          <a routerLink="/admin/financial" class="text-decoration-none">
             <div class="glass-card h-100 hover-scale">
               <div class="glass-body p-4 text-center">
                 <div class="stat-icon mb-3">
-                  <fa-icon [icon]="faGear" class="icon-unified"></fa-icon>
+                  <fa-icon [icon]="faDollarSign" class="icon-unified"></fa-icon>
                 </div>
-                <h3 class="mb-1 card-main-text">{{ 'WorkRules' | translate }}</h3>
-                <p class="mb-0 text-muted">{{ 'ManageAll' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
+                <h3 class="mb-1 card-main-text">{{ 'Financial' | translate }}</h3>
+                <p class="mb-0 text-muted">{{ 'PayrollManagement' | translate }} <fa-icon [icon]="faArrowRight" class="icon-arrow"></fa-icon></p>
               </div>
             </div>
           </a>

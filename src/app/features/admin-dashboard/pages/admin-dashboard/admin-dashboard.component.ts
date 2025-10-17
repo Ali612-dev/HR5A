@@ -14,13 +14,13 @@ import {
   faMapLocationDot,
   faHourglassHalf,
   faCircleCheck,
-  faGear,
   faArrowRight,
   faArrowRightFromBracket,
   faCheck,
   faXmark,
   faInbox,
-  faUsers
+  faUsers,
+  faDollarSign
 } from '@fortawesome/free-solid-svg-icons';
 import { faUserCheck } from '@fortawesome/free-solid-svg-icons';
 import { trigger, state, style, animate, transition, query, stagger } from '@angular/animations';
@@ -101,7 +101,6 @@ export class AdminDashboardComponent implements OnInit {
   faMapLocationDot = faMapLocationDot;
   faHourglassHalf = faHourglassHalf;
   faCircleCheck = faCircleCheck;
-  faGear = faGear;
   faArrowRight = faArrowRight;
   faArrowRightFromBracket = faArrowRightFromBracket;
   faCheck = faCheck;
@@ -109,6 +108,7 @@ export class AdminDashboardComponent implements OnInit {
   faInbox = faInbox;
   faUsers = faUsers;
   faUserCheck = faUserCheck;
+  faDollarSign = faDollarSign;
 
   public authStore = inject(AuthStore);
   private dialog = inject(MatDialog);
