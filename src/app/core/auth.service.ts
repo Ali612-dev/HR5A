@@ -3,7 +3,7 @@ import { Observable, tap } from 'rxjs';
 import { HttpClientService } from './http-client.service';
 import { API_BASE_URL, API_ENDPOINTS } from './constants';
 import { AuthStore } from '../store/auth.store';
-import { LoginRequest, LoginResponseData, ApiResponse, RegisterRequest } from './interfaces/auth.interface';
+import { LoginRequest, LoginResponseData, ApiResponse, RegisterRequest, RegisterResponseData, UserDetailsDto, UpdateUserRequest, UpdateUserCredentialsRequest } from './interfaces/auth.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -32,11 +32,31 @@ export class AuthService {
     );
   }
 
-  register(request: RegisterRequest): Observable<ApiResponse<any>> {
+  register(request: RegisterRequest): Observable<ApiResponse<RegisterResponseData>> {
     const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
     console.log('🔗 AuthService: Register endpoint URL:', url);
     console.log('🔗 AuthService: Register request data:', request);
-    return this.http.post<ApiResponse<any>>(url, request);
+    return this.http.post<ApiResponse<RegisterResponseData>>(url, request);
+  }
+
+  getUserById(userId: number): Observable<ApiResponse<UserDetailsDto>> {
+    const url = `${API_BASE_URL}${API_ENDPOINTS.AUTH_USERS}/${userId}`;
+    console.log('🔗 AuthService: Get user endpoint URL:', url);
+    return this.http.get<ApiResponse<UserDetailsDto>>(url);
+  }
+
+  updateUser(request: UpdateUserRequest): Observable<ApiResponse<any>> {
+    const url = `${API_BASE_URL}${API_ENDPOINTS.AUTH_UPDATE}`;
+    console.log('🔗 AuthService: Update user endpoint URL:', url);
+    console.log('🔗 AuthService: Update user request data:', request);
+    return this.http.put<ApiResponse<any>>(url, request);
+  }
+
+  updateUserCredentials(userId: number, request: UpdateUserCredentialsRequest): Observable<ApiResponse<any>> {
+    const url = `${API_BASE_URL}${API_ENDPOINTS.AUTH_USERS}/${userId}/credentials`;
+    console.log('🔗 AuthService: Update user credentials URL:', url);
+    console.log('🔗 AuthService: Update user credentials data:', request);
+    return this.http.put<ApiResponse<any>>(url, request);
   }
 
   logout(): void {

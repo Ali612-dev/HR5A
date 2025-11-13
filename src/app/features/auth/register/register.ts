@@ -31,10 +31,12 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
-      fullName: ['', Validators.required],
-      phoneNumber: ['', Validators.required],
-      cardNumber: ['', Validators.required],
-      email: ['', [Validators.email]],
+      username: ['', [Validators.required, Validators.minLength(4)]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      fullName: ['', [Validators.required, Validators.minLength(3)]],
+      phoneNumber: ['', [Validators.required, Validators.pattern(/^\+?\d{10,14}$/)]],
+      cardNumber: ['', [Validators.required, Validators.minLength(4)]],
+      email: ['', [Validators.required, Validators.email]],
       department: ['']
     });
     
@@ -45,7 +47,10 @@ export class RegisterComponent implements OnInit {
 
   onSubmit(): void {
     if (this.registerForm.valid) {
-      const registerRequest: RegisterRequest = this.registerForm.value;
+      const registerRequest: RegisterRequest = {
+        ...this.registerForm.value,
+        userName: this.registerForm.value.username
+      };
 
       // Ensure translations are loaded before showing dialog
       this.translate.get(['LOADING.TITLE', 'LOADING.REGISTER_EMPLOYEE']).subscribe(translations => {

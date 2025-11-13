@@ -1,9 +1,55 @@
-export interface RegisterRequest {
+export interface CreateUserRequest {
+  username: string;
+  userName?: string;
+  password: string;
   fullName: string;
   phoneNumber: string;
-  cardNumber: string;
+  email?: string;
+}
+
+export interface RegisterRequest extends CreateUserRequest {
+  cardNumber?: string;
+  department?: string;
+}
+
+export interface RegisterResponseData {
+  userId: number;
+  employeeId?: number | null;
+  username: string;
   email: string;
-  department: string;
+  phoneNumber: string;
+  token: string;
+  fullName: string;
+  isAdmin: boolean;
+}
+
+export interface UserDetailsDto {
+  id: number;
+  username: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  createdOn?: string;
+  modifiedOn?: string;
+  isSuccess?: boolean;
+  token?: string | null;
+}
+
+export interface UpdateUserRequest {
+  id: number;
+  username: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  password?: string;
+}
+
+export interface UpdateUserCredentialsRequest {
+  username: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  password?: string;
 }
 
 export interface LoginRequest {

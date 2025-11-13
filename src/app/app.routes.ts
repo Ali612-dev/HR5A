@@ -91,6 +91,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/financial/pages/salary-report-details/salary-report-details.component').then(m => m.SalaryReportDetailsComponent)
     },
     {
+        path: 'admin/financial/shifts',
+        loadComponent: () => import('./features/financial/pages/shifts/shifts.component').then(m => m.ShiftsComponent)
+    },
+    {
         path: 'employees',
         loadComponent: () => import('./features/employees/pages/employees/employees').then(m => m.Employees)
     },

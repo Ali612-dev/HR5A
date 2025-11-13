@@ -177,3 +177,12 @@ SELECT * FROM Attendances WHERE EmployeeId = 2 AND MONTH(Date) = 12 AND YEAR(Dat
 3. تأكد من وجود جميع البيانات المطلوبة
 4. إذا استمر الخطأ، راجع Backend logs
 
+
+
+
+
+
+
+
+
+

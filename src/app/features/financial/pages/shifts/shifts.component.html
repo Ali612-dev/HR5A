@@ -1,0 +1,484 @@
+<div class="shifts-page">
+  <div class="page-container">
+  <div class="page-header header-grid">
+    <!-- Back button at inline-start (left in RTL) -->
+    <div class="header-cell">
+      <a routerLink="/admin/financial" class="btn btn-ghost">
+        <fa-icon [icon]="faArrowLeft" class="me-1"></fa-icon>
+        {{ 'Back' | translate }}
+      </a>
+    </div>
+
+    <!-- Title with icon -->
+    <div class="header-cell header-title">
+      <div class="header-icon d-flex align-items-center justify-content-center">
+        <fa-icon [icon]="faClock"></fa-icon>
+      </div>
+      <h2 class="page-title gradient-text mb-0">{{ 'Shifts' | translate }}</h2>
+    </div>
+
+    <!-- Add button at inline-end (right in RTL) -->
+    <div class="header-cell text-end">
+      <button type="button" class="btn btn-gradient" (click)="toggleCreate()">
+        <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+        {{ 'Add' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Inline Create Form -->
+  <div *ngIf="showCreate" class="form-card section-card create-card">
+    <div class="glass-body">
+      <div class="create-header mb-4">
+        <div class="create-header-content">
+          <div class="header-icon-wrapper">
+            <div class="header-icon d-flex align-items-center justify-content-center">
+              <fa-icon [icon]="faClock"></fa-icon>
+            </div>
+          </div>
+          <div class="create-header-text">
+            <h5 class="section-title mb-1">{{ 'Add' | translate }} {{ 'Shifts' | translate }}</h5>
+            <small class="field-hint">{{ 'PleaseFillShiftDetails' | translate }}</small>
+          </div>
+        </div>
+      </div>
+      
+      <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="create-form">
+        <!-- Row 1: Name and Work Rule -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <label class="form-label">
+              {{ 'ShiftName' | translate }}
+              <span class="required-asterisk">*</span>
+            </label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [class.is-invalid]="createForm.get('name')?.invalid && createForm.get('name')?.touched"
+              [placeholder]="'ShiftName' | translate" 
+              formControlName="name" />
+            <small class="field-hint">{{ 'ShiftNameHint' | translate }}</small>
+            <div *ngIf="createForm.get('name')?.invalid && createForm.get('name')?.touched" class="invalid-feedback">
+              <span *ngIf="createForm.get('name')?.errors?.['required']">{{ 'ThisFieldIsRequired' | translate }}</span>
+              <span *ngIf="createForm.get('name')?.errors?.['maxlength']">{{ 'ThisFieldIsRequired' | translate }} ({{ 'MaxLength' | translate }}: 100)</span>
+            </div>
+          </div>
+          <div class="form-field-wrapper work-rules-multi-select">
+            <label class="form-label">
+              {{ 'WorkRules' | translate }}
+              <span class="required-asterisk">*</span>
+            </label>
+            <div 
+              class="work-rules-checkbox-list"
+              [class.is-invalid]="createForm.get('workRuleIds')?.invalid && createForm.get('workRuleIds')?.touched">
+              <div *ngFor="let w of workRuleOptions" class="work-rule-checkbox-item">
+                <input 
+                  type="checkbox" 
+                  [id]="'wr-' + w.id" 
+                  [value]="w.id"
+                  (change)="onWorkRuleToggle(w.id, $event)"
+                  [checked]="isWorkRuleSelected(w.id)"
+                  class="form-check-input" 
+                />
+                <label [for]="'wr-' + w.id" class="form-check-label">{{ w.category }}</label>
+              </div>
+              <div *ngIf="workRuleOptions.length === 0" class="text-muted" style="padding:.5rem;">
+                {{ 'NoWorkRulesAvailable' | translate }}
+              </div>
+            </div>
+            <small class="field-hint">{{ 'WorkRuleForShiftMulti' | translate }}</small>
+            <div *ngIf="createForm.get('workRuleIds')?.invalid && createForm.get('workRuleIds')?.touched" class="invalid-feedback">
+              {{ 'SelectAtLeastOneWorkRule' | translate }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Start, End -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <label class="form-label">
+              {{ 'Start' | translate }}
+              <span class="required-asterisk">*</span>
+            </label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [class.is-invalid]="createForm.get('startTime')?.invalid && createForm.get('startTime')?.touched"
+                [value]="getTimeValue('startTime')"
+                readonly
+                (click)="openTimePicker('startTime', getTimeValue('startTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('startTime', getTimeValue('startTime'))"></fa-icon>
+            </div>
+            <div *ngIf="createForm.get('startTime')?.invalid && createForm.get('startTime')?.touched" class="invalid-feedback">
+              {{ 'ThisFieldIsRequired' | translate }}
+            </div>
+          </div>
+          <div class="form-field-wrapper">
+            <label class="form-label">
+              {{ 'End' | translate }}
+              <span class="required-asterisk">*</span>
+            </label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [class.is-invalid]="createForm.get('endTime')?.invalid && createForm.get('endTime')?.touched"
+                [value]="getTimeValue('endTime')"
+                readonly
+                (click)="openTimePicker('endTime', getTimeValue('endTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('endTime', getTimeValue('endTime'))"></fa-icon>
+            </div>
+            <div *ngIf="createForm.get('endTime')?.invalid && createForm.get('endTime')?.touched" class="invalid-feedback">
+              {{ 'ThisFieldIsRequired' | translate }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2.5: Break Settings -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <div class="form-check-wrapper">
+              <input id="isThereBreak" class="form-check-input" type="checkbox" formControlName="isThereBreak" />
+              <label for="isThereBreak" class="form-check-label">{{ 'IsThereBreak' | translate }}</label>
+            </div>
+            <small class="field-hint">{{ 'IsThereBreakHint' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Break Details (shown when isThereBreak is true) -->
+        <div *ngIf="createForm.get('isThereBreak')?.value" class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <div class="form-check-wrapper">
+              <input id="isBreakFixed" class="form-check-input" type="checkbox" formControlName="isBreakFixed" />
+              <label for="isBreakFixed" class="form-check-label">{{ 'IsBreakFixed' | translate }}</label>
+            </div>
+            <small class="field-hint">{{ 'IsBreakFixedHint' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Break Times (shown only when isThereBreak is true AND isBreakFixed is true) -->
+        <div *ngIf="createForm.get('isThereBreak')?.value && createForm.get('isBreakFixed')?.value" class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <label class="form-label">
+              {{ 'BreakStartTime' | translate }}
+              <span class="required-asterisk">*</span>
+            </label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [class.is-invalid]="createForm.get('breakStartTime')?.invalid && createForm.get('breakStartTime')?.touched && createForm.get('isThereBreak')?.value && createForm.get('isBreakFixed')?.value"
+                [value]="getTimeValue('breakStartTime')"
+                readonly
+                (click)="openTimePicker('breakStartTime', getTimeValue('breakStartTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('breakStartTime', getTimeValue('breakStartTime'))"></fa-icon>
+            </div>
+            <small class="field-hint">{{ 'BreakStartTimeHint' | translate }}</small>
+            <div *ngIf="createForm.get('breakStartTime')?.invalid && createForm.get('breakStartTime')?.touched && createForm.get('isThereBreak')?.value && createForm.get('isBreakFixed')?.value" class="invalid-feedback">
+              {{ 'ThisFieldIsRequired' | translate }}
+            </div>
+          </div>
+          <div class="form-field-wrapper">
+            <label class="form-label">
+              {{ 'BreakEndTime' | translate }}
+              <span class="required-asterisk">*</span>
+            </label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [class.is-invalid]="createForm.get('breakEndTime')?.invalid && createForm.get('breakEndTime')?.touched && createForm.get('isThereBreak')?.value && createForm.get('isBreakFixed')?.value"
+                [value]="getTimeValue('breakEndTime')"
+                readonly
+                (click)="openTimePicker('breakEndTime', getTimeValue('breakEndTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('breakEndTime', getTimeValue('breakEndTime'))"></fa-icon>
+            </div>
+            <small class="field-hint">{{ 'BreakEndTimeHint' | translate }}</small>
+            <div *ngIf="createForm.get('breakEndTime')?.invalid && createForm.get('breakEndTime')?.touched && createForm.get('isThereBreak')?.value && createForm.get('isBreakFixed')?.value" class="invalid-feedback">
+              {{ 'ThisFieldIsRequired' | translate }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Overnight checkbox -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <div class="form-check-wrapper">
+              <input id="overnight" class="form-check-input" type="checkbox" formControlName="isOvernight" />
+              <label for="overnight" class="form-check-label">{{ 'Overnight' | translate }}</label>
+            </div>
+            <small class="field-hint">{{ 'OvernightHint' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+          <button type="button" class="btn btn-ghost" (click)="toggleCreate()">{{ 'Cancel' | translate }}</button>
+          <button type="submit" class="btn btn-gradient" [disabled]="isSubmittingCreate">
+            <span *ngIf="isSubmittingCreate">{{ 'Saving' | translate }}...</span>
+            <span *ngIf="!isSubmittingCreate">{{ 'Save' | translate }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Form (same structure as create form) -->
+  <div *ngIf="showEdit" class="form-card section-card create-card">
+    <div class="glass-body">
+      <div class="create-header mb-4">
+        <div class="create-header-content">
+          <div class="header-icon-wrapper">
+            <div class="header-icon d-flex align-items-center justify-content-center">
+              <fa-icon [icon]="faClock"></fa-icon>
+            </div>
+          </div>
+          <div class="create-header-text">
+            <h5 class="section-title mb-1">{{ 'Edit' | translate }} {{ 'Shifts' | translate }}</h5>
+            <small class="field-hint">{{ 'PleaseFillShiftDetails' | translate }}</small>
+          </div>
+        </div>
+      </div>
+      
+      <form [formGroup]="editForm" (ngSubmit)="submitUpdate()" class="create-form">
+        <!-- Row 1: Name and Work Rule -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <label class="form-label">{{ 'ShiftName' | translate }}</label>
+            <input type="text" class="form-control" [placeholder]="'ShiftName' | translate" formControlName="name" />
+            <small class="field-hint">{{ 'ShiftNameHint' | translate }}</small>
+          </div>
+          <div class="form-field-wrapper work-rules-multi-select">
+            <label class="form-label">{{ 'WorkRules' | translate }}</label>
+            <div class="work-rules-checkbox-list">
+              <div *ngFor="let w of workRuleOptions" class="work-rule-checkbox-item">
+                <input 
+                  type="checkbox" 
+                  [id]="'wr-edit-' + w.id" 
+                  [value]="w.id"
+                  (change)="onWorkRuleToggleEdit(w.id, $event)"
+                  [checked]="isWorkRuleSelectedInEdit(w.id)"
+                  class="form-check-input" 
+                />
+                <label [for]="'wr-edit-' + w.id" class="form-check-label">{{ w.category }}</label>
+              </div>
+              <div *ngIf="workRuleOptions.length === 0" class="text-muted" style="padding:.5rem;">
+                {{ 'NoWorkRulesAvailable' | translate }}
+              </div>
+            </div>
+            <small class="field-hint">{{ 'WorkRuleForShiftMulti' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Row 2: Start, End -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <label class="form-label">{{ 'Start' | translate }}</label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [value]="getTimeValue('startTime')"
+                readonly
+                (click)="openTimePicker('startTime', getTimeValue('startTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('startTime', getTimeValue('startTime'))"></fa-icon>
+            </div>
+          </div>
+          <div class="form-field-wrapper">
+            <label class="form-label">{{ 'End' | translate }}</label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [value]="getTimeValue('endTime')"
+                readonly
+                (click)="openTimePicker('endTime', getTimeValue('endTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('endTime', getTimeValue('endTime'))"></fa-icon>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2.5: Break Settings -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <div class="form-check-wrapper">
+              <input id="isThereBreak-edit" class="form-check-input" type="checkbox" formControlName="isThereBreak" />
+              <label for="isThereBreak-edit" class="form-check-label">{{ 'IsThereBreak' | translate }}</label>
+            </div>
+            <small class="field-hint">{{ 'IsThereBreakHint' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Break Details (shown when isThereBreak is true) -->
+        <div *ngIf="editForm.get('isThereBreak')?.value" class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <div class="form-check-wrapper">
+              <input id="isBreakFixed-edit" class="form-check-input" type="checkbox" formControlName="isBreakFixed" />
+              <label for="isBreakFixed-edit" class="form-check-label">{{ 'IsBreakFixed' | translate }}</label>
+            </div>
+            <small class="field-hint">{{ 'IsBreakFixedHint' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Break Times (shown only when isThereBreak is true AND isBreakFixed is true) -->
+        <div *ngIf="editForm.get('isThereBreak')?.value && editForm.get('isBreakFixed')?.value" class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <label class="form-label">{{ 'BreakStartTime' | translate }}</label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [value]="getTimeValue('breakStartTime')"
+                readonly
+                (click)="openTimePicker('breakStartTime', getTimeValue('breakStartTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('breakStartTime', getTimeValue('breakStartTime'))"></fa-icon>
+            </div>
+            <small class="field-hint">{{ 'BreakStartTimeHint' | translate }}</small>
+          </div>
+          <div class="form-field-wrapper">
+            <label class="form-label">{{ 'BreakEndTime' | translate }}</label>
+            <div class="time-input-wrapper">
+              <input 
+                type="text" 
+                class="form-control time-input" 
+                [value]="getTimeValue('breakEndTime')"
+                readonly
+                (click)="openTimePicker('breakEndTime', getTimeValue('breakEndTime'))"
+                [placeholder]="'SelectTime' | translate" />
+              <fa-icon [icon]="faClock" class="time-icon" (click)="openTimePicker('breakEndTime', getTimeValue('breakEndTime'))"></fa-icon>
+            </div>
+            <small class="field-hint">{{ 'BreakEndTimeHint' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Row 3: Overnight checkbox -->
+        <div class="form-row mb-4">
+          <div class="form-field-wrapper">
+            <div class="form-check-wrapper">
+              <input id="overnight-edit" class="form-check-input" type="checkbox" formControlName="isOvernight" />
+              <label for="overnight-edit" class="form-check-label">{{ 'Overnight' | translate }}</label>
+            </div>
+            <small class="field-hint">{{ 'OvernightHint' | translate }}</small>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+          <button type="button" class="btn btn-ghost" (click)="cancelEdit()">{{ 'Cancel' | translate }}</button>
+          <button type="submit" class="btn btn-gradient" [disabled]="isSubmittingEdit">
+            <span *ngIf="isSubmittingEdit">{{ 'Updating' | translate }}...</span>
+            <span *ngIf="!isSubmittingEdit">{{ 'Update' | translate }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="glass-card p-4">
+    <p class="mb-0">{{ 'PleaseWait' | translate }}</p>
+  </div>
+  <div *ngIf="!isLoading && error" class="alert alert-danger" role="alert">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && !error" class="form-card section-card">
+    <div class="glass-body p-4">
+      <!-- Section header row -->
+      <div class="section-header-row">
+        <!-- Right side: total with pill -->
+        <div class="total-side">
+          <span class="total-label">{{ 'TotalShifts' | translate }}</span>
+          <span class="pill-count">{{ shifts.length }}</span>
+        </div>
+        <!-- Left side: title only -->
+        <div class="title-side">
+          <h5 class="section-title mb-0">{{ 'Shifts' | translate }}</h5>
+        </div>
+      </div>
+
+      <div *ngIf="shifts.length === 0" class="empty-state text-center py-5">
+        <div class="empty-icon mb-3">
+          <fa-icon [icon]="faClock"></fa-icon>
+        </div>
+        <p class="mt-2 mb-0">{{ 'NoShifts' | translate }}</p>
+      </div>
+
+      <div *ngIf="shifts.length > 0" class="table-wrapper">
+        <table class="table shifts-table align-middle mb-0 w-100">
+          <thead>
+            <tr>
+              <th class="w-30">{{ 'ShiftName' | translate }}</th>
+              <th class="w-12">{{ 'Start' | translate }}</th>
+              <th class="w-12">{{ 'End' | translate }}</th>
+              <th class="w-12">{{ 'Overnight' | translate }}</th>
+              <th class="w-12">{{ 'Break' | translate }}</th>
+              <th class="w-12 text-end">{{ 'Employees' | translate }}</th>
+              <th class="w-10 text-end">{{ 'Actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of shifts" class="row-hover">
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar bg-purple text-white me-3">
+                    <fa-icon [icon]="faClock"></fa-icon>
+                  </div>
+                  <div>
+                    <div class="shift-name">{{ s.name }}</div>
+                    <div class="shift-time text-muted">{{ formatTime(s.startTime) }} - {{ formatTime(s.endTime) }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ formatTime(s.startTime) }}</td>
+              <td>{{ formatTime(s.endTime) }}</td>
+              <td>
+                <span class="badge-soft" [class.badge-info]="s.isOvernight" [class.badge-muted]="!s.isOvernight">
+                  {{ s.isOvernight ? ('Yes' | translate) : ('No' | translate) }}
+                </span>
+              </td>
+              <td>
+                <span class="badge-soft" [class.badge-info]="s.isThereBreak" [class.badge-muted]="!s.isThereBreak">
+                  {{ s.isThereBreak ? (s.isBreakFixed ? ('Fixed' | translate) : ('Flexible' | translate)) : ('No' | translate) }}
+                </span>
+                <div *ngIf="s.isThereBreak && s.breakStartTime && s.breakEndTime" class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">
+                  {{ formatTime(s.breakStartTime) }} - {{ formatTime(s.breakEndTime) }}
+                </div>
+              </td>
+              <td class="text-end">
+                <span class="count-chip">{{ s.employeeCount || 0 }}</span>
+              </td>
+              <td class="text-end">
+                <div class="d-flex align-items-center justify-content-end gap-2">
+                  <button type="button" class="btn btn-sm btn-ghost" (click)="showEditForm(s)" [title]="'Edit' | translate">
+                    <fa-icon [icon]="faEdit"></fa-icon>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-ghost" (click)="deleteShift(s)" [title]="'Delete' | translate">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Time Picker Dialog -->
+  <app-time-picker
+    *ngIf="showTimePicker"
+    [value]="timePickerValue"
+    [label]="timePickerLabel"
+    (timeChange)="onTimeSelected($event)"
+    (close)="closeTimePicker()">
+  </app-time-picker>
+</div>

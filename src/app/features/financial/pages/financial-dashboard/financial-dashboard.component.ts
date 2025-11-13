@@ -26,7 +26,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import { FinancialService } from '../../../../core/services/financial.service';
-import { FinancialStatsDto, WorkRuleDto, EmployeeSalaryDto, SalaryReportDto, CreateSalaryReportDto, WorkRuleType } from '../../../../core/interfaces/financial.interface';
+import { FinancialStatsDto, WorkRuleDto, EmployeeSalaryDto, SalaryReportDto, CreateSalaryReportDto, WorkRuleType, ShiftDto } from '../../../../core/interfaces/financial.interface';
 import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
 import { catchError, of } from 'rxjs';
 import { trigger, state, style, animate, transition, query, stagger } from '@angular/animations';
@@ -87,24 +87,28 @@ export class FinancialDashboardComponent implements OnInit {
   faMoneyBillWave = faMoneyBillWave;
   faCalculator = faCalculator;
   faSpinner = faSpinner;
+  // Shifts icon - using faClock for now, or we can import a different one
 
   // Data properties
   financialStats: FinancialStatsDto | null = null;
   recentWorkRules: WorkRuleDto[] = [];
   recentSalaries: EmployeeSalaryDto[] = [];
   recentReports: SalaryReportDto[] = [];
+  recentShifts: ShiftDto[] = [];
   
   // Loading states
   isLoadingStats = true;
   isLoadingWorkRules = true;
   isLoadingSalaries = true;
   isLoadingReports = true;
+  isLoadingShifts = true;
   
   // Error states
   statsError: string | null = null;
   workRulesError: string | null = null;
   salariesError: string | null = null;
   reportsError: string | null = null;
+  shiftsError: string | null = null;
   
   // Create Report Dialog
   showCreateReportDialog = false;
@@ -147,6 +151,7 @@ export class FinancialDashboardComponent implements OnInit {
     this.loadRecentWorkRules();
     this.loadRecentSalaries();
     this.loadRecentReports();
+    this.loadRecentShifts();
   }
 
   loadFinancialStats(): void {
@@ -392,5 +397,31 @@ export class FinancialDashboardComponent implements OnInit {
       // Navigate to work rules page or employee management
       this.router.navigate(['/admin/financial/work-rules']);
     }
+  }
+
+  loadRecentShifts(): void {
+    this.isLoadingShifts = true;
+    this.shiftsError = null;
+
+    this.financialService.getShifts().pipe(
+      catchError(err => {
+        this.shiftsError = this.translate.instant('ERROR.FAILED_TO_LOAD_SHIFTS');
+        console.error('Error fetching shifts:', err);
+        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
+      })
+    ).subscribe(response => {
+      if (response.isSuccess && response.data) {
+        this.recentShifts = response.data.slice(0, 5);
+      } else if (!this.shiftsError) {
+        this.shiftsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_SHIFTS');
+      }
+      this.isLoadingShifts = false;
+    });
+  }
+
+  formatTime(timeString: string): string {
+    if (!timeString) return '';
+    // Convert "HH:mm:ss" to "HH:mm"
+    return timeString.substring(0, 5);
   }
 }

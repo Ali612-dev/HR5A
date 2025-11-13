@@ -1,34 +1,172 @@
 .work-rule-form .form-section {
-  margin-bottom: 1.25rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.work-rule-form .form-section .row {
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.work-rule-form .form-section .row > [class^="col-"] {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.work-rule-form .form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC);
+  opacity: 0.6;
+}
+
+.work-rule-form .form-section:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
 }
 
 .work-rule-form .section-title {
-  color: #EDE9FE;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
+  color: #FFFFFF;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.work-rule-form .section-title::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #8B5CF6, #A855F7);
+  border-radius: 2px;
 }
 
 .field-hint {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.75);
   display: block;
   margin-top: 0.25rem;
-  padding-inline-start: 140px;
+  margin-inline-start: 176px; /* Align with label + gap */
+  margin-inline-end: 0; /* No margin from right, extend to edge */
+  font-size: 0.875rem;
+  line-height: 1.6;
+  padding: 0.75rem 1rem;
+  background: rgba(139, 92, 246, 0.08);
+  border-left: 3px solid rgba(168, 85, 247, 0.4);
+  border-right: 2px solid rgba(168, 85, 247, 0.3);
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+  box-sizing: border-box;
+  width: calc(100% - 176px);
+  max-width: calc(100% - 176px);
+  position: relative;
+  border-top: 1px dashed rgba(168, 85, 247, 0.3);
+  transform: translateY(-8px);
+}
+
+/* Add a decorative arrow/connector */
+.field-hint::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -14px;
+  width: 10px;
+  height: 10px;
+  border-left: 2px solid rgba(168, 85, 247, 0.5);
+  border-top: 2px solid rgba(168, 85, 247, 0.5);
+  border-top-left-radius: 4px;
+}
+
+/* For Arabic: align to the right (start of line in RTL) */
+[dir="rtl"] .field-hint,
+.rtl .field-hint,
+html[dir="rtl"] .field-hint {
+  text-align: right;
+}
+
+/* For English/Italian: align to the left (start of line in LTR) */
+[dir="ltr"] .field-hint,
+.ltr .field-hint,
+html[dir="ltr"] .field-hint {
+  text-align: left;
+}
+
+.field-hint.text-warning {
+  color: #F59E0B !important;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.1) !important;
+  border-left-color: rgba(245, 158, 11, 0.5) !important;
+  font-style: normal;
+}
+
+.required-asterisk {
+  color: #EF4444 !important;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-inline-start: 0.25rem;
+}
+
+.required-field {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
 }
 
 /* Align label and control on one line and center vertically */
 .field-inline {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.field-inline:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.field-inline .flex-grow-1 {
+  flex: 1;
+}
+
+/* Make hint break out of field-inline padding */
+.field-inline ~ .field-hint {
+  margin-inline-start: -1rem; /* Offset the field-inline padding */
+  padding-inline-start: 2rem; /* Add padding to account for the offset */
+  width: calc(100% - 160px); /* From label start to container edge */
 }
 
 .field-inline .form-label {
-  min-width: 140px;
+  min-width: 160px;
   margin-bottom: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.field-inline .form-label span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 /* Improve label-control vertical rhythm */
@@ -95,8 +233,30 @@
   padding: 1.5rem;
 }
 
+.form-card .glass-body > div.d-flex {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-card .glass-body h5 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #FFFFFF, #EDE9FE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(139, 92, 246, 0.5);
+}
+
 .form-card {
   margin-bottom: 2rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.form-card .glass-body {
+  padding: 2rem;
 }
 
 /* Better form layout spacing */
@@ -109,14 +269,49 @@
 }
 
 .d-flex.justify-content-end .btn {
-  min-width: 120px;
+  min-width: 130px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.d-flex.justify-content-end .btn-primary {
+  background: linear-gradient(135deg, #8B5CF6, #A855F7) !important;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.d-flex.justify-content-end .btn-primary:hover {
+  background: linear-gradient(135deg, #7C3AED, #9333EA) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.d-flex.justify-content-end .btn-secondary {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.d-flex.justify-content-end .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Action buttons spacing */
 .work-rule-form .actions-row,
 .d-flex.justify-content-end.mt-3 {
-  gap: 0.75rem;
+  gap: 1rem;
   padding-top: 0.75rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 /* Fallback spacing between adjacent buttons if gap isn't applied */
@@ -129,6 +324,9 @@
   padding: 0.65rem 1rem;
   border-radius: 10px;
   font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .work-rules-container .btn-sm {
@@ -319,24 +517,41 @@
 }
 
 .form-control {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
   color: white !important;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: all 0.3s ease;
-  padding-block: 0.6rem;       /* vertical padding for comfortable typing */
-  padding-inline: 0.9rem;      /* horizontal padding so text isn't glued to the edge */
+  padding-block: 0.75rem;
+  padding-inline: 1rem;
+  font-size: 0.95rem;
+}
+
+.form-control:hover {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.14) !important;
 }
 
 .form-control:focus {
-  background: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.18) !important;
   border-color: #8B5CF6 !important;
   color: white !important;
-  box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25) !important;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2), 0 4px 15px rgba(139, 92, 246, 0.15) !important;
+  outline: none;
 }
 
 .form-control::placeholder {
   color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.form-control.is-invalid {
+  border-color: #EF4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.form-control.is-invalid:focus {
+  border-color: #EF4444 !important;
+  box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
 }
 
 .form-check-input {

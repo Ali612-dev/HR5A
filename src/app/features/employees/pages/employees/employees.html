@@ -3,7 +3,13 @@
     <!-- Header -->
 <div *ngIf="!store.isLoading(); else headerShimmer">
   <div class="page-header">
-    <h2 class="page-title">{{ 'Employees' | translate }}</h2>
+    <div class="header-left">
+      <button type="button" class="btn btn-light back-button" (click)="onBack()">
+        <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+        {{ 'Back' | translate }}
+      </button>
+      <h2 class="page-title">{{ 'Employees' | translate }}</h2>
+    </div>
     <div class="header-actions">
       <div class="header-actions-top">
         <button class="btn btn-secondary me-2" routerLink="/employees/add">

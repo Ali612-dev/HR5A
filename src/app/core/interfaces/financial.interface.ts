@@ -9,9 +9,11 @@ export interface ApiResponse<T> {
 
 // Work Rules
 export enum WorkRuleType {
-  Regular = 'Regular',
-  Flexible = 'Flexible',
-  Shift = 'Shift'
+  Daily = 'Daily',
+  Weekly = 'Weekly',
+  Monthly = 'Monthly',
+  Hourly = 'Hourly',
+  Custom = 'Custom'
 }
 
 export interface WorkRuleDto {
@@ -37,30 +39,64 @@ export interface WorkRuleDto {
   absenceDeductionMultiplier?: number;
   allowedAbsenceDaysPerMonth?: number;
   areOffDaysPaid?: boolean;
+  allowWorkOnOffDays?: boolean;
+  treatOffDayWorkAsOvertime?: boolean;
+  offDayOvertimeMultiplier?: number | null;
+  offDayHourlyRate?: number | null;
 }
 
 export interface CreateWorkRuleDto {
-  category: string; // Required, max 100 chars
-  type: WorkRuleType; // Required
-  expectStartTime?: string; // "HH:mm:ss"
-  expectEndTime?: string; // "HH:mm:ss"
-  expectedHoursPerDay?: number; // 1-24
-  expectedDaysPerWeek?: number; // 1-7
-  description?: string;
-  isPrivate?: boolean; // Default: false
-  employeeId?: number;
-}
-
-export interface UpdateWorkRuleDto {
-  category?: string; // Max 100 chars
-  type?: WorkRuleType;
+  category: string;
+  type: number; // Changed from WorkRuleType enum to number
   expectStartTime?: string;
   expectEndTime?: string;
-  expectedHoursPerDay?: number; // 1-24
-  expectedDaysPerWeek?: number; // 1-7
+  expectedHoursPerDay?: number;
+  expectedDaysPerWeek?: number;
+  paymentFrequency?: number;
   description?: string;
   isPrivate?: boolean;
   employeeId?: number;
+  lateArrivalToleranceMinutes?: number;
+  earlyDepartureToleranceMinutes?: number;
+  lateDeductionMinutesPerHour?: number;
+  earlyDepartureDeductionMinutesPerHour?: number;
+  overtimeMultiplier?: number;
+  minimumOvertimeMinutes?: number;
+  absenceDeductionMultiplier?: number;
+  allowedAbsenceDaysPerMonth?: number;
+  areOffDaysPaid?: boolean;
+  shiftIds?: number[]; // Optional: Array of Shift IDs to associate with this WorkRule
+  allowWorkOnOffDays?: boolean;
+  treatOffDayWorkAsOvertime?: boolean;
+  offDayOvertimeMultiplier?: number | null;
+  offDayHourlyRate?: number | null;
+}
+
+export interface UpdateWorkRuleDto {
+  category?: string;
+  type?: number; // Changed from WorkRuleType enum to number
+  expectStartTime?: string;
+  expectEndTime?: string;
+  expectedHoursPerDay?: number;
+  expectedDaysPerWeek?: number;
+  paymentFrequency?: number;
+  description?: string;
+  isPrivate?: boolean;
+  employeeId?: number;
+  lateArrivalToleranceMinutes?: number;
+  earlyDepartureToleranceMinutes?: number;
+  lateDeductionMinutesPerHour?: number;
+  earlyDepartureDeductionMinutesPerHour?: number;
+  overtimeMultiplier?: number;
+  minimumOvertimeMinutes?: number;
+  absenceDeductionMultiplier?: number;
+  allowedAbsenceDaysPerMonth?: number;
+  areOffDaysPaid?: boolean;
+  shiftIds?: number[]; // Optional: Array of Shift IDs to associate with this WorkRule
+  allowWorkOnOffDays?: boolean;
+  treatOffDayWorkAsOvertime?: boolean;
+  offDayOvertimeMultiplier?: number | null;
+  offDayHourlyRate?: number | null;
 }
 
 // Employee Salaries
@@ -360,8 +396,64 @@ export interface WorkRuleDetailsDto {
   // Off Days
   offDays: WorkRuleOffDayDto[];
   
+  // Associated Shifts (many-to-many)
+  shifts?: ShiftDto[];
+  
   // Statistics
   totalAssignedEmployees: number;
   activeEmployees: number;
   inactiveEmployees: number;
+}
+
+// ==================== SHIFTS ====================
+export interface ShiftWorkRuleDto {
+  workRule: {
+    id: number;
+    category: string;
+  };
+}
+
+export interface ShiftDto {
+  id: number;
+  name: string;
+  startTime: string; // "HH:mm:ss"
+  endTime: string; // "HH:mm:ss"
+  isOvernight: boolean;
+  breakMinutes: number;
+  isThereBreak: boolean;
+  isBreakFixed: boolean;
+  breakStartTime?: string; // "HH:mm:ss" or "HH:mm", optional
+  breakEndTime?: string; // "HH:mm:ss" or "HH:mm", optional
+  employeeCount?: number; // Optional: count of assigned employees
+  workRules?: ShiftWorkRuleDto[]; // WorkRules associated with this shift (many-to-many)
+}
+
+export interface CreateShiftDto {
+  name: string;
+  workRuleIds: number[]; // Array of WorkRule IDs (many-to-many)
+  startTime: string; // "HH:mm:ss"
+  endTime: string; // "HH:mm:ss"
+  isOvernight?: boolean;
+  breakMinutes?: number;
+  isThereBreak?: boolean;
+  isBreakFixed?: boolean;
+  breakStartTime?: string; // "HH:mm:ss", optional
+  breakEndTime?: string; // "HH:mm:ss", optional
+}
+
+export interface UpdateShiftDto {
+  name?: string;
+  workRuleIds?: number[]; // Array of WorkRule IDs (many-to-many)
+  startTime?: string; // "HH:mm:ss"
+  endTime?: string; // "HH:mm:ss"
+  isOvernight?: boolean;
+  breakMinutes?: number;
+  isThereBreak?: boolean;
+  isBreakFixed?: boolean;
+  breakStartTime?: string; // "HH:mm:ss", optional
+  breakEndTime?: string; // "HH:mm:ss", optional
+}
+
+export interface AssignShiftDto {
+  employeeId: number;
 }

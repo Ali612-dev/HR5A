@@ -24,7 +24,11 @@ import {
   FinancialRequest,
   FinancialResponse,
   AssignWorkRuleDto,
-  WorkRuleDetailsDto
+  WorkRuleDetailsDto,
+  ShiftDto,
+  CreateShiftDto,
+  UpdateShiftDto,
+  AssignShiftDto
 } from '../interfaces/financial.interface';
 
 @Injectable({
@@ -382,9 +386,11 @@ export class FinancialService {
 
   getWorkRuleTypeOptions(): { value: string; label: string }[] {
     return [
-      { value: 'Regular', label: this.translate.instant('WorkRuleType.Regular') },
-      { value: 'Flexible', label: this.translate.instant('WorkRuleType.Flexible') },
-      { value: 'Shift', label: this.translate.instant('WorkRuleType.Shift') }
+      { value: 'Daily', label: this.translate.instant('WorkRuleType.Daily') },
+      { value: 'Weekly', label: this.translate.instant('WorkRuleType.Weekly') },
+      { value: 'Monthly', label: this.translate.instant('WorkRuleType.Monthly') },
+      { value: 'Hourly', label: this.translate.instant('WorkRuleType.Hourly') },
+      { value: 'Custom', label: this.translate.instant('WorkRuleType.Custom') }
     ];
   }
 
@@ -416,5 +422,77 @@ export class FinancialService {
       years.push(i);
     }
     return years;
+  }
+
+  // ==================== SHIFTS ====================
+  getShifts(workRuleId?: number): Observable<ApiResponse<ShiftDto[]>> {
+    let url = `${this.baseUrl}/api/shifts`;
+    let params = new HttpParams();
+    
+    if (workRuleId) {
+      params = params.set('workRuleId', workRuleId.toString());
+    }
+    
+    return this.http.get<ApiResponse<ShiftDto[]>>(url, {
+      headers: this.getHeaders(),
+      params: params
+    });
+  }
+
+  getShiftsByWorkRule(workRuleId: number): Observable<ApiResponse<ShiftDto[]>> {
+    const url = `${this.baseUrl}/api/workrules/${workRuleId}/shifts`;
+    return this.http.get<ApiResponse<ShiftDto[]>>(url, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getShift(id: number): Observable<ApiResponse<ShiftDto>> {
+    const url = `${this.baseUrl}/api/shifts/${id}`;
+    return this.http.get<ApiResponse<ShiftDto>>(url, {
+      headers: this.getHeaders()
+    });
+  }
+
+  createShift(shift: CreateShiftDto): Observable<ApiResponse<ShiftDto>> {
+    const url = `${this.baseUrl}/api/shifts`;
+    return this.http.post<ApiResponse<ShiftDto>>(url, shift, {
+      headers: this.getHeaders()
+    });
+  }
+
+  updateShift(id: number, shift: UpdateShiftDto): Observable<ApiResponse<ShiftDto>> {
+    const url = `${this.baseUrl}/api/shifts/${id}`;
+    return this.http.put<ApiResponse<ShiftDto>>(url, shift, {
+      headers: this.getHeaders()
+    });
+  }
+
+  deleteShift(id: number): Observable<ApiResponse<string>> {
+    const url = `${this.baseUrl}/api/shifts/${id}`;
+    return this.http.delete<ApiResponse<string>>(url, {
+      headers: this.getHeaders()
+    });
+  }
+
+  assignEmployeeToShift(shiftId: number, employeeId: number): Observable<ApiResponse<number>> {
+    const url = `${this.baseUrl}/api/shifts/${shiftId}/assign`;
+    const payload: AssignShiftDto = { employeeId };
+    return this.http.post<ApiResponse<number>>(url, payload, {
+      headers: this.getHeaders()
+    });
+  }
+
+  unassignEmployeeFromShift(shiftId: number, employeeId: number): Observable<ApiResponse<string>> {
+    const url = `${this.baseUrl}/api/shifts/${shiftId}/assign/${employeeId}`;
+    return this.http.delete<ApiResponse<string>>(url, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getShiftEmployees(shiftId: number): Observable<ApiResponse<number[]>> {
+    const url = `${this.baseUrl}/api/shifts/${shiftId}/employees`;
+    return this.http.get<ApiResponse<number[]>>(url, {
+      headers: this.getHeaders()
+    });
   }
 }

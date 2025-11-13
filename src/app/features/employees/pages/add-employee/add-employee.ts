@@ -6,10 +6,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EmployeeService } from '../../../../core/employee.service';
 import { CreateEmployeeDto } from '../../../../core/interfaces/employee.interface';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTimes, faUserPlus, faPeopleGroup, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { AddEmployeeStore } from '../../../../store/add-employee.store';
 import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
 import { Subject, takeUntil } from 'rxjs';
+import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-add-employee',
@@ -30,11 +32,15 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
 
   faSave = faSave;
   faTimes = faTimes;
+  faUserPlus = faUserPlus;
+  faPeopleGroup = faPeopleGroup;
+  faArrowLeft = faArrowLeft;
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private translate = inject(TranslateService);
   private destroy$ = new Subject<void>();
+  private dialog = inject(MatDialog);
 
   // Translation cache to avoid repeated lookups
   private errorMessages: { [key: string]: string } = {};
@@ -45,6 +51,11 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
       if (this.store.isSuccess()) {
         this.navigateToEmployeesList();
         this.resetForm();
+      }
+      const apiMessage = this.store.error();
+      if (apiMessage) {
+        this.showErrorDialog(apiMessage);
+        this.store.resetState();
       }
     });
   }
@@ -62,11 +73,13 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.employeeForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(4)]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
       name: ['', [Validators.required, Validators.minLength(3)]],
       phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9]{10,14}$/)]],
       department: [''],
       email: ['', [Validators.required, Validators.email]],
-      cardNumber: ['', Validators.required],
+      cardNumber: ['', [Validators.required, Validators.minLength(4)]],
       isActive: [true]
     });
   }
@@ -74,10 +87,15 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
   private loadTranslations(): void {
     // Preload all error message translations
     const translationKeys = [
+      'ERROR.USERNAME_REQUIRED',
+      'ERROR.USERNAME_MINLENGTH',
+      'ERROR.PASSWORD_REQUIRED',
+      'ERROR.PASSWORD_MINLENGTH',
       'ERROR.NAME_REQUIRED',
       'ERROR.PHONE_REQUIRED',
       'ERROR.EMAIL_REQUIRED',
       'ERROR.CARD_NUMBER_REQUIRED',
+      'ERROR.CARD_NUMBER_MINLENGTH',
       'ERROR.NAME_MINLENGTH',
       'ERROR.PHONE_PATTERN',
       'ERROR.EMAIL_EMAIL'
@@ -116,8 +134,41 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const newEmployee: CreateEmployeeDto = this.employeeForm.value;
-    this.store.addEmployee(newEmployee);
+    const {
+      username,
+      password,
+      isActive,
+      ...employeeFormValue
+    } = this.employeeForm.value;
+
+    const employeePayload: CreateEmployeeDto = {
+      ...(employeeFormValue as CreateEmployeeDto),
+      isActive
+    };
+
+    const trimmedEmployee: CreateEmployeeDto = {
+      ...employeePayload,
+      name: employeePayload.name.trim(),
+      phone: employeePayload.phone.trim(),
+      email: employeePayload.email ? employeePayload.email.trim() : null,
+      department: employeePayload.department ? employeePayload.department.trim() : null,
+      cardNumber: employeePayload.cardNumber.trim(),
+    };
+
+    const usernameValue = (username ?? '').trim();
+    const passwordValue = password ?? '';
+
+    this.store.addEmployee(
+      trimmedEmployee,
+      {
+        username: usernameValue,
+        userName: usernameValue,
+        password: passwordValue,
+        fullName: trimmedEmployee.name,
+        email: trimmedEmployee.email ?? undefined,
+        phoneNumber: trimmedEmployee.phone
+      }
+    );
   }
 
   onCancel(): void {
@@ -140,6 +191,8 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
 
   private resetForm(): void {
     this.employeeForm.reset({
+      username: '',
+      password: '',
       name: '',
       phone: '',
       department: '',
@@ -179,15 +232,21 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
       errorMessages.push(this.getRequiredErrorKey(controlName));
     }
     // Handle minlength validation
-    else if (errors['minlength']) {
-      errorMessages.push(this.getMinLengthErrorKey(controlName));
+    if (errors['minlength']) {
+      const minLengthKey = this.getMinLengthErrorKey(controlName);
+      if (minLengthKey) {
+        errorMessages.push(minLengthKey);
+      }
     }
     // Handle pattern validation
-    else if (errors['pattern']) {
-      errorMessages.push(this.getPatternErrorKey(controlName));
+    if (errors['pattern']) {
+      const patternKey = this.getPatternErrorKey(controlName);
+      if (patternKey) {
+        errorMessages.push(patternKey);
+      }
     }
     // Handle email validation
-    else if (errors['email']) {
+    if (errors['email']) {
       errorMessages.push('ERROR.EMAIL_EMAIL');
     }
 
@@ -199,17 +258,28 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
       'name': 'ERROR.NAME_REQUIRED',
       'phone': 'ERROR.PHONE_REQUIRED',
       'email': 'ERROR.EMAIL_REQUIRED',
-      'cardNumber': 'ERROR.CARD_NUMBER_REQUIRED'
+      'cardNumber': 'ERROR.CARD_NUMBER_REQUIRED',
+      'username': 'ERROR.USERNAME_REQUIRED',
+      'password': 'ERROR.PASSWORD_REQUIRED'
     };
     return fieldKeyMap[controlName] || `ERROR.${controlName.toUpperCase()}_REQUIRED`;
   }
 
-  private getMinLengthErrorKey(controlName: string): string {
-    return 'ERROR.NAME_MINLENGTH'; // Only used for name field
+  private getMinLengthErrorKey(controlName: string): string | null {
+    const fieldKeyMap: { [key: string]: string } = {
+      'name': 'ERROR.NAME_MINLENGTH',
+      'username': 'ERROR.USERNAME_MINLENGTH',
+      'password': 'ERROR.PASSWORD_MINLENGTH',
+      'cardNumber': 'ERROR.CARD_NUMBER_MINLENGTH'
+    };
+    return fieldKeyMap[controlName] || null;
   }
 
   private getPatternErrorKey(controlName: string): string {
-    return 'ERROR.PHONE_PATTERN'; // Only used for phone field
+    const fieldKeyMap: { [key: string]: string } = {
+      'phone': 'ERROR.PHONE_PATTERN'
+    };
+    return fieldKeyMap[controlName] || '';
   }
 
   private getDefaultErrorMessage(controlName: string, errorType: string): string {
@@ -235,7 +305,23 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
       },
       'cardNumber': {
         'required': 'Card Number is required',
-        'cardnumber_required': 'Card Number is required'
+        'minlength': 'Card Number must be at least 4 characters long',
+        'cardnumber_required': 'Card Number is required',
+        'cardnumber_minlength': 'Card Number must be at least 4 characters long'
+      },
+      'username': {
+        'required': 'Username is required',
+        'minlength': 'Username must be at least 4 characters long',
+        'pattern': 'Username format is invalid',
+        'username_required': 'Username is required',
+        'username_minlength': 'Username must be at least 4 characters long',
+        'username_pattern': 'Username format is invalid'
+      },
+      'password': {
+        'required': 'Password is required',
+        'minlength': 'Password must be at least 6 characters long',
+        'password_required': 'Password is required',
+        'password_minlength': 'Password must be at least 6 characters long'
       },
       'employee': {
         'not_found': 'Employee not found',
@@ -261,6 +347,61 @@ export class AddEmployeeComponent implements OnInit, OnDestroy {
 
     // Fallback for unknown errors
     return `Invalid ${controlName}`;
+  }
+
+  private showErrorDialog(message: unknown): void {
+    const title = this.translate.instant('ERROR.TITLE');
+    const friendlyMessage = this.extractErrorMessage(message);
+
+    this.dialog.open(NotificationDialogComponent, {
+      data: {
+        title,
+        message: friendlyMessage,
+        isSuccess: false
+      },
+      panelClass: ['glass-dialog-panel', 'transparent-backdrop']
+    });
+  }
+
+  private extractErrorMessage(message: unknown): string {
+    if (!message) {
+      return this.translate.instant('ERROR.ADD_EMPLOYEE_ERROR');
+    }
+
+    if (typeof message === 'string') {
+      const trimmed = message.trim();
+      if (trimmed.length > 0) {
+        return trimmed;
+      }
+    }
+
+    if (Array.isArray(message)) {
+      const joined = message
+        .map(item => (typeof item === 'string' ? item.trim() : ''))
+        .filter(item => item.length > 0)
+        .join(', ');
+      if (joined.length > 0) {
+        return joined;
+      }
+    }
+
+    if (typeof message === 'object') {
+      const errorObj = message as Record<string, unknown>;
+      if (typeof errorObj['message'] === 'string' && errorObj['message']!.trim().length > 0) {
+        return errorObj['message'] as string;
+      }
+      if (Array.isArray(errorObj['errors'])) {
+        const extracted = errorObj['errors']
+          .map((item) => (typeof item === 'string' ? item.trim() : ''))
+          .filter((item) => item.length > 0)
+          .join(', ');
+        if (extracted.length > 0) {
+          return extracted;
+        }
+      }
+    }
+
+    return this.translate.instant('ERROR.ADD_EMPLOYEE_ERROR');
   }
 
   /**

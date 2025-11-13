@@ -7,7 +7,9 @@ const isUsingVercelProxy = environment.apiBaseUrl === '/api/proxy';
 
 export const API_ENDPOINTS = {
   LOGIN: isUsingVercelProxy ? '?path=/api/Auth/admin-login' : '/api/Auth/admin-login',
-  REGISTER: isUsingVercelProxy ? '?path=/api/Auth/employee-register' : '/api/Auth/employee-register',
+  REGISTER: isUsingVercelProxy ? '?path=/api/Auth/register' : '/api/Auth/register',
+  AUTH_USERS: isUsingVercelProxy ? '?path=/api/Auth/users' : '/api/Auth/users',
+  AUTH_UPDATE: isUsingVercelProxy ? '?path=/api/Auth/update' : '/api/Auth/update',
   DASHBOARD_STATS: isUsingVercelProxy ? '?path=/api/Dashboard' : '/api/Dashboard',
   REQUESTS: isUsingVercelProxy ? '?path=/api/Request' : '/api/Request',
   LatestRequestsDashboard: isUsingVercelProxy ? '?path=/api/Request/GetLatestApprovedRequests' : '/api/Request/GetLatestApprovedRequests',

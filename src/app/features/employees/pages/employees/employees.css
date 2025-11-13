@@ -52,6 +52,34 @@
   margin: 0;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: 9999px;
+  transition: all 0.25s ease;
+}
+
+.back-button fa-icon {
+  color: inherit;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 .header-actions {
   display: flex;
   flex-direction: column;

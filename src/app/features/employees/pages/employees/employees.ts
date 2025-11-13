@@ -1,10 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faFilter, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faFilter, faSpinner, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 
 import { EmployeeStore } from '../../../../store/employee.store';
@@ -45,6 +45,7 @@ export class Employees implements OnInit {
   faFilter = faFilter;
   whatsappIcon = faWhatsapp;
   faSpinner = faSpinner;
+  faArrowLeft = faArrowLeft;
 
   isFilterCollapsed: boolean = true;
 
@@ -55,10 +56,10 @@ export class Employees implements OnInit {
   readonly deleteStore = inject(DeleteEmployeeStore);
   private dialog = inject(MatDialog);
   private translate = inject(TranslateService);
-
   private fb = inject(FormBuilder);
   private whatsAppService = inject(WhatsAppService);
-  
+  private location = inject(Location);
+
   // Loading state for group WhatsApp button
   groupWhatsappLoading = false;
 
@@ -176,6 +177,10 @@ export class Employees implements OnInit {
     this.filterForm.valueChanges.subscribe(() => {
       this.onFilter();
     });
+  }
+
+  onBack(): void {
+    this.location.back();
   }
 
   onFilter(): void {

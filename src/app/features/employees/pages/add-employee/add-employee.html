@@ -2,7 +2,13 @@
   <div class="container-fluid py-4">
     <!-- Header -->
     <div class="page-header">
-      <h2 class="page-title">{{ 'AddEmployee' | translate }}</h2>
+      <div class="header-left">
+        <button type="button" class="btn btn-light back-button" (click)="onCancel()">
+          <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+          {{ 'Back' | translate }}
+        </button>
+        <h2 class="page-title">{{ 'AddEmployee' | translate }}</h2>
+      </div>
     </div>
 
     <!-- Add Employee Form -->
@@ -12,72 +18,131 @@
       </div>
       <div *ngIf="!store.isLoading()">
         <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
-          <div class="row g-4">
-          <div class="col-md-6">
-            <div class="field-container">
-              <div class="form-field-group">
-                <label for="name" class="form-label">{{ 'Name' | translate }}</label>
-                <div class="input-wrapper">
-                  <input type="text" class="form-control" id="name" formControlName="name">
-                  <div *ngIf="getValidationErrors('name').length > 0" class="form-error-message">
-                    <div *ngFor="let error of getValidationErrors('name')">{{ error }}</div>
+          <div class="form-section">
+            <div class="form-section-header">
+              <div class="form-section-icon user-icon">
+                <fa-icon [icon]="faUserPlus"></fa-icon>
+              </div>
+              <div>
+                <h3 class="form-section-title">{{ 'UserAccountSectionTitle' | translate }}</h3>
+                <p class="form-section-subtitle">{{ 'UserAccountSectionSubtitle' | translate }}</p>
+              </div>
+            </div>
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="username" class="form-label">{{ 'Username' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="text" class="form-control" id="username" formControlName="username" autocomplete="username">
+                      <div *ngIf="getValidationErrors('username').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('username')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="password" class="form-label">{{ 'Password' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="password" class="form-control" id="password" formControlName="password" autocomplete="new-password">
+                      <div *ngIf="getValidationErrors('password').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('password')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="email" class="form-label">{{ 'Email' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="email" class="form-control" id="email" formControlName="email" autocomplete="email">
+                      <small class="hint-text">{{ 'EmailFieldHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('email').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('email')">{{ error }}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="field-container">
-              <div class="form-field-group">
-                <label for="phone" class="form-label">{{ 'Phone' | translate }}</label>
-                <div class="input-wrapper">
-                  <input type="text" class="form-control" id="phone" formControlName="phone">
-                  <div *ngIf="getValidationErrors('phone').length > 0" class="form-error-message">
-                    <div *ngFor="let error of getValidationErrors('phone')">{{ error }}</div>
+
+          <div class="form-divider"></div>
+
+          <div class="form-section">
+            <div class="form-section-header">
+              <div class="form-section-icon employee-icon">
+                <fa-icon [icon]="faPeopleGroup"></fa-icon>
+              </div>
+              <div>
+                <h3 class="form-section-title">{{ 'EmployeeDetailsSectionTitle' | translate }}</h3>
+                <p class="form-section-subtitle">{{ 'EmployeeDetailsSectionSubtitle' | translate }}</p>
+              </div>
+            </div>
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="name" class="form-label">{{ 'FullName' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="text" class="form-control" id="name" formControlName="name">
+                      <small class="hint-text">{{ 'NameFieldHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('name').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('name')">{{ error }}</div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="phone" class="form-label">{{ 'Phone' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="text" class="form-control" id="phone" formControlName="phone">
+                      <small class="hint-text">{{ 'PhoneFieldHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('phone').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('phone')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="form-field-group">
+                  <label for="department" class="form-label">{{ 'Department' | translate }}</label>
+                  <input type="text" class="form-control" id="department" formControlName="department">
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="cardNumber" class="form-label">{{ 'CardNumber' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="text" class="form-control" id="cardNumber" formControlName="cardNumber">
+                      <small class="hint-text">{{ 'CardNumberHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('cardNumber').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('cardNumber')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive">
+                  <label class="form-check-label" for="isActive">{{ 'IsActive' | translate }}</label>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-field-group">
-              <label for="department" class="form-label">{{ 'Department' | translate }}</label>
-              <input type="text" class="form-control" id="department" formControlName="department">
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="field-container">
-              <div class="form-field-group">
-                <label for="email" class="form-label">{{ 'Email' | translate }}</label>
-                <div class="input-wrapper">
-                  <input type="email" class="form-control" id="email" formControlName="email">
-                  <div *ngIf="getValidationErrors('email').length > 0" class="form-error-message">
-                    <div *ngFor="let error of getValidationErrors('email')">{{ error }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="field-container">
-              <div class="form-field-group">
-                <label for="cardNumber" class="form-label">{{ 'CardNumber' | translate }}</label>
-                <div class="input-wrapper">
-                  <input type="text" class="form-control" id="cardNumber" formControlName="cardNumber">
-                  <div *ngIf="getValidationErrors('cardNumber').length > 0" class="form-error-message">
-                    <div *ngFor="let error of getValidationErrors('cardNumber')">{{ error }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-check form-switch mt-4">
-              <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive">
-              <label class="form-check-label" for="isActive">{{ 'IsActive' | translate }}</label>
-            </div>
-          </div>
-        </div>
+
+          <div class="form-divider"></div>
 
           <div class="d-flex justify-content-end mt-4 button-group">
             <button type="button" class="btn btn-secondary" (click)="onCancel()">

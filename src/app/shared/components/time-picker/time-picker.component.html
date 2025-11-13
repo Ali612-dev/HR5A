@@ -1,0 +1,122 @@
+<div class="time-picker-overlay" (click)="onClose()">
+  <div class="time-picker-container" (click)="$event.stopPropagation()">
+    <div class="time-picker-header">
+      <div class="header-content">
+        <fa-icon [icon]="faClock" class="header-icon"></fa-icon>
+        <h3 class="header-title">{{ label ? (label | translate) : ('SelectTime' | translate) }}</h3>
+      </div>
+      <button type="button" class="close-btn" (click)="onClose()">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+
+    <div class="time-picker-body" (click)="$event.stopPropagation()">
+      <!-- Quick Time Buttons -->
+      <div class="quick-times">
+        <button 
+          *ngFor="let qt of quickTimes" 
+          type="button"
+          class="quick-time-btn"
+          (click)="$event.stopPropagation(); selectQuickTime(qt.hour, qt.minute)"
+          [class.active]="selectedHour === qt.hour && selectedMinute === qt.minute">
+          {{ qt.label | translate }}
+        </button>
+        <button 
+          type="button"
+          class="quick-time-btn current-time"
+          (click)="$event.stopPropagation(); setCurrentTime()">
+          {{ 'CurrentTime' | translate }}
+        </button>
+      </div>
+
+      <!-- Selected Time Display with Manual Edit -->
+      <div class="selected-time-display">
+        <div class="time-display-editable">
+          <div class="time-input-group">
+            <button type="button" class="time-stepper-btn" (click)="$event.stopPropagation(); incrementHour()">
+              <fa-icon [icon]="faChevronUp"></fa-icon>
+            </button>
+            <input 
+              type="number" 
+              class="time-edit-input hour-input"
+              [(ngModel)]="hourInput"
+              (input)="onHourInputChange($any($event.target).value)"
+              (blur)="onHourInputBlur()"
+              (click)="$event.stopPropagation()"
+              min="0"
+              max="23"
+              placeholder="00" />
+            <button type="button" class="time-stepper-btn" (click)="$event.stopPropagation(); decrementHour()">
+              <fa-icon [icon]="faChevronDown"></fa-icon>
+            </button>
+          </div>
+          <span class="time-separator">:</span>
+          <div class="time-input-group">
+            <button type="button" class="time-stepper-btn" (click)="$event.stopPropagation(); incrementMinute()">
+              <fa-icon [icon]="faChevronUp"></fa-icon>
+            </button>
+            <input 
+              type="number" 
+              class="time-edit-input minute-input"
+              [(ngModel)]="minuteInput"
+              (input)="onMinuteInputChange($any($event.target).value)"
+              (blur)="onMinuteInputBlur()"
+              (click)="$event.stopPropagation()"
+              min="0"
+              max="59"
+              placeholder="00" />
+            <button type="button" class="time-stepper-btn" (click)="$event.stopPropagation(); decrementMinute()">
+              <fa-icon [icon]="faChevronDown"></fa-icon>
+            </button>
+          </div>
+        </div>
+        <div class="time-display-label">{{ 'CurrentSelection' | translate }}</div>
+      </div>
+
+      <!-- Time Selector -->
+      <div class="time-selector">
+        <!-- Hours Column -->
+        <div class="time-column">
+          <div class="column-label">{{ 'Hours' | translate }}</div>
+          <div class="scrollable-list hours-list">
+            <div class="spacer-top"></div>
+            <div 
+              *ngFor="let hour of hours" 
+              class="time-item"
+              [class.selected]="selectedHour === hour"
+              (click)="$event.stopPropagation(); selectHour(hour)">
+              {{ formatHour(hour) }}
+            </div>
+            <div class="spacer-bottom"></div>
+          </div>
+        </div>
+
+        <!-- Minutes Column -->
+        <div class="time-column">
+          <div class="column-label">{{ 'Minutes' | translate }}</div>
+          <div class="scrollable-list minutes-list">
+            <div class="spacer-top"></div>
+            <div 
+              *ngFor="let minute of minutes" 
+              class="time-item"
+              [class.selected]="selectedMinute === minute"
+              (click)="$event.stopPropagation(); selectMinute(minute)">
+              {{ formatMinute(minute) }}
+            </div>
+            <div class="spacer-bottom"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="time-picker-footer" (click)="$event.stopPropagation()">
+      <button type="button" class="btn-cancel" (click)="$event.stopPropagation(); onClose()">
+        {{ 'Cancel' | translate }}
+      </button>
+      <button type="button" class="btn-confirm" (click)="$event.stopPropagation(); onClose()">
+        {{ 'Confirm' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+

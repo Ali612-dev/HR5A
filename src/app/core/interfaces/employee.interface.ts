@@ -5,8 +5,12 @@ export interface EmployeeDto {
   department: string | null;
   email: string | null;
   cardNumber: string;
+  userId?: number | null;
   isActive: boolean;
   joinedDate: string; // ISO date string
+  shift?: any;
+  workRuleId?: number | null;
+  workRuleName?: string | null;
   selected?: boolean;
   showActions?: boolean;
 }
