@@ -4,17 +4,24 @@ import {
   HttpHandler,
   HttpEvent,
   HttpInterceptor,
-  HttpErrorResponse
+  HttpErrorResponse,
+  HttpClient,
+  HttpBackend
 } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, switchMap, filter, take } from 'rxjs/operators';
+import { API_BASE_URL, API_ENDPOINTS } from './constants';
+import { ApiResponse, LoginResponseData } from './interfaces/auth.interface';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+  private http: HttpClient;
 
-  constructor() {}
+  constructor(handler: HttpBackend) {
+    this.http = new HttpClient(handler);
+  }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     // Get the auth token from localStorage
@@ -95,37 +102,15 @@ export class AuthInterceptor implements HttpInterceptor {
     );
   }
 
-  private refreshToken(token: string): Observable<any> {
-    return new Observable(observer => {
-      console.log('🔄 Attempting to refresh token...');
-      
-      fetch('http://172.20.208.1:6365/api/Auth/refresh-admin-token', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => {
-        console.log('📡 Token refresh response status:', response.status);
-        return response.json();
-      })
-      .then(data => {
-        console.log('🔄 Token refresh response:', data);
-        
-        if (data && data.isSuccess && data.data && data.data.token) {
-          console.log('✅ New token received:', data.data.token.substring(0, 20) + '...');
-          observer.next(data);
-          observer.complete();
-        } else {
-          console.error('❌ Invalid refresh response format:', data);
-          observer.error(new Error('Invalid refresh response format'));
-        }
-      })
-      .catch(error => {
-        console.error('❌ Token refresh failed:', error);
-        observer.error(error);
-      });
+  private refreshToken(token: string): Observable<ApiResponse<LoginResponseData>> {
+    const url = `${API_BASE_URL}${API_ENDPOINTS.REFRESH_ADMIN_TOKEN}`;
+    console.log('🔄 Attempting to refresh token via:', url);
+
+    return this.http.post<ApiResponse<LoginResponseData>>(url, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     });
   }
 
@@ -140,22 +125,25 @@ export class AuthInterceptor implements HttpInterceptor {
   // Temporary method for testing - can be called from browser console
   public testTokenRefresh(): void {
     const token = localStorage.getItem('authToken');
-    if (token) {
-      console.log('🧪 Testing token refresh manually...');
-      this.refreshToken(token).subscribe({
-        next: (response) => {
-          console.log('✅ Manual token refresh successful:', response);
-          if (response && response.isSuccess && response.data && response.data.token) {
-            localStorage.setItem('authToken', response.data.token);
-            console.log('✅ New token stored in localStorage');
-          }
-        },
-        error: (error) => {
-          console.error('❌ Manual token refresh failed:', error);
-        }
-      });
-    } else {
+    if (!token) {
       console.error('❌ No token found in localStorage');
+      return;
     }
+
+    console.log('🧪 Testing token refresh manually...');
+    this.refreshToken(token).subscribe({
+      next: (response) => {
+        console.log('✅ Manual token refresh response:', response);
+        if (response && response.isSuccess && response.data?.token) {
+          localStorage.setItem('authToken', response.data.token);
+          console.log('✅ New token stored in localStorage');
+        } else {
+          console.error('❌ Manual refresh returned invalid payload');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Manual token refresh failed:', error);
+      }
+    });
   }
 }

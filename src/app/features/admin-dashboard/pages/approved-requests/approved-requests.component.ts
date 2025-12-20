@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -6,7 +6,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { RequestService } from '../../../../core/request.service';
 import { RequestStatus } from '../../../../core/interfaces/request.interface';
-import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
+import { MaterialDataTableComponent, TableColumn, TableAction } from '../../../../shared/components/material-data-table';
 import { catchError, of } from 'rxjs';
 
 @Component({
@@ -17,12 +17,12 @@ import { catchError, of } from 'rxjs';
     RouterModule,
     TranslateModule,
     FontAwesomeModule,
-    ShimmerComponent
+    MaterialDataTableComponent
   ],
   templateUrl: './approved-requests.component.html',
   styleUrls: ['./approved-requests.component.css']
 })
-export class ApprovedRequestsComponent implements OnInit {
+export class ApprovedRequestsComponent implements OnInit, AfterViewInit {
   private requestService = inject(RequestService);
   private translate = inject(TranslateService);
 
@@ -36,8 +36,68 @@ export class ApprovedRequestsComponent implements OnInit {
   error: string | null = null;
   totalCount = 0;
 
+  // Material Data Table
+  tableColumns: TableColumn[] = [];
+  tableActions: TableAction[] = [];
+  
+  @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
+  @ViewChild('phoneTemplate') phoneTemplate!: TemplateRef<any>;
+  @ViewChild('departmentTemplate') departmentTemplate!: TemplateRef<any>;
+  @ViewChild('dateTemplate') dateTemplate!: TemplateRef<any>;
+  @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
+
   ngOnInit(): void {
     this.fetchApprovedRequests();
+  }
+
+  ngAfterViewInit(): void {
+    this.initializeTableColumns();
+    this.initializeTableActions();
+  }
+
+  private initializeTableColumns(): void {
+    this.tableColumns = [
+      {
+        key: 'fullName',
+        label: 'Name',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.nameTemplate
+      },
+      {
+        key: 'phoneNumber',
+        label: 'Phone',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.phoneTemplate
+      },
+      {
+        key: 'department',
+        label: 'Department',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.departmentTemplate
+      },
+      {
+        key: 'approvedDate',
+        label: 'ApprovedDate',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.dateTemplate
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.statusTemplate
+      }
+    ];
+  }
+
+  private initializeTableActions(): void {
+    // No actions for approved requests (read-only)
+    this.tableActions = [];
   }
 
   fetchApprovedRequests(): void {

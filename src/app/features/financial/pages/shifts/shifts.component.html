@@ -404,71 +404,57 @@
         </div>
       </div>
 
-      <div *ngIf="shifts.length === 0" class="empty-state text-center py-5">
-        <div class="empty-icon mb-3">
-          <fa-icon [icon]="faClock"></fa-icon>
+      <!-- Templates for Material Data Table -->
+      <ng-template #shiftNameTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center flex-column">
+          <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+            <fa-icon [icon]="faClock" class="shift-icon"></fa-icon>
+            <div class="shift-name">{{ row.name }}</div>
+          </div>
+          <div class="shift-time text-muted">{{ formatTime(row.startTime) }} - {{ formatTime(row.endTime) }}</div>
         </div>
-        <p class="mt-2 mb-0">{{ 'NoShifts' | translate }}</p>
-      </div>
+      </ng-template>
 
-      <div *ngIf="shifts.length > 0" class="table-wrapper">
-        <table class="table shifts-table align-middle mb-0 w-100">
-          <thead>
-            <tr>
-              <th class="w-30">{{ 'ShiftName' | translate }}</th>
-              <th class="w-12">{{ 'Start' | translate }}</th>
-              <th class="w-12">{{ 'End' | translate }}</th>
-              <th class="w-12">{{ 'Overnight' | translate }}</th>
-              <th class="w-12">{{ 'Break' | translate }}</th>
-              <th class="w-12 text-end">{{ 'Employees' | translate }}</th>
-              <th class="w-10 text-end">{{ 'Actions' | translate }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let s of shifts" class="row-hover">
-              <td>
-                <div class="d-flex align-items-center">
-                  <div class="avatar bg-purple text-white me-3">
-                    <fa-icon [icon]="faClock"></fa-icon>
-                  </div>
-                  <div>
-                    <div class="shift-name">{{ s.name }}</div>
-                    <div class="shift-time text-muted">{{ formatTime(s.startTime) }} - {{ formatTime(s.endTime) }}</div>
-                  </div>
-                </div>
-              </td>
-              <td>{{ formatTime(s.startTime) }}</td>
-              <td>{{ formatTime(s.endTime) }}</td>
-              <td>
-                <span class="badge-soft" [class.badge-info]="s.isOvernight" [class.badge-muted]="!s.isOvernight">
-                  {{ s.isOvernight ? ('Yes' | translate) : ('No' | translate) }}
-                </span>
-              </td>
-              <td>
-                <span class="badge-soft" [class.badge-info]="s.isThereBreak" [class.badge-muted]="!s.isThereBreak">
-                  {{ s.isThereBreak ? (s.isBreakFixed ? ('Fixed' | translate) : ('Flexible' | translate)) : ('No' | translate) }}
-                </span>
-                <div *ngIf="s.isThereBreak && s.breakStartTime && s.breakEndTime" class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">
-                  {{ formatTime(s.breakStartTime) }} - {{ formatTime(s.breakEndTime) }}
-                </div>
-              </td>
-              <td class="text-end">
-                <span class="count-chip">{{ s.employeeCount || 0 }}</span>
-              </td>
-              <td class="text-end">
-                <div class="d-flex align-items-center justify-content-end gap-2">
-                  <button type="button" class="btn btn-sm btn-ghost" (click)="showEditForm(s)" [title]="'Edit' | translate">
-                    <fa-icon [icon]="faEdit"></fa-icon>
-                  </button>
-                  <button type="button" class="btn btn-sm btn-ghost" (click)="deleteShift(s)" [title]="'Delete' | translate">
-                    <fa-icon [icon]="faTrash"></fa-icon>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <ng-template #startTimeTemplate let-row>
+        {{ formatTime(row.startTime) }}
+      </ng-template>
+
+      <ng-template #endTimeTemplate let-row>
+        {{ formatTime(row.endTime) }}
+      </ng-template>
+
+      <ng-template #overnightTemplate let-row>
+        <span class="badge-soft" [class.badge-info]="row.isOvernight" [class.badge-muted]="!row.isOvernight">
+          {{ row.isOvernight ? ('Yes' | translate) : ('No' | translate) }}
+        </span>
+      </ng-template>
+
+      <ng-template #breakTemplate let-row>
+        <div class="d-flex flex-column align-items-center">
+          <span class="badge-soft" [class.badge-info]="row.isThereBreak" [class.badge-muted]="!row.isThereBreak">
+            {{ row.isThereBreak ? (row.isBreakFixed ? ('Fixed' | translate) : ('Flexible' | translate)) : ('No' | translate) }}
+          </span>
+          <div *ngIf="row.isThereBreak && row.breakStartTime && row.breakEndTime" class="text-muted break-time-range">
+            {{ formatTime(row.breakStartTime) }} - {{ formatTime(row.breakEndTime) }}
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #employeesTemplate let-row>
+        <span class="count-chip">{{ row.employeeCount || 0 }}</span>
+      </ng-template>
+
+      <!-- Material Data Table -->
+      <app-material-data-table
+        [data]="shifts"
+        [columns]="tableColumns"
+        [actions]="tableActions"
+        [isLoading]="isLoading"
+        [error]="error"
+        [emptyMessage]="'NoShifts'"
+        [showActions]="true"
+        (retry)="loadShifts()">
+      </app-material-data-table>
     </div>
   </div>
   </div>

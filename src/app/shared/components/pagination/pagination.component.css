@@ -1,11 +1,11 @@
 .pagination-container {
   display: flex;
-  justify-content: center; /* Center the pagination */
+  justify-content: center;
   align-items: center;
   margin-top: 2rem;
-  width: 100%; /* Take full width */
-  overflow-x: auto; /* Allow horizontal scrolling for pagination */
-  padding: 0 10px; /* Add horizontal padding */
+  width: 100%;
+  overflow-x: auto;
+  padding: 0 10px;
   scrollbar-width: none; /* For Firefox */
 }
 
@@ -14,49 +14,66 @@
 }
 
 .pagination {
-  display: flex; /* Make the ul a flex container */
-  list-style: none; /* Remove bullet points */
-  padding: 0; /* Remove default padding */
-  margin: 0; /* Remove default margin */
-  flex-wrap: nowrap; /* Prevent pagination items from wrapping */
-  gap: 0.5rem; /* Better spacing between items */
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
   align-items: center;
   justify-content: center;
-  width: 100%; /* Take full available width */
+  width: 100%;
 }
 
 .pagination .page-item {
-  flex-shrink: 0; /* Prevent page items from shrinking */
+  flex-shrink: 0;
 }
 
 .pagination .page-item .page-link {
-  display: inline-block;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  color: #1f2937;
   border-radius: 8px;
   transition: all 0.3s ease;
   padding: 0.5rem 1rem !important;
-  min-width: 44px !important; /* Improved touch target */
+  min-width: 44px !important;
   text-align: center;
   font-weight: 500;
   text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .pagination .page-item .page-link:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  background-color: #f9fafb;
+  border-color: #f97316;
+  color: #f97316;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
 }
 
 .pagination .page-item.active .page-link {
-  background-color: #667eea;
-  border-color: #667eea;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  border-color: #f97316;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.pagination .page-item.active .page-link:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
 }
 
 .pagination .page-item.disabled .page-link {
-  color: rgba(255, 255, 255, 0.5);
+  background-color: #f3f4f6;
+  border-color: rgba(209, 213, 219, 0.5);
+  color: #9ca3af;
   pointer-events: none;
   cursor: not-allowed !important;
+  opacity: 0.6;
 }
 
 .pagination .page-item:not(.disabled) .page-link {
@@ -67,26 +84,26 @@
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .pagination-container {
-    overflow-x: auto; /* Allow horizontal scrolling for pagination */
-    overflow-y: hidden; /* Explicitly hide vertical overflow */
-    justify-content: flex-start; /* Align to start for scrolling */
-    padding: 0 5px; /* Reduced padding on mobile */
+    overflow-x: auto;
+    overflow-y: hidden;
+    justify-content: flex-start;
+    padding: 0 5px;
   }
 
   .pagination {
-    flex-wrap: nowrap; /* Prevent pagination items from wrapping */
-    width: max-content; /* Force pagination to take full content width */
-    gap: 0.25rem; /* Reduced gap on mobile */
-    justify-content: flex-start; /* Override center alignment on mobile */
+    flex-wrap: nowrap;
+    width: max-content;
+    gap: 0.25rem;
+    justify-content: flex-start;
   }
 
   .pagination .page-item .page-link {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px; /* Better touch target */
-    padding: 0.5rem 0.75rem; /* Adjusted padding */
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
-    min-width: 40px !important; /* Slightly smaller on mobile */
+    min-width: 40px !important;
   }
 }

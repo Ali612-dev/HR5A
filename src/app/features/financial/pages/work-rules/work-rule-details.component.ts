@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {
   faArrowLeft,
   faClock,
@@ -18,13 +18,26 @@ import {
   faTimesCircle,
   faCalendarAlt,
   faEye,
-  faUserMinus
+  faUserMinus,
+  faPlus,
+  faSpinner,
+  faExclamationTriangle,
+  faInfoCircle,
+  faBan,
+  faMoneyBill,
+  faHourglass,
+  faMoon,
+  faSun
 } from '@fortawesome/free-solid-svg-icons';
 
 import { FinancialService } from '../../../../core/services/financial.service';
-import { WorkRuleDetailsDto, AssignedEmployeeDto } from '../../../../core/interfaces/financial.interface';
+import { WorkRuleDetailsDto, AssignedEmployeeDto, ShiftDto, CreateShiftDto } from '../../../../core/interfaces/financial.interface';
 import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
-import { catchError, of } from 'rxjs';
+import { AssignShiftDialogComponent } from './assign-shift-dialog.component';
+import { CreateShiftDialogComponent } from './create-shift-dialog.component';
+import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
+import { ConfirmationDialogComponent } from '../../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { catchError, forkJoin, map, of } from 'rxjs';
 
 @Component({
   selector: 'app-work-rule-details',
@@ -49,11 +62,11 @@ import { catchError, of } from 'rxjs';
                   {{ 'Back' | translate }}
                 </button>
                 <div class="header-title">
-                  <h2 class="text-white mb-1">
+                  <h2 class="mb-1">
                     <fa-icon [icon]="faEye" class="me-2"></fa-icon>
                     {{ 'WorkRuleDetails' | translate }}
                   </h2>
-                  <p class="text-white-50 mb-0" *ngIf="workRuleDetails">
+                  <p class="mb-0" *ngIf="workRuleDetails">
                     {{ workRuleDetails.category }} - {{ getWorkRuleTypeLabel(workRuleDetails.type) }}
                   </p>
                 </div>
@@ -99,6 +112,9 @@ import { catchError, of } from 'rxjs';
                       <span class="rule-status" [ngClass]="workRuleDetails.isPrivate ? 'private' : 'public'">
                         {{ workRuleDetails.isPrivate ? ('Private' | translate) : ('Public' | translate) }}
                       </span>
+                      <span class="rule-status shift-based" *ngIf="workRuleDetails.isShiftBased">
+                        {{ 'ShiftBasedRule' | translate }}
+                      </span>
                     </div>
                   </div>
                   <div class="rule-stats">
@@ -107,6 +123,15 @@ import { catchError, of } from 'rxjs';
                       <div class="stat-label">{{ 'TotalEmployees' | translate }}</div>
                     </div>
                   </div>
+                </div>
+
+                <div class="alert alert-warning validation-warnings" *ngIf="workRuleDetails.validationWarnings?.length">
+                  <strong>{{ 'ValidationWarnings' | translate }}:</strong>
+                  <ul class="mb-0 mt-2">
+                    <li *ngFor="let warning of getLocalizedWarnings(workRuleDetails.validationWarnings)">
+                      {{ warning }}
+                    </li>
+                  </ul>
                 </div>
 
                 <!-- Work Rule Details Grid -->
@@ -143,6 +168,118 @@ import { catchError, of } from 'rxjs';
                       <div class="info-item" *ngIf="workRuleDetails.expectedDaysPerWeek">
                         <span class="label">{{ 'DaysPerWeek' | translate }}:</span>
                         <span class="value">{{ workRuleDetails.expectedDaysPerWeek }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="workRuleDetails.paymentFrequency !== undefined && workRuleDetails.paymentFrequency !== null">
+                        <span class="label">{{ 'PaymentFrequency' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.paymentFrequency }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="workRuleDetails.employeeCount !== undefined && workRuleDetails.employeeCount !== null">
+                        <span class="label">{{ 'EmployeeCount' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.employeeCount }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Late & Early Departure Rules -->
+                  <div class="info-card">
+                    <h4 class="card-title">
+                      <fa-icon [icon]="faExclamationTriangle" class="me-2"></fa-icon>
+                      {{ 'LateEarlyDepartureRules' | translate }}
+                    </h4>
+                    <div class="info-list">
+                      <div class="info-item">
+                        <span class="label">{{ 'LateArrivalToleranceMinutes' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.lateArrivalToleranceMinutes != null ? workRuleDetails.lateArrivalToleranceMinutes : 0 }} {{ 'Minutes' | translate }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'EarlyDepartureToleranceMinutes' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.earlyDepartureToleranceMinutes != null ? workRuleDetails.earlyDepartureToleranceMinutes : 0 }} {{ 'Minutes' | translate }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'LateDeductionMinutesPerHour' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.lateDeductionMinutesPerHour != null ? workRuleDetails.lateDeductionMinutesPerHour : 0 }} {{ 'MinutesPerHour' | translate }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'EarlyDepartureDeductionMinutesPerHour' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.earlyDepartureDeductionMinutesPerHour != null ? workRuleDetails.earlyDepartureDeductionMinutesPerHour : 0 }} {{ 'MinutesPerHour' | translate }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Overtime Rules -->
+                  <div class="info-card">
+                    <h4 class="card-title">
+                      <fa-icon [icon]="faMoneyBill" class="me-2"></fa-icon>
+                      {{ 'OvertimeRules' | translate }}
+                    </h4>
+                    <div class="info-list">
+                      <div class="info-item">
+                        <span class="label">{{ 'OvertimeMultiplier' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.overtimeMultiplier != null ? workRuleDetails.overtimeMultiplier : 0 }}x</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'MinimumOvertimeMinutes' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.minimumOvertimeMinutes != null ? workRuleDetails.minimumOvertimeMinutes : 0 }} {{ 'Minutes' | translate }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Absence Rules -->
+                  <div class="info-card">
+                    <h4 class="card-title">
+                      <fa-icon [icon]="faBan" class="me-2"></fa-icon>
+                      {{ 'AbsenceRules' | translate }}
+                    </h4>
+                    <div class="info-list">
+                      <div class="info-item">
+                        <span class="label">{{ 'AbsenceDeductionMultiplier' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.absenceDeductionMultiplier != null ? workRuleDetails.absenceDeductionMultiplier : 0 }}x</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'AllowedAbsenceDaysPerMonth' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.allowedAbsenceDaysPerMonth != null ? workRuleDetails.allowedAbsenceDaysPerMonth : 0 }} {{ 'Days' | translate }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'AreOffDaysPaid' | translate }}:</span>
+                        <span class="value">
+                          <span class="badge" [ngClass]="workRuleDetails.areOffDaysPaid ? 'badge-success' : 'badge-danger'">
+                            {{ workRuleDetails.areOffDaysPaid ? ('Yes' | translate) : ('No' | translate) }}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Off-Day Rules -->
+                  <div class="info-card">
+                    <h4 class="card-title">
+                      <fa-icon [icon]="faCalendarAlt" class="me-2"></fa-icon>
+                      {{ 'OffDayRules' | translate }}
+                    </h4>
+                    <div class="info-list">
+                      <div class="info-item">
+                        <span class="label">{{ 'AllowWorkDuringOffDays' | translate }}:</span>
+                        <span class="value">
+                          <span class="badge" [ngClass]="workRuleDetails.allowWorkOnOffDays ? 'badge-success' : 'badge-danger'">
+                            {{ workRuleDetails.allowWorkOnOffDays ? ('Yes' | translate) : ('No' | translate) }}
+                          </span>
+                        </span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'TreatOffDayWorkAsOvertime' | translate }}:</span>
+                        <span class="value">
+                          <span class="badge" [ngClass]="workRuleDetails.treatOffDayWorkAsOvertime ? 'badge-success' : 'badge-danger'">
+                            {{ workRuleDetails.treatOffDayWorkAsOvertime ? ('Yes' | translate) : ('No' | translate) }}
+                          </span>
+                        </span>
+                      </div>
+                      <div class="info-item" *ngIf="workRuleDetails.offDayOvertimeMultiplier !== null && workRuleDetails.offDayOvertimeMultiplier !== undefined">
+                        <span class="label">{{ 'WorkRuleOffDayOvertimeMultiplier' | translate }}:</span>
+                        <span class="value">{{ workRuleDetails.offDayOvertimeMultiplier }}x</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">{{ 'WorkRuleOffDayHourlyRate' | translate }}:</span>
+                        <span class="value">{{ formatCurrency(workRuleDetails.offDayHourlyRate != null ? workRuleDetails.offDayHourlyRate : 0) }}</span>
                       </div>
                     </div>
                   </div>
@@ -189,6 +326,127 @@ import { catchError, of } from 'rxjs';
                   </div>
                 </div>
 
+                <div class="shifts-section" *ngIf="workRuleDetails">
+                  <div class="section-header shifts-header">
+                    <h4 class="section-title">{{ 'ShiftAssignments' | translate }}</h4>
+                    <button class="btn btn-outline-light btn-sm" type="button" (click)="openCreateShiftDialog()">
+                      <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+                      {{ 'AddShiftForThisRule' | translate }}
+                    </button>
+                  </div>
+
+                  <ng-container *ngIf="workRuleDetails.shifts?.length; else emptyShifts">
+                    <div class="shifts-grid">
+                      <div class="shift-card" *ngFor="let shift of workRuleDetails.shifts">
+                        <div class="shift-card-header">
+                          <div>
+                            <h5 class="shift-name">{{ shift.name }}</h5>
+                            <div class="shift-time">
+                              <fa-icon [icon]="faClock" class="me-1"></fa-icon>
+                              {{ formatShiftRange(shift.startTime, shift.endTime) }}
+                              <span class="shift-overnight-badge" *ngIf="shift.isOvernight">
+                                <fa-icon [icon]="faMoon" class="me-1"></fa-icon>
+                                {{ 'Overnight' | translate }}
+                              </span>
+                            </div>
+                          </div>
+                          <div class="shift-actions">
+                            <span class="shift-count">
+                              {{ (shift.employeeCount ?? shift.employees?.length ?? 0) }} {{ 'Employees' | translate }}
+                            </span>
+                            <button class="btn btn-ghost btn-sm" type="button" (click)="openAssignShiftDialog(shift)">
+                              <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
+                              {{ 'Assign' | translate }}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <!-- Shift Details -->
+                        <div class="shift-details">
+                          <div class="shift-detail-item" *ngIf="shift.isOvernight !== undefined">
+                            <fa-icon [icon]="shift.isOvernight ? faMoon : faSun" class="me-1"></fa-icon>
+                            <span class="detail-label">{{ 'Overnight' | translate }}:</span>
+                            <span class="detail-value">
+                              <span class="badge" [ngClass]="shift.isOvernight ? 'badge-info' : 'badge-success'">
+                                {{ shift.isOvernight ? ('Yes' | translate) : ('No' | translate) }}
+                              </span>
+                            </span>
+                          </div>
+                          <div class="shift-detail-item" *ngIf="shift.isThereBreak !== undefined">
+                            <fa-icon [icon]="faInfoCircle" class="me-1"></fa-icon>
+                            <span class="detail-label">{{ 'HasBreak' | translate }}:</span>
+                            <span class="detail-value">
+                              <span class="badge" [ngClass]="shift.isThereBreak ? 'badge-success' : 'badge-danger'">
+                                {{ shift.isThereBreak ? ('Yes' | translate) : ('No' | translate) }}
+                              </span>
+                            </span>
+                          </div>
+                          <div class="shift-detail-item" *ngIf="shift.isBreakFixed !== undefined">
+                            <fa-icon [icon]="faInfoCircle" class="me-1"></fa-icon>
+                            <span class="detail-label">{{ 'IsBreakFixed' | translate }}:</span>
+                            <span class="detail-value">
+                              <span class="badge" [ngClass]="shift.isBreakFixed ? 'badge-success' : 'badge-danger'">
+                                {{ shift.isBreakFixed ? ('Yes' | translate) : ('No' | translate) }}
+                              </span>
+                            </span>
+                          </div>
+                          <div class="shift-detail-item" *ngIf="shift.breakStartTime && shift.breakEndTime">
+                            <fa-icon [icon]="faClock" class="me-1"></fa-icon>
+                            <span class="detail-label">{{ 'BreakTime' | translate }}:</span>
+                            <span class="detail-value">{{ formatShiftRange(shift.breakStartTime, shift.breakEndTime) }}</span>
+                          </div>
+                          <div class="shift-detail-item" *ngIf="shift.breakMinutes !== undefined && shift.breakMinutes !== null">
+                            <fa-icon [icon]="faHourglass" class="me-1"></fa-icon>
+                            <span class="detail-label">{{ 'BreakMinutes' | translate }}:</span>
+                            <span class="detail-value">{{ shift.breakMinutes }} {{ 'Minutes' | translate }}</span>
+                          </div>
+                          <div class="shift-detail-item" *ngIf="shift.breakMinutes === null && shift.isThereBreak">
+                            <fa-icon [icon]="faHourglass" class="me-1"></fa-icon>
+                            <span class="detail-label">{{ 'BreakMinutes' | translate }}:</span>
+                            <span class="detail-value">{{ 'NotSpecified' | translate }}</span>
+                          </div>
+                        </div>
+                        <div *ngIf="shift.employees?.length; else noShiftEmployees" class="shift-employees">
+                          <div class="shift-employee" *ngFor="let shiftEmployee of shift.employees">
+                            <div class="employee-info">
+                              <div class="employee-name">{{ shiftEmployee.name }}</div>
+                              <div class="employee-meta">
+                                <span>{{ shiftEmployee.phone }}</span>
+                                <span>{{ shiftEmployee.joinedDate ? formatDate(shiftEmployee.joinedDate) : '' }}</span>
+                              </div>
+                            </div>
+                            <button 
+                              class="btn btn-sm btn-unassign" 
+                              type="button" 
+                              [disabled]="isUnassigningFromShift(shift.id, shiftEmployee.employeeId)"
+                              (click)="unassignEmployeeFromShift(shift, shiftEmployee)">
+                              <fa-icon 
+                                [icon]="isUnassigningFromShift(shift.id, shiftEmployee.employeeId) ? faSpinner : faUserMinus" 
+                                [class.fa-spin]="isUnassigningFromShift(shift.id, shiftEmployee.employeeId)"
+                                class="me-1"></fa-icon>
+                              {{ isUnassigningFromShift(shift.id, shiftEmployee.employeeId) ? ('Unassigning' | translate) : ('Unassign' | translate) }}
+                            </button>
+                          </div>
+                        </div>
+                        <ng-template #noShiftEmployees>
+                          <div class="empty-state text-center py-3">
+                            <p class="empty-text mb-0">{{ 'NoShiftEmployees' | translate }}</p>
+                          </div>
+                        </ng-template>
+                      </div>
+                    </div>
+                  </ng-container>
+
+                  <ng-template #emptyShifts>
+                    <div class="empty-state text-center py-4">
+                      <p class="empty-text mb-2">{{ 'NoShifts' | translate }}</p>
+                      <small class="text-muted">
+                        {{ 'AddShiftForThisRuleHint' | translate }}
+                      </small>
+                    </div>
+                  </ng-template>
+                </div>
+
                 <!-- Description -->
                 <div class="description-section" *ngIf="workRuleDetails.description">
                   <h4 class="section-title">{{ 'Description' | translate }}</h4>
@@ -216,6 +474,7 @@ import { catchError, of } from 'rxjs';
                         <div class="col-name">{{ 'Name' | translate }}</div>
                         <div class="col-phone">{{ 'Phone' | translate }}</div>
                         <div class="col-department">{{ 'Department' | translate }}</div>
+                        <div class="col-shift">{{ 'Shifts' | translate }}</div>
                         <div class="col-salary">{{ 'Salary' | translate }}</div>
                         <div class="col-status">{{ 'Status' | translate }}</div>
                         <div class="col-actions">{{ 'Actions' | translate }}</div>
@@ -239,6 +498,10 @@ import { catchError, of } from 'rxjs';
                             <fa-icon [icon]="faBuilding" class="me-1"></fa-icon>
                             {{ employee.department || 'N/A' }}
                           </div>
+                        <div class="col-shift">
+                          <fa-icon [icon]="faClock" class="me-1"></fa-icon>
+                          {{ employee.shift?.name || ('NotAvailable' | translate) }}
+                        </div>
                           <div class="col-salary">
                             <fa-icon [icon]="faDollarSign" class="me-1"></fa-icon>
                             {{ employee.salaryAmount ? formatCurrency(employee.salaryAmount) : 'N/A' }}
@@ -273,8 +536,9 @@ import { catchError, of } from 'rxjs';
   styles: [`
     .work-rule-details-container {
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      background: #f3f4f6 !important;
       padding: 32px;
+      color: #1f2937 !important;
     }
 
     /* Header Styles */
@@ -282,64 +546,89 @@ import { catchError, of } from 'rxjs';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 15px;
       padding: 2rem 2.5rem;
       margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      position: relative;
     }
 
     .header-left {
+      flex: 1;
       display: flex;
       align-items: center;
       gap: 1.5rem;
+    }
+
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 2rem;
     }
 
     .header-title h2 {
       font-size: 2rem;
       font-weight: 700;
       margin: 0 0 0.5rem 0;
-      color: #fff !important;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      color: #1f2937 !important;
+    }
+
+    .header-title h2 fa-icon {
+      color: #f97316 !important;
     }
 
     .header-title p {
       font-size: 1rem;
       opacity: 0.9;
       margin: 0;
-      color: rgba(255, 255, 255, 0.8) !important;
+      color: #6b7280 !important;
     }
 
     .work-rule-type-text {
       font-size: 0.9rem;
       padding: 0.75rem 1.25rem;
-      background: linear-gradient(135deg, #667eea, #764ba2) !important;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, #f97316, #ea580c) !important;
+      border: 1px solid rgba(249, 115, 22, 0.3);
       border-radius: 12px;
       font-weight: 600;
       color: white !important;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
       transition: all 0.3s ease;
       display: inline-block;
     }
 
     .work-rule-type-text:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
     }
 
     /* Main Card */
     .main-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 20px;
       padding: 2rem;
-      color: #fff;
-      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.4);
+      color: #1f2937;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     /* Work Rule Header */
@@ -348,7 +637,7 @@ import { catchError, of } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       padding-bottom: 2rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
       margin-bottom: 2rem;
     }
 
@@ -356,7 +645,7 @@ import { catchError, of } from 'rxjs';
       font-size: 2rem;
       font-weight: 700;
       margin: 0 0 0.5rem 0;
-      color: #fff;
+      color: #1f2937;
     }
 
     .rule-meta {
@@ -398,6 +687,11 @@ import { catchError, of } from 'rxjs';
       color: white;
     }
 
+    .rule-status.shift-based {
+      background: linear-gradient(135deg, #ffd166, #ef476f);
+      color: white;
+    }
+
     .rule-stats .stat-item {
       text-align: center;
     }
@@ -405,32 +699,53 @@ import { catchError, of } from 'rxjs';
     .rule-stats .stat-number {
       font-size: 2.5rem;
       font-weight: 700;
-      color: #C084FC;
+      color: #f97316;
       margin-bottom: 0.25rem;
     }
 
     .rule-stats .stat-label {
-      color: rgba(255, 255, 255, 0.8);
+      color: #6b7280;
       font-size: 0.9rem;
     }
 
     /* Details Grid */
     .details-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 2rem;
       margin-bottom: 2rem;
     }
 
+    @media (max-width: 1400px) {
+      .details-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .details-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .info-card, .stats-card, .off-days-card {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: #f9fafb;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 15px;
       padding: 1.5rem;
+      min-width: 0; /* Prevent grid item from overflowing */
+      display: flex;
+      flex-direction: column;
     }
 
     .card-title {
-      color: #C084FC;
+      color: #1f2937;
       font-weight: 600;
       font-size: 1.1rem;
       margin-bottom: 1rem;
@@ -438,11 +753,16 @@ import { catchError, of } from 'rxjs';
       align-items: center;
     }
 
+    .card-title fa-icon {
+      color: #f97316 !important;
+    }
+
     /* Info List */
     .info-list {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+      flex: 1;
     }
 
     .info-item {
@@ -450,7 +770,9 @@ import { catchError, of } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
+      gap: 1rem;
+      min-width: 0; /* Allow flex items to shrink */
     }
 
     .info-item:last-child {
@@ -458,15 +780,21 @@ import { catchError, of } from 'rxjs';
     }
 
     .info-item .label {
-      color: rgba(255, 255, 255, 0.8);
+      color: #6b7280;
       font-weight: 500;
       font-size: 0.9rem;
+      flex-shrink: 0;
+      min-width: fit-content;
     }
 
     .info-item .value {
-      color: #fff;
+      color: #1f2937;
       font-weight: 600;
       font-size: 1rem;
+      text-align: right;
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
     }
 
     .type-badge {
@@ -532,12 +860,12 @@ import { catchError, of } from 'rxjs';
     .stat-info .stat-number {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #fff;
+      color: #1f2937;
       margin-bottom: 0.25rem;
     }
 
     .stat-info .stat-label {
-      color: rgba(255, 255, 255, 0.8);
+      color: #6b7280;
       font-size: 0.85rem;
     }
 
@@ -549,12 +877,13 @@ import { catchError, of } from 'rxjs';
     }
 
     .off-day-item {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
+      background: rgba(249, 115, 22, 0.1);
+      color: #f97316;
       padding: 0.5rem 1rem;
       border-radius: 15px;
       font-size: 0.85rem;
       font-weight: 500;
+      border: 1px solid rgba(249, 115, 22, 0.3);
     }
 
     /* Description Section */
@@ -562,21 +891,35 @@ import { catchError, of } from 'rxjs';
       margin-bottom: 2rem;
     }
 
+    .validation-warnings {
+      background: rgba(255, 193, 7, 0.15);
+      border: 1px solid rgba(255, 193, 7, 0.4);
+      border-radius: 15px;
+      color: #1f2937 !important;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+
     .section-title {
-      color: #C084FC;
+      color: #1f2937 !important;
       font-weight: 600;
       font-size: 1.2rem;
       margin-bottom: 1rem;
     }
 
+    .section-title fa-icon {
+      color: #f97316 !important;
+    }
+
     .description-text {
-      color: #fff;
+      color: #1f2937 !important;
       font-size: 1rem;
       line-height: 1.6;
-      background: rgba(255, 255, 255, 0.08);
+      background: #f9fafb;
       padding: 1.5rem;
       border-radius: 10px;
-      border-left: 4px solid #C084FC;
+      border-left: 4px solid #f97316;
+      border: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     /* Employees Section */
@@ -592,9 +935,11 @@ import { catchError, of } from 'rxjs';
     }
 
     .employee-count {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
+      background: rgba(249, 115, 22, 0.1);
+      color: #f97316 !important;
       padding: 0.5rem 1rem;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      border-radius: 12px;
       border-radius: 15px;
       font-size: 0.9rem;
       font-weight: 500;
@@ -602,19 +947,23 @@ import { catchError, of } from 'rxjs';
 
     /* Employees Table */
     .employees-table {
-      background: rgba(255, 255, 255, 0.08);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 15px;
       overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .table-header {
       display: grid;
-      grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr 1.2fr;
+      grid-template-columns: 2fr 1.3fr 1.3fr 1.2fr 1.2fr 1fr 1.1fr;
       gap: 1rem;
       padding: 1rem 1.5rem;
-      background: rgba(255, 255, 255, 0.1);
+      background: #f9fafb;
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      border-radius: 12px;
       font-weight: 600;
-      color: #C084FC;
+      color: #1f2937 !important;
       font-size: 0.9rem;
     }
 
@@ -625,11 +974,13 @@ import { catchError, of } from 'rxjs';
 
     .employee-row {
       display: grid;
-      grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr 1.2fr;
+      grid-template-columns: 2fr 1.3fr 1.3fr 1.2fr 1.2fr 1fr 1.1fr;
       gap: 1rem;
       padding: 1rem 1.5rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
       align-items: center;
+      background: #ffffff;
+      color: #1f2937 !important;
     }
 
     .employee-row:last-child {
@@ -637,7 +988,7 @@ import { catchError, of } from 'rxjs';
     }
 
     .employee-row:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: #f9fafb !important;
     }
 
     .employee-info {
@@ -646,11 +997,169 @@ import { catchError, of } from 'rxjs';
       gap: 1rem;
     }
 
+    .shifts-section {
+      margin-bottom: 2rem;
+    }
+
+    .shifts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .shifts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .shift-card {
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      border-radius: 15px;
+      padding: 1.5rem;
+      color: #1f2937;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .shift-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .shift-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .shift-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .shift-count {
+      background: rgba(249, 115, 22, 0.1);
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: #f97316;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    .btn-ghost.btn-sm {
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.15)) !important;
+      border: 1px solid rgba(249, 115, 22, 0.3) !important;
+      color: #f97316 !important;
+    }
+
+    .btn-outline-light {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.15)) !important;
+      border: 1px solid rgba(249, 115, 22, 0.3) !important;
+      color: #f97316 !important;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-light:hover {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(234, 88, 12, 0.25)) !important;
+      border-color: rgba(249, 115, 22, 0.5) !important;
+      color: #ea580c !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    }
+
+    .btn-outline-light fa-icon {
+      color: inherit !important;
+    }
+
+    .shift-time {
+      font-size: 0.95rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+    }
+
+    .shift-employees {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .shift-employee {
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      border-radius: 10px;
+      padding: 0.75rem;
+      background: #f9fafb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .shift-employee .employee-info {
+      flex: 1;
+    }
+
+    .shift-employee .employee-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: #1f2937;
+    }
+
+    .shift-employee .employee-meta {
+      font-size: 0.85rem;
+      color: #6b7280 !important;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .btn-unassign {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fecaca;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-unassign:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: rgba(239, 68, 68, 0.6);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-unassign:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-unassign .fa-spin {
+      animation: fa-spin 1s infinite linear;
+    }
+
+    @keyframes fa-spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
     .employee-avatar {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #f97316, #ea580c);
       color: white;
       display: flex;
       align-items: center;
@@ -664,22 +1173,29 @@ import { catchError, of } from 'rxjs';
     }
 
     .employee-name {
-      color: #fff;
+      color: #1f2937 !important;
       font-weight: 600;
       font-size: 1rem;
       margin-bottom: 0.25rem;
     }
 
     .employee-id {
-      color: rgba(255, 255, 255, 0.7);
+      color: #6b7280 !important;
       font-size: 0.8rem;
     }
 
-    .col-phone, .col-department, .col-salary, .col-actions {
-      color: #fff;
+    .col-phone, .col-department, .col-shift, .col-salary, .col-actions {
+      color: #1f2937 !important;
       font-size: 0.9rem;
       display: flex;
       align-items: center;
+    }
+
+    .col-phone fa-icon,
+    .col-department fa-icon,
+    .col-shift fa-icon,
+    .col-salary fa-icon {
+      color: #f97316 !important;
     }
 
     .col-actions {
@@ -740,22 +1256,102 @@ import { catchError, of } from 'rxjs';
 
     .empty-icon {
       font-size: 3rem;
-      color: rgba(255, 255, 255, 0.5);
+      color: #f97316 !important;
       margin-bottom: 1rem;
     }
 
     .empty-text {
-      color: rgba(255, 255, 255, 0.7);
+      color: #6b7280;
       font-size: 1rem;
+    }
+
+    /* Badge Styles */
+    .badge-success {
+      background: linear-gradient(135deg, #2ed573, #1e90ff);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge-danger {
+      background: linear-gradient(135deg, #ffa502, #ff6348);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge-info {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    /* Shift Details */
+    .shift-details {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(209, 213, 219, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .shift-detail-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #1f2937;
+    }
+
+    .shift-detail-item fa-icon {
+      color: #f97316 !important;
+    }
+
+    .detail-label {
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .detail-value {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .shift-overnight-badge {
+      background: rgba(139, 92, 246, 0.1);
+      color: #8b5cf6;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      margin-left: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .shift-overnight-badge fa-icon {
+      color: #8b5cf6 !important;
     }
 
     /* Button Styles */
     .btn-ghost {
-      background: rgba(255, 255, 255, 0.15) !important;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.15)) !important;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.25) !important;
-      color: white !important;
+      border: 1px solid rgba(249, 115, 22, 0.3) !important;
+      color: #f97316 !important;
       transition: all 0.3s ease;
       padding: 1rem 1.75rem;
       border-radius: 12px;
@@ -785,9 +1381,10 @@ import { catchError, of } from 'rxjs';
     }
 
     .btn-ghost:hover {
-      background: rgba(255, 255, 255, 0.25) !important;
-      border-color: rgba(255, 255, 255, 0.4) !important;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(234, 88, 12, 0.25)) !important;
+      border-color: rgba(249, 115, 22, 0.5) !important;
       transform: translateY(-3px);
+      color: #ea580c !important;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
     }
 
@@ -873,11 +1470,22 @@ export class WorkRuleDetailsComponent implements OnInit {
   faCalendarAlt = faCalendarAlt;
   faEye = faEye;
   faUserMinus = faUserMinus;
+  faPlus = faPlus;
+  faSpinner = faSpinner;
+  faExclamationTriangle = faExclamationTriangle;
+  faInfoCircle = faInfoCircle;
+  faBan = faBan;
+  faMoneyBill = faMoneyBill;
+  faHourglass = faHourglass;
+  faMoon = faMoon;
+  faSun = faSun;
 
   // Data properties
   workRuleDetails: WorkRuleDetailsDto | null = null;
   isLoading = true;
   error: string | null = null;
+  private loadingDialogRef: MatDialogRef<NotificationDialogComponent> | null = null;
+  private unassigningFromShift = new Map<string, boolean>(); // Track unassigning state: key = "shiftId-employeeId"
 
   // Get work rule ID from route
   get workRuleId(): number {
@@ -902,6 +1510,13 @@ export class WorkRuleDetailsComponent implements OnInit {
     ).subscribe(response => {
       if (response.isSuccess && response.data) {
         this.workRuleDetails = response.data;
+        // Debug: Log the data to see what fields are available
+        console.log('Work Rule Details loaded:', this.workRuleDetails);
+        console.log('lateArrivalToleranceMinutes:', this.workRuleDetails.lateArrivalToleranceMinutes, 'Type:', typeof this.workRuleDetails.lateArrivalToleranceMinutes);
+        console.log('lateDeductionMinutesPerHour:', this.workRuleDetails.lateDeductionMinutesPerHour, 'Type:', typeof this.workRuleDetails.lateDeductionMinutesPerHour);
+        console.log('overtimeMultiplier:', this.workRuleDetails.overtimeMultiplier, 'Type:', typeof this.workRuleDetails.overtimeMultiplier);
+        console.log('absenceDeductionMultiplier:', this.workRuleDetails.absenceDeductionMultiplier, 'Type:', typeof this.workRuleDetails.absenceDeductionMultiplier);
+        console.log('Full response.data:', JSON.stringify(response.data, null, 2));
       } else if (!this.error) {
         this.error = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_WORK_RULE_DETAILS');
       }
@@ -914,16 +1529,19 @@ export class WorkRuleDetailsComponent implements OnInit {
     const typeValue = typeof type === 'number' ? type.toString() : type;
     
     const typeMap: { [key: string]: string } = {
-      '1': 'Regular',
-      '2': 'Flexible', 
-      '3': 'Shift',
+      '1': 'Daily',
+      '2': 'Weekly', 
+      '3': 'Monthly',
       '4': 'Hourly',
       '5': 'Custom',
-      'Regular': 'Regular',
-      'Flexible': 'Flexible',
-      'Shift': 'Shift',
+      '6': 'Shifts',
+      'Daily': 'Daily',
+      'Weekly': 'Weekly',
+      'Monthly': 'Monthly',
       'Hourly': 'Hourly',
-      'Custom': 'Custom'
+      'Custom': 'Custom',
+      'Shifts': 'Shifts',
+      'Shift': 'Shifts'
     };
     
     const mappedType = typeMap[typeValue] || 'Custom'; // Default to Custom for unknown types
@@ -938,12 +1556,19 @@ export class WorkRuleDetailsComponent implements OnInit {
     const typeValue = typeof type === 'number' ? type.toString() : type;
     
     const typeMap: { [key: string]: string } = {
-      '1': 'عادي',
-      '2': 'مرن', 
-      '3': 'نوبات',
-      'Regular': 'عادي',
-      'Flexible': 'مرن',
-      'Shift': 'نوبات'
+      '1': 'يومي',
+      '2': 'أسبوعي', 
+      '3': 'شهري',
+      '4': 'بالساعة',
+      '5': 'مخصص',
+      '6': 'شيفتات',
+      'Daily': 'يومي',
+      'Weekly': 'أسبوعي',
+      'Monthly': 'شهري',
+      'Hourly': 'بالساعة',
+      'Custom': 'مخصص',
+      'Shifts': 'شيفتات',
+      'Shift': 'شيفتات'
     };
     
     return typeMap[typeValue] || typeValue;
@@ -956,9 +1581,16 @@ export class WorkRuleDetailsComponent implements OnInit {
     const typeMap: { [key: string]: string } = {
       '1': 'regular',
       '2': 'flexible', 
-      '3': 'shift',
-      'Regular': 'regular',
-      'Flexible': 'flexible',
+      '3': 'monthly',
+      '4': 'hourly',
+      '5': 'custom',
+      '6': 'shift',
+      'Daily': 'regular',
+      'Weekly': 'flexible',
+      'Monthly': 'monthly',
+      'Hourly': 'hourly',
+      'Custom': 'custom',
+      'Shifts': 'shift',
       'Shift': 'shift'
     };
     
@@ -983,6 +1615,304 @@ export class WorkRuleDetailsComponent implements OnInit {
     return `${hours}:${minutes}`;
   }
 
+  formatShiftRange(startTime?: string, endTime?: string): string {
+    const start = this.formatTime(startTime) || '--:--';
+    const end = this.formatTime(endTime) || '--:--';
+    return `${start} - ${end}`;
+  }
+
+  openAssignShiftDialog(shift: ShiftDto): void {
+    if (!this.workRuleDetails) {
+      return;
+    }
+
+    const eligibleEmployees = this.getEligibleEmployeesForShift(shift);
+    if (!eligibleEmployees.length) {
+      this.dialog.open(NotificationDialogComponent, {
+        panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+        width: '500px',
+        maxWidth: '90vw',
+        data: {
+          title: this.translate.instant('ERROR.TITLE'),
+          message: this.translate.instant('NoEligibleEmployeesForShift'),
+          isSuccess: false
+        }
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AssignShiftDialogComponent, {
+      panelClass: 'glass-dialog-panel',
+      data: {
+        shiftId: shift.id,
+        shiftName: shift.name,
+        availableEmployees: eligibleEmployees
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((selectedIds: number[] | null) => {
+      if (selectedIds?.length) {
+        this.assignEmployeesToShift(shift.id, selectedIds);
+      }
+    });
+  }
+
+  openCreateShiftDialog(): void {
+    if (!this.workRuleDetails) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CreateShiftDialogComponent, {
+      panelClass: 'glass-dialog-panel',
+      width: '90vw',
+      maxWidth: '1200px',
+      maxHeight: '90vh',
+      data: {
+        workRuleName: this.workRuleDetails.category,
+        workRuleOptions: [{ id: this.workRuleDetails.id, category: this.workRuleDetails.category }]
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((payload: CreateShiftDto | null) => {
+      if (!payload) {
+        return;
+      }
+
+      // Show loading dialog
+      this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
+        panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+        data: {
+          title: this.translate.instant('LOADING.TITLE'),
+          message: this.translate.instant('LOADING.CREATE_SHIFT'),
+          isSuccess: true // Use true for loading state
+        },
+        disableClose: true // Prevent closing by clicking outside
+      });
+
+      this.financialService.createShift(payload).subscribe({
+        next: response => {
+          // Close loading dialog
+          if (this.loadingDialogRef) {
+            this.loadingDialogRef.close();
+            this.loadingDialogRef = null;
+          }
+
+          if (response.isSuccess) {
+            this.dialog.open(NotificationDialogComponent, {
+              panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+              width: '500px',
+              maxWidth: '90vw',
+              data: {
+                title: this.translate.instant('SUCCESS.TITLE'),
+                message: this.translate.instant('SUCCESS.SHIFT_CREATED'),
+                isSuccess: true
+              }
+            });
+            this.loadWorkRuleDetails();
+          } else {
+            const errorMessage = this.localizeErrorMessage(response.message || 'ERROR.SHIFT_CREATED');
+            this.dialog.open(NotificationDialogComponent, {
+              panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+              width: '500px',
+              maxWidth: '90vw',
+              data: {
+                title: this.translate.instant('ERROR.TITLE'),
+                message: errorMessage,
+                isSuccess: false
+              }
+            });
+          }
+        },
+        error: error => {
+          console.error('Error creating shift:', error);
+          
+          // Close loading dialog
+          if (this.loadingDialogRef) {
+            this.loadingDialogRef.close();
+            this.loadingDialogRef = null;
+          }
+
+          const errorMessage = this.localizeErrorMessage(error?.error?.message || error?.message || 'ERROR.SHIFT_CREATED');
+          this.dialog.open(NotificationDialogComponent, {
+            panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+            width: '500px',
+            maxWidth: '90vw',
+            data: {
+              title: this.translate.instant('ERROR.TITLE'),
+              message: errorMessage,
+              isSuccess: false
+            }
+          });
+        }
+      });
+    });
+  }
+
+  isUnassigningFromShift(shiftId: number, employeeId: number): boolean {
+    const key = `${shiftId}-${employeeId}`;
+    return this.unassigningFromShift.get(key) || false;
+  }
+
+  unassignEmployeeFromShift(shift: ShiftDto, employee: any): void {
+    const confirmMessage = this.translate.instant('UnassignEmployeeFromShiftConfirm', { 
+      employeeName: employee.name, 
+      shiftName: shift.name 
+    });
+    
+    const confirmDialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+      backdropClass: 'transparent-backdrop',
+      data: {
+        title: this.translate.instant('ConfirmDeletion'),
+        message: confirmMessage,
+        confirmButtonText: this.translate.instant('Unassign'),
+        cancelButtonText: this.translate.instant('Cancel')
+      }
+    });
+
+    confirmDialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        const key = `${shift.id}-${employee.employeeId}`;
+        this.unassigningFromShift.set(key, true);
+
+        // Show loading dialog
+        this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
+          panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+          data: {
+            title: this.translate.instant('LOADING.TITLE'),
+            message: this.translate.instant('LOADING.UNASSIGN_EMPLOYEE_FROM_SHIFT'),
+            isSuccess: true // Use true for loading state
+          },
+          disableClose: true // Prevent closing by clicking outside
+        });
+
+        this.financialService.unassignEmployeeFromShift(shift.id, employee.employeeId).subscribe({
+          next: (response) => {
+            this.unassigningFromShift.set(key, false);
+            
+            // Close loading dialog
+            if (this.loadingDialogRef) {
+              this.loadingDialogRef.close();
+              this.loadingDialogRef = null;
+            }
+
+            if (response.isSuccess) {
+              this.dialog.open(NotificationDialogComponent, {
+                panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+                width: '500px',
+                maxWidth: '90vw',
+                data: {
+                  title: this.translate.instant('SUCCESS.TITLE'),
+                  message: this.translate.instant('SUCCESS.UNASSIGN_EMPLOYEE_FROM_SHIFT'),
+                  isSuccess: true
+                }
+              });
+              // Reload work rule details to refresh the shift employees list
+              this.loadWorkRuleDetails();
+            } else {
+              const errorMessage = this.localizeErrorMessage(response.message || 'ERROR.UNASSIGN_EMPLOYEE_FROM_SHIFT_FAILED');
+              this.dialog.open(NotificationDialogComponent, {
+                panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+                width: '500px',
+                maxWidth: '90vw',
+                data: {
+                  title: this.translate.instant('ERROR.TITLE'),
+                  message: errorMessage,
+                  isSuccess: false
+                }
+              });
+            }
+          },
+          error: (error) => {
+            console.error('Error unassigning employee from shift:', error);
+            this.unassigningFromShift.set(key, false);
+            
+            // Close loading dialog
+            if (this.loadingDialogRef) {
+              this.loadingDialogRef.close();
+              this.loadingDialogRef = null;
+            }
+
+            const errorMessage = this.localizeErrorMessage(error?.error?.message || error?.message || 'ERROR.UNASSIGN_EMPLOYEE_FROM_SHIFT_FAILED');
+            this.dialog.open(NotificationDialogComponent, {
+              panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+              width: '500px',
+              maxWidth: '90vw',
+              data: {
+                title: this.translate.instant('ERROR.TITLE'),
+                message: errorMessage,
+                isSuccess: false
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  private getEligibleEmployeesForShift(shift: ShiftDto): AssignedEmployeeDto[] {
+    const assignedIds = new Set((shift.employees ?? []).map(employee => employee.employeeId));
+    return (this.workRuleDetails?.assignedEmployees ?? []).filter(employee => !assignedIds.has(employee.id));
+  }
+
+  private assignEmployeesToShift(shiftId: number, employeeIds: number[]): void {
+    // Show loading dialog
+    this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
+      panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+      data: {
+        title: this.translate.instant('LOADING.TITLE'),
+        message: this.translate.instant('LOADING.ASSIGN_SHIFT'),
+        isSuccess: true // Use true for loading state
+      },
+      disableClose: true // Prevent closing by clicking outside
+    });
+
+    const assignments = employeeIds.map(employeeId =>
+      this.financialService.assignEmployeeToShift(shiftId, employeeId).pipe(
+        map(response => ({ isSuccess: response.isSuccess, message: response.message })),
+        catchError(error => {
+          console.error('Error assigning employee to shift:', error);
+          return of({ isSuccess: false, message: error?.error?.message || error.message || '' });
+        })
+      )
+    );
+
+    forkJoin(assignments).subscribe(results => {
+      // Close loading dialog
+      if (this.loadingDialogRef) {
+        this.loadingDialogRef.close();
+        this.loadingDialogRef = null;
+      }
+
+      const failed = results.find(result => !result.isSuccess);
+      if (failed) {
+        const errorMessage = this.localizeErrorMessage(failed.message || 'ERROR.SHIFT_ASSIGNMENT_FAILED');
+        this.dialog.open(NotificationDialogComponent, {
+          panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+          width: '500px',
+          maxWidth: '90vw',
+          data: {
+            title: this.translate.instant('ERROR.TITLE'),
+            message: errorMessage,
+            isSuccess: false
+          }
+        });
+      } else {
+        this.dialog.open(NotificationDialogComponent, {
+          panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+          width: '500px',
+          maxWidth: '90vw',
+          data: {
+            title: this.translate.instant('SUCCESS.TITLE'),
+            message: this.translate.instant('SUCCESS.SHIFT_ASSIGNMENT'),
+            isSuccess: true
+          }
+        });
+      }
+      this.loadWorkRuleDetails();
+    });
+  }
+
   getSalaryTypeLabel(type: string | undefined): string {
     if (!type) return '';
     const typeMap: { [key: string]: string } = {
@@ -998,26 +1928,155 @@ export class WorkRuleDetailsComponent implements OnInit {
     const confirmMessage = this.translate.instant('UnassignEmployeeConfirm');
     const employeeName = employee.name;
     
-    if (confirm(`${confirmMessage}\n\nEmployee: ${employeeName}`)) {
-      this.financialService.unassignWorkRule(this.workRuleId, {
-        employeeIds: [employee.id]
-      }).subscribe({
-        next: (response) => {
-          if (response.isSuccess) {
-            // Show success message
-            alert(this.translate.instant('UnassignEmployeeSuccess'));
-            // Reload the work rule details to refresh the employee list
-            this.loadWorkRuleDetails();
-          } else {
-            // Show error message
-            alert(this.translate.instant('UnassignEmployeeError') + ': ' + (response.message || 'Unknown error'));
+    const confirmDialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+      backdropClass: 'transparent-backdrop',
+      data: {
+        title: this.translate.instant('ConfirmDeletion'),
+        message: `${confirmMessage}\n\n${this.translate.instant('Employee')}: ${employeeName}`,
+        confirmButtonText: this.translate.instant('Confirm'),
+        cancelButtonText: this.translate.instant('Cancel')
+      }
+    });
+
+    confirmDialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        // Show loading dialog
+        this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
+          panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+          data: {
+            title: this.translate.instant('LOADING.TITLE'),
+            message: this.translate.instant('LOADING.UNASSIGN_EMPLOYEE'),
+            isSuccess: true // Use true for loading state
+          },
+          disableClose: true // Prevent closing by clicking outside
+        });
+
+        this.financialService.unassignWorkRule(this.workRuleId, {
+          employeeIds: [employee.id]
+        }).subscribe({
+          next: (response) => {
+            // Close loading dialog
+            if (this.loadingDialogRef) {
+              this.loadingDialogRef.close();
+              this.loadingDialogRef = null;
+            }
+
+            if (response.isSuccess) {
+              this.dialog.open(NotificationDialogComponent, {
+                panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+                width: '500px',
+                maxWidth: '90vw',
+                data: {
+                  title: this.translate.instant('SUCCESS.TITLE'),
+                  message: this.translate.instant('UnassignEmployeeSuccess'),
+                  isSuccess: true
+                }
+              });
+              // Reload the work rule details to refresh the employee list
+              this.loadWorkRuleDetails();
+            } else {
+              const errorMessage = this.localizeErrorMessage(response.message || 'UnassignEmployeeError');
+              this.dialog.open(NotificationDialogComponent, {
+                panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+                width: '500px',
+                maxWidth: '90vw',
+                data: {
+                  title: this.translate.instant('ERROR.TITLE'),
+                  message: errorMessage,
+                  isSuccess: false
+                }
+              });
+            }
+          },
+          error: (error) => {
+            console.error('Error unassigning employee:', error);
+            
+            // Close loading dialog
+            if (this.loadingDialogRef) {
+              this.loadingDialogRef.close();
+              this.loadingDialogRef = null;
+            }
+
+            const errorMessage = this.localizeErrorMessage(error?.error?.message || error?.message || 'UnassignEmployeeError');
+            this.dialog.open(NotificationDialogComponent, {
+              panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+              width: '500px',
+              maxWidth: '90vw',
+              data: {
+                title: this.translate.instant('ERROR.TITLE'),
+                message: errorMessage,
+                isSuccess: false
+              }
+            });
           }
-        },
-        error: (error) => {
-          console.error('Error unassigning employee:', error);
-          alert(this.translate.instant('UnassignEmployeeError') + ': ' + (error.message || 'Unknown error'));
-        }
-      });
+        });
+      }
+    });
+  }
+
+  private localizeErrorMessage(message: string): string {
+    if (!message) {
+      return this.translate.instant('ERROR.UNKNOWN_ERROR');
     }
+
+    // Map common error messages to translation keys
+    const errorMap: { [key: string]: string } = {
+      'Internal server error': 'InternalServerError',
+      'Internal Server Error': 'InternalServerError',
+      'INTERNAL_SERVER_ERROR': 'InternalServerError',
+      'EmployeeAlreadyAssignedAnotherShift': 'ERROR.EMPLOYEE_ALREADY_ASSIGNED_ANOTHER_SHIFT',
+      'Employee already assigned to another shift': 'ERROR.EMPLOYEE_ALREADY_ASSIGNED_ANOTHER_SHIFT'
+    };
+
+    // Check if message matches any known error
+    const normalizedMessage = message.trim();
+    const translationKey = errorMap[normalizedMessage];
+
+    if (translationKey) {
+      return this.translate.instant(translationKey);
+    }
+
+    // Try to translate if it's already a translation key
+    const translated = this.translate.instant(normalizedMessage);
+    if (translated !== normalizedMessage) {
+      return translated;
+    }
+
+    // If message contains "Internal server error" or similar, use the translation
+    if (normalizedMessage.toLowerCase().includes('internal server error')) {
+      return this.translate.instant('InternalServerError');
+    }
+
+    // If message contains "EmployeeAlreadyAssignedAnotherShift", use the translation
+    if (normalizedMessage.includes('EmployeeAlreadyAssignedAnotherShift') || 
+        normalizedMessage.toLowerCase().includes('employee already assigned')) {
+      return this.translate.instant('ERROR.EMPLOYEE_ALREADY_ASSIGNED_ANOTHER_SHIFT');
+    }
+
+    // Return the message as-is if no translation found
+    return normalizedMessage;
+  }
+
+  getLocalizedWarnings(warnings: string[] | undefined): string[] {
+    if (!warnings || warnings.length === 0) {
+      return [];
+    }
+
+    return warnings.map(warning => {
+      // Check if the warning matches the pattern "Employees missing shift assignment: name1, name2, ..."
+      const missingShiftPattern = /^Employees missing shift assignment:\s*(.+)$/i;
+      const match = warning.match(missingShiftPattern);
+      
+      if (match) {
+        // Extract the employee names
+        const names = match[1].trim();
+        // Use the translation key with the names as parameter
+        return this.translate.instant('ERROR.EMPLOYEES_MISSING_SHIFT', { names });
+      }
+      
+      // If no pattern matches, return the warning as-is (it might already be localized or in a different format)
+      return warning;
+    });
   }
 }

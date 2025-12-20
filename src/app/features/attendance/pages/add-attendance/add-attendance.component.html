@@ -2,21 +2,20 @@
   <div class="container-fluid">
     <!-- Header Section -->
     <div class="page-header">
-      <div class="header-content">
-        <div class="header-left">
-          <h1 class="page-title">
-            <fa-icon [icon]="faCalendarPlus" class="title-icon"></fa-icon>
-            {{ 'AddAttendance' | translate }}
-          </h1>
+      <div class="header-left">
+        <button type="button" class="btn btn-ghost" (click)="onCancel()">
+          <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+          {{ 'Back' | translate }}
+        </button>
+      </div>
+      <div class="header-center">
+        <fa-icon [icon]="faCalendarPlus" class="header-icon"></fa-icon>
+        <div>
+          <h1 class="page-title">{{ 'AddAttendance' | translate }}</h1>
           <p class="page-subtitle">{{ 'AddNewAttendanceRecord' | translate }}</p>
         </div>
-        <div class="header-actions">
-          <button type="button" class="btn btn-ghost" (click)="onCancel()">
-            <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
-            {{ 'Back' | translate }}
-          </button>
-        </div>
       </div>
+      <div class="header-right"></div>
     </div>
 
     <!-- Main Form Card -->

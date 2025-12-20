@@ -568,7 +568,7 @@ interface LocalizedBreakdownLine {
   styles: [`
     .report-details-container {
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      background: #f3f4f6 !important;
       padding: 1.5rem;
       width: 100%;
       max-width: 100%;
@@ -593,11 +593,15 @@ interface LocalizedBreakdownLine {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      color: rgba(255, 255, 255, 0.9);
+      color: #1f2937;
       font-weight: 600;
       margin-bottom: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+
+    .summary-header-icon {
+      color: #f97316;
     }
 
     .summary-header-icon {
@@ -616,9 +620,9 @@ interface LocalizedBreakdownLine {
       gap: 1rem;
       padding: 1rem 1.25rem;
       border-radius: 16px;
-      background: linear-gradient(45deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
@@ -639,19 +643,23 @@ interface LocalizedBreakdownLine {
     }
 
     .summary-icon.primary {
-      background: linear-gradient(45deg, #00b4d8, #0077b6);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+      color: #3b82f6;
     }
 
     .summary-icon.warning {
-      background: linear-gradient(45deg, #ef476f, #d90429);
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+      color: #ef4444;
     }
 
     .summary-icon.success {
-      background: linear-gradient(45deg, #06d6a0, #118ab2);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+      color: #10b981;
     }
 
     .summary-icon.neutral {
-      background: linear-gradient(45deg, #ffd166, #fcbf49);
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.2));
+      color: #f97316;
     }
 
     .summary-content {
@@ -662,7 +670,7 @@ interface LocalizedBreakdownLine {
 
     .summary-label {
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.7);
+      color: #6b7280;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -670,7 +678,7 @@ interface LocalizedBreakdownLine {
     .summary-value {
       font-size: 1.2rem;
       font-weight: 700;
-      color: white;
+      color: #1f2937;
     }
 
     /* Main Content Grid Layout */
@@ -728,22 +736,22 @@ interface LocalizedBreakdownLine {
       font-size: 0.85rem;
       font-weight: 600;
       letter-spacing: 0.2px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: rgba(255, 255, 255, 0.85);
-      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      color: #1f2937;
+      background: #ffffff;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .flag-chip.enabled {
-      background: linear-gradient(45deg, rgba(76, 175, 80, 0.25), rgba(76, 175, 80, 0.1));
-      border-color: rgba(76, 175, 80, 0.45);
-      color: #c9f7cd;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #059669;
     }
 
     .flag-chip.disabled {
-      background: linear-gradient(45deg, rgba(244, 67, 54, 0.2), rgba(244, 67, 54, 0.05));
-      border-color: rgba(244, 67, 54, 0.35);
-      color: #ffc9c5;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #dc2626;
     }
 
     .flag-chip fa-icon {
@@ -790,17 +798,17 @@ interface LocalizedBreakdownLine {
 
     .json-preview {
       margin-top: 1rem;
-      background: rgba(0, 0, 0, 0.2);
+      background: #f9fafb;
       border-radius: 10px;
       padding: 1rem;
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.85);
+      color: #1f2937;
       max-height: 220px;
       overflow-y: auto;
       word-break: break-word;
       white-space: pre-wrap;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .table-header {
@@ -808,13 +816,13 @@ interface LocalizedBreakdownLine {
       grid-template-columns: 2fr 1.2fr 1fr;
       gap: 0.75rem;
       padding: 0.75rem 0;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 2px solid rgba(209, 213, 219, 0.8);
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.95);
+      color: #1f2937;
       text-transform: uppercase;
       font-size: 0.75rem;
       letter-spacing: 0.8px;
-      background: rgba(255, 255, 255, 0.03);
+      background: #f9fafb;
       border-radius: 8px 8px 0 0;
       margin-bottom: 0.5rem;
     }
@@ -842,7 +850,7 @@ interface LocalizedBreakdownLine {
       grid-template-columns: 2fr 1.2fr 1fr;
       gap: 0.75rem;
       padding: 0.75rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
       align-items: center;
     }
 
@@ -851,7 +859,7 @@ interface LocalizedBreakdownLine {
     }
 
     .table-row .reason {
-      color: rgba(255, 255, 255, 0.9);
+      color: #1f2937;
       font-size: 0.9rem;
       font-weight: 500;
       text-align: left;
@@ -891,8 +899,8 @@ interface LocalizedBreakdownLine {
     .breakdown-chip {
       padding: 0.75rem 1rem;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       min-width: 180px;
       display: flex;
       flex-direction: column;
@@ -901,7 +909,7 @@ interface LocalizedBreakdownLine {
 
     .chip-title {
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.95);
+      color: #1f2937;
     }
 
     .chip-meta {
@@ -920,11 +928,11 @@ interface LocalizedBreakdownLine {
 
     .chip-count {
       font-size: 0.8rem;
-      color: rgba(255, 255, 255, 0.7);
+      color: #6b7280;
     }
 
     .bonus .chip-count {
-      color: rgba(255, 255, 255, 0.5);
+      color: #6b7280;
     }
 
     .bonus-chip .chip-amount {
@@ -966,25 +974,25 @@ interface LocalizedBreakdownLine {
 
     .notes-content {
       flex: 1;
-      background: rgba(255, 255, 255, 0.07);
+      background: #f9fafb;
       padding: 1.25rem 1.5rem;
       border-radius: 12px;
-      border-left: 4px solid rgba(77, 193, 143, 0.6);
+      border-left: 4px solid rgba(249, 115, 22, 0.6);
       font-style: italic;
       line-height: 1.6;
-      color: rgba(255, 255, 255, 0.9);
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.12);
+      color: #1f2937;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
     }
 
     .table-row .date {
-      color: rgba(255, 255, 255, 0.85);
+      color: #1f2937;
       font-size: 0.85rem;
       text-align: center;
       font-weight: 500;
-      background: rgba(255, 255, 255, 0.05);
+      background: #f9fafb;
       padding: 0.25rem 0.5rem;
       border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .metadata-list {
@@ -1002,7 +1010,7 @@ interface LocalizedBreakdownLine {
       gap: 1rem;
       flex-wrap: wrap;
       padding: 0.75rem 0.5rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .metadata-item:last-child {
@@ -1011,7 +1019,7 @@ interface LocalizedBreakdownLine {
 
     .metadata-label {
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.8);
+      color: #6b7280;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       font-size: 0.8rem;
@@ -1019,7 +1027,7 @@ interface LocalizedBreakdownLine {
 
     .metadata-value {
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.95);
+      color: #1f2937;
       font-size: 0.9rem;
     }
     
@@ -1038,21 +1046,25 @@ interface LocalizedBreakdownLine {
     .page-title {
       display: flex;
       align-items: center;
-      color: white;
+      color: #1f2937;
       font-size: 1.5rem;
       font-weight: 600;
     }
 
+    .page-title fa-icon {
+      color: #f97316;
+    }
+
     .btn-ghost {
-      background: rgba(255, 255, 255, 0.1) !important;
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.3) !important;
-      color: white !important;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.2)) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(249, 115, 22, 0.4) !important;
+      color: #f97316 !important;
       transition: all 0.3s ease;
       padding: 0.75rem 1.5rem !important;
-      border-radius: 12px !important;
-      font-weight: 500;
+      border-radius: 10px !important;
+      font-weight: 600;
       min-height: 44px;
       display: flex;
       align-items: center;
@@ -1062,25 +1074,66 @@ interface LocalizedBreakdownLine {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       -webkit-user-select: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-ghost::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.5s ease;
     }
     
     .btn-ghost:hover {
-      background: rgba(255, 255, 255, 0.2) !important;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(234, 88, 12, 0.3)) !important;
+      border-color: rgba(249, 115, 22, 0.6) !important;
+      color: #ea580c !important;
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+    }
+
+    .btn-ghost:hover::before {
+      left: 100%;
     }
 
     .btn-pay {
-      background: linear-gradient(45deg, #4CAF50, #45a049) !important;
-      border: 1px solid rgba(76, 175, 80, 0.5) !important;
-      color: white !important;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(16, 185, 129, 0.4) !important;
+      color: #10b981 !important;
       font-weight: 600;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-pay::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.5s ease;
     }
 
     .btn-pay:hover:not(:disabled) {
-      background: linear-gradient(45deg, #45a049, #4CAF50) !important;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.3)) !important;
+      border-color: rgba(16, 185, 129, 0.6) !important;
+      color: #059669 !important;
       transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-pay:hover:not(:disabled)::before {
+      left: 100%;
     }
 
     .btn-pay:disabled {
@@ -1090,36 +1143,38 @@ interface LocalizedBreakdownLine {
     }
 
     .glass-card {
-      background: linear-gradient(45deg, rgba(142, 45, 226, 0.15), rgba(74, 0, 224, 0.15));
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 15px;
-      color: #fff;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      color: #1f2937;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       transition: all 0.3s ease;
       margin-bottom: 2rem;
     }
 
     .glass-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
     }
 
     .card-header {
-      background: linear-gradient(45deg, rgba(142, 45, 226, 0.2), rgba(74, 0, 224, 0.2));
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: #ffffff;
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
       border: none;
-      color: white;
+      color: #1f2937;
       font-weight: 600;
       padding: 1.25rem 1.5rem;
       border-radius: 15px 15px 0 0;
       font-size: 1.1rem;
     }
 
+    .card-header fa-icon {
+      color: #f97316;
+    }
+
     .card-body {
       padding: 1.5rem;
+      background: #ffffff;
     }
 
     .info-item {
@@ -1128,7 +1183,7 @@ interface LocalizedBreakdownLine {
 
     .info-label {
       display: block;
-      color: rgba(255, 255, 255, 0.8);
+      color: #6b7280;
       font-weight: 500;
       font-size: 0.875rem;
       margin-bottom: 0.5rem;
@@ -1137,7 +1192,7 @@ interface LocalizedBreakdownLine {
     }
 
     .info-value {
-      color: white;
+      color: #1f2937;
       font-size: 1rem;
       font-weight: 600;
     }
@@ -1179,10 +1234,11 @@ interface LocalizedBreakdownLine {
     }
 
     .table {
-      background: rgba(255, 255, 255, 0.05);
+      background: #ffffff;
       border-radius: 10px;
       overflow: hidden;
       min-width: 100%;
+      border: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .table-responsive {
@@ -1210,21 +1266,21 @@ interface LocalizedBreakdownLine {
     }
 
     .table th {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      background: #f9fafb;
+      color: #1f2937;
       border: none;
       font-weight: 600;
       padding: 1rem;
     }
 
     .table td {
-      color: rgba(255, 255, 255, 0.9);
+      color: #1f2937;
       border: none;
       padding: 1rem;
     }
 
     .table tbody tr {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .table tbody tr:last-child {
@@ -1879,13 +1935,18 @@ interface LocalizedBreakdownLine {
 
     .summary-item {
       padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
+      background: #f9fafb;
       border-radius: 8px;
-      border-left: 3px solid #667eea;
+      border-left: 3px solid #f97316;
+      color: #1f2937;
+    }
+
+    .summary-item strong {
+      color: #1f2937;
     }
 
     .section-title {
-      color: #fff;
+      color: #1f2937;
       margin-bottom: 1rem;
       font-size: 1.1rem;
       font-weight: 600;
@@ -1893,37 +1954,39 @@ interface LocalizedBreakdownLine {
 
     /* Attendance Table Styles */
     .attendance-table {
-      background: rgba(255, 255, 255, 0.05);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 12px;
       overflow: hidden;
       margin-top: 1rem;
     }
 
-    .table-header {
+    .attendance-table .table-header {
       display: grid;
       grid-template-columns: 1fr 1fr 1.5fr 1.5fr 2fr 1fr;
-      background: rgba(102, 126, 234, 0.2);
+      background: #f9fafb;
       padding: 1rem;
       font-weight: 600;
-      color: #fff;
+      color: #1f2937;
     }
 
     .table-body {
       max-height: 400px;
       overflow-y: auto;
+      background: #ffffff;
     }
 
-    .table-row {
+    .attendance-table .table-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1.5fr 1.5fr 2fr 1fr;
       padding: 0.75rem 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
+      color: #1f2937;
       transition: background-color 0.2s ease;
     }
 
-    .table-row:hover {
-      background: rgba(255, 255, 255, 0.05);
+    .attendance-table .table-row:hover {
+      background: #f9fafb;
     }
 
     .table-row:last-child {
@@ -1934,16 +1997,18 @@ interface LocalizedBreakdownLine {
       display: flex;
       align-items: center;
       padding: 0.25rem;
+      color: #1f2937;
     }
 
     .header-cell {
       display: flex;
       align-items: center;
       padding: 0.25rem;
+      color: #1f2937;
     }
 
     .absent-text {
-      color: #ff6b6b;
+      color: #ef4444;
       font-style: italic;
     }
 

@@ -1,0 +1,10 @@
+<div class="loading-data-container">
+  <div class="loading-data-content">
+    <mat-spinner [diameter]="spinnerDiameter"></mat-spinner>
+    <div class="loading-data-text">
+      <h5 class="loading-data-title">{{ message | translate }}</h5>
+      <p *ngIf="showSubtitle" class="loading-data-subtitle">{{ 'PleaseWait' | translate }}</p>
+    </div>
+  </div>
+</div>
+

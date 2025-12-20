@@ -9,78 +9,96 @@ import { EmployeeService } from '../../../../core/employee.service';
   standalone: true,
   imports: [CommonModule, FormsModule, TranslateModule],
   template: `
-    <!-- Search Row -->
-    <div class="search-row d-flex gap-2 mb-3">
-      <input class="form-control soft-input" [(ngModel)]="name" (ngModelChange)="load()" [placeholder]="'Search' | translate">
-      <input class="form-control soft-input" [(ngModel)]="phone" (ngModelChange)="load()" [placeholder]="'Phone' | translate">
-      <input class="form-control soft-input" [(ngModel)]="department" (ngModelChange)="load()" [placeholder]="'Department' | translate">
-      <button class="btn btn-secondary btn-sm" (click)="clearFilters()">{{ 'Clear' | translate }}</button>
-    </div>
-
-    <!-- Filter Row -->
-    <div class="filter-row d-flex gap-2 mb-3 align-items-center">
-      <label class="filter-label">{{ 'Status' | translate }}:</label>
-      <select class="form-select soft-input" [(ngModel)]="isActiveString" (ngModelChange)="onStatusChange($event)">
-        <option value="all">{{ 'All' | translate }}</option>
-        <option value="true">{{ 'Active' | translate }}</option>
-        <option value="false">{{ 'Inactive' | translate }}</option>
-      </select>
-
-      <label class="filter-label">{{ 'Sort By' | translate }}:</label>
-      <select class="form-select soft-input" [(ngModel)]="sortField" (ngModelChange)="load()">
-        <option value="name">{{ 'Name' | translate }}</option>
-        <option value="phone">{{ 'Phone' | translate }}</option>
-        <option value="department">{{ 'Department' | translate }}</option>
-      </select>
-
-      <select class="form-select soft-input" [(ngModel)]="sortOrder" (ngModelChange)="load()">
-        <option value="asc">{{ 'Asc' | translate }}</option>
-        <option value="desc">{{ 'Desc' | translate }}</option>
-      </select>
-
-      <label class="filter-label">{{ 'Per Page' | translate }}:</label>
-      <select class="form-select soft-input" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
-        <option [ngValue]="10">10</option>
-        <option [ngValue]="20">20</option>
-        <option [ngValue]="50">50</option>
-      </select>
-
-      <button class="btn btn-primary btn-sm" (click)="load()">{{ 'Refresh' | translate }}</button>
-    </div>
-    <div class="table-responsive glass-table">
-      <table class="table table-dark table-borderless align-middle">
-        <thead>
-          <tr>
-            <th style="width:50px; text-align: center;" *ngIf="!singleSelection"><input type="checkbox" [checked]="allSelected" (change)="toggleAll($event)"></th>
-            <th>{{ 'Name' | translate }}</th>
-            <th>{{ 'Phone' | translate }}</th>
-            <th>{{ 'Department' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let e of employees">
-            <td style="text-align: center;" *ngIf="!singleSelection"><input type="checkbox" [checked]="selected.has(e.id)" (change)="toggle(e.id, $event)"></td>
-            <td style="text-align: center;" *ngIf="singleSelection"><input type="radio" [checked]="selected.has(e.id)" (change)="selectSingle(e.id, $event)"></td>
-            <td>{{ e.name || e.fullName }}</td>
-            <td>{{ e.phone || e.phoneNumber }}</td>
-            <td>{{ e.department }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- Pagination Row -->
-    <div class="pagination-row d-flex justify-content-between align-items-center mt-3">
-      <div class="pagination-info">
-        <small class="text-muted">{{ 'Selected' | translate }}: {{ singleSelection ? (selected.size > 0 ? '1' : '0') : selected.size }}</small>
-        <small class="text-muted ms-3">{{ 'Page' | translate }} {{ page }} {{ 'of' | translate }} {{ totalPages }}</small>
+    <div class="employee-selector-container">
+      <!-- Search Row -->
+      <div class="search-row d-flex gap-2 mb-3">
+        <input class="form-control soft-input" [(ngModel)]="name" (ngModelChange)="load()" [placeholder]="'Search' | translate">
+        <input class="form-control soft-input" [(ngModel)]="phone" (ngModelChange)="load()" [placeholder]="'Phone' | translate">
+        <input class="form-control soft-input" [(ngModel)]="department" (ngModelChange)="load()" [placeholder]="'Department' | translate">
+        <button class="btn btn-secondary btn-sm" (click)="clearFilters()">{{ 'Clear' | translate }}</button>
       </div>
-      <div class="pagination-controls d-flex gap-1">
-        <button class="btn btn-secondary btn-sm" (click)="prev()" [disabled]="page===1">{{ 'Prev' | translate }}</button>
-        <button class="btn btn-secondary btn-sm" (click)="next()" [disabled]="page>=totalPages">{{ 'Next' | translate }}</button>
+
+      <!-- Filter Row -->
+      <div class="filter-row d-flex gap-2 mb-3 align-items-center">
+        <label class="filter-label">{{ 'Status' | translate }}:</label>
+        <select class="form-select soft-input" [(ngModel)]="isActiveString" (ngModelChange)="onStatusChange($event)">
+          <option value="all">{{ 'All' | translate }}</option>
+          <option value="true">{{ 'Active' | translate }}</option>
+          <option value="false">{{ 'Inactive' | translate }}</option>
+        </select>
+
+        <label class="filter-label">{{ 'Sort By' | translate }}:</label>
+        <select class="form-select soft-input" [(ngModel)]="sortField" (ngModelChange)="load()">
+          <option value="name">{{ 'Name' | translate }}</option>
+          <option value="phone">{{ 'Phone' | translate }}</option>
+          <option value="department">{{ 'Department' | translate }}</option>
+        </select>
+
+        <select class="form-select soft-input" [(ngModel)]="sortOrder" (ngModelChange)="load()">
+          <option value="asc">{{ 'Asc' | translate }}</option>
+          <option value="desc">{{ 'Desc' | translate }}</option>
+        </select>
+
+        <label class="filter-label">{{ 'Per Page' | translate }}:</label>
+        <select class="form-select soft-input" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+        </select>
+
+        <button class="btn btn-primary btn-sm" (click)="load()">{{ 'Refresh' | translate }}</button>
+      </div>
+      
+      <div class="table-wrapper">
+        <div class="table-responsive glass-table">
+          <table class="table table-dark table-borderless align-middle">
+            <thead>
+              <tr>
+                <th style="width:50px; text-align: center;" *ngIf="!singleSelection"><input type="checkbox" [checked]="allSelected" (change)="toggleAll($event)"></th>
+                <th>{{ 'Name' | translate }}</th>
+                <th>{{ 'Phone' | translate }}</th>
+                <th>{{ 'Department' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let e of employees">
+                <td style="text-align: center;" *ngIf="!singleSelection"><input type="checkbox" [checked]="selected.has(e.id)" (change)="toggle(e.id, $event)"></td>
+                <td style="text-align: center;" *ngIf="singleSelection"><input type="radio" [checked]="selected.has(e.id)" (change)="selectSingle(e.id, $event)"></td>
+                <td>{{ e.name || e.fullName }}</td>
+                <td>{{ e.phone || e.phoneNumber }}</td>
+                <td>{{ e.department }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Pagination Row -->
+      <div class="pagination-row d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          <small class="text-muted">{{ 'Selected' | translate }}: {{ singleSelection ? (selected.size > 0 ? '1' : '0') : selected.size }}</small>
+          <small class="text-muted ms-3">{{ 'Page' | translate }} {{ page }} {{ 'of' | translate }} {{ totalPages }}</small>
+        </div>
+        <div class="pagination-controls d-flex gap-1">
+          <button class="btn btn-secondary btn-sm" (click)="prev()" [disabled]="page===1">{{ 'Prev' | translate }}</button>
+          <button class="btn btn-secondary btn-sm" (click)="next()" [disabled]="page>=totalPages">{{ 'Next' | translate }}</button>
+        </div>
       </div>
     </div>
   `,
   styles: [`
+    .employee-selector-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 400px;
+    }
+    .table-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      margin-bottom: 1rem;
+    }
     .search-row { 
       background: #f8f9fa;
       border: 1px solid #e9ecef;
@@ -266,9 +284,7 @@ import { EmployeeService } from '../../../../core/employee.service';
       border-radius: 8px;
       padding: 1rem 1.25rem;
       margin-top: 1.5rem;
-      position: sticky;
-      bottom: 0;
-      z-index: 10;
+      position: relative;
     }
     .pagination-info { 
       display: flex; 

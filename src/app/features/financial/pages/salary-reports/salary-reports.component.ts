@@ -13,6 +13,7 @@ import { NotificationDialogComponent, NotificationDialogData } from '../../../..
 import { FinancialService } from '../../../../core/services/financial.service';
 import { SalaryReportDto } from '../../../../core/interfaces/financial.interface';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { CreateSalaryReportDialogComponent } from './create-salary-report-dialog.component';
 
 @Component({
   selector: 'app-salary-reports',
@@ -41,6 +42,10 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
             </div>
           </div>
           <div class="header-actions">
+            <button class="btn btn-ghost" (click)="onCreateReport()">
+              <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+              {{ 'CreateSalaryReport' | translate }}
+            </button>
             <button class="btn btn-ghost" (click)="toggleFilter()">
               <fa-icon [icon]="faFilter" class="me-2"></fa-icon>
               {{ 'Filter' | translate }}
@@ -180,7 +185,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
   styles: [`
     .salary-reports-container {
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      background: #f3f4f6 !important;
       padding: 32px;
       width: 100%;
       max-width: 100%;
@@ -199,36 +204,50 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2rem;
+      position: relative;
     }
     
     .header-left {
       display: flex;
       align-items: center;
       gap: 1rem;
+      flex: 1;
     }
 
     .header-actions {
       display: flex;
       align-items: center;
       gap: 1rem;
+      flex: 1;
+      justify-content: flex-end;
     }
     
     .page-title {
       display: flex;
       align-items: center;
-      color: white;
+      justify-content: center;
+      color: #1f2937;
       font-size: 1.5rem;
       font-weight: 600;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0 2rem;
+    }
+    
+    .page-title fa-icon {
+      color: #f97316 !important;
+      margin-right: 0.5rem;
     }
     
     .glass-card {
-      background: linear-gradient(45deg, rgba(142, 45, 226, 0.15), rgba(74, 0, 224, 0.15));
+      background: #ffffff;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 15px;
-      color: #fff;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      color: #1f2937;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
     
     .glass-body {
@@ -236,26 +255,45 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
     }
     
     .btn-ghost {
-      background: rgba(255, 255, 255, 0.1) !important;
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.3) !important;
-      color: white !important;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.15)) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(249, 115, 22, 0.3) !important;
+      color: #f97316 !important;
       transition: all 0.3s ease;
       padding: 0.75rem 1.5rem !important;
       border-radius: 12px !important;
-      font-weight: 500;
+      font-weight: 600;
       min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-ghost::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s ease;
     }
     
     .btn-ghost:hover {
-      background: rgba(255, 255, 255, 0.2) !important;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(234, 88, 12, 0.25)) !important;
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3);
+      border-color: rgba(249, 115, 22, 0.5) !important;
+      color: #ea580c !important;
+    }
+    
+    .btn-ghost:hover::before {
+      left: 100%;
     }
     
     .btn-ghost fa-icon {
@@ -274,13 +312,13 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       padding: 1.5rem 2rem;
-      background: linear-gradient(45deg, rgba(142, 45, 226, 0.2), rgba(74, 0, 224, 0.2));
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: #f3f4f6;
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .filter-title {
       margin: 0;
-      color: white;
+      color: #1f2937;
       font-size: 1.25rem;
       font-weight: 600;
       display: flex;
@@ -290,7 +328,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
     .filter-title fa-icon {
       font-size: 1.1rem;
-      color: rgba(255, 255, 255, 0.9);
+      color: #6b7280;
     }
 
     .filter-close {
@@ -328,7 +366,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
     .filter-label {
       display: block;
-      color: rgba(255, 255, 255, 0.9);
+      color: #1f2937;
       font-weight: 500;
       font-size: 0.9rem;
       margin-bottom: 0.75rem;
@@ -341,7 +379,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
     .filter-label fa-icon {
       font-size: 0.9rem;
-      color: rgba(255, 255, 255, 0.8);
+      color: #6b7280;
       margin-right: 0.25rem;
       flex-shrink: 0;
     }
@@ -350,10 +388,10 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
     .filter-select {
       width: 100%;
       padding: 0.875rem 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.8);
       border-radius: 12px;
-      color: white;
+      color: #1f2937;
       font-size: 0.95rem;
       transition: all 0.3s ease;
       backdrop-filter: blur(5px);
@@ -361,37 +399,37 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
     }
 
     .filter-input[type="date"] {
-      color-scheme: dark;
+      color-scheme: light;
     }
 
     .filter-input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(1);
+      filter: none;
       cursor: pointer;
     }
 
     .filter-input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
+      color: #9ca3af;
     }
 
     .filter-input:focus,
     .filter-select:focus {
       outline: none;
-      border-color: rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.15);
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+      border-color: rgba(102, 126, 234, 0.5);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .search-hint {
       display: block;
       margin-top: 0.25rem;
-      color: rgba(255, 255, 255, 0.7);
+      color: #6b7280;
       font-size: 0.75rem;
       font-style: italic;
     }
 
     .filter-select option {
-      background: rgba(142, 45, 226, 0.9);
-      color: white;
+      background: #ffffff;
+      color: #1f2937;
       padding: 0.5rem;
     }
 
@@ -401,7 +439,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
       justify-content: flex-end;
       margin-top: 2rem;
       padding-top: 1.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .filter-btn-apply,
@@ -425,27 +463,49 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
     }
 
     .filter-btn-apply {
-      background: linear-gradient(45deg, #4CAF50, #45a049);
-      border: 1px solid rgba(76, 175, 80, 0.5);
-      color: white;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.2));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: #f97316;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .filter-btn-apply::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.5s ease;
     }
 
     .filter-btn-apply:hover {
-      background: linear-gradient(45deg, #45a049, #4CAF50);
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(234, 88, 12, 0.3));
       transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+      border-color: rgba(249, 115, 22, 0.6);
+      color: #ea580c;
+    }
+    
+    .filter-btn-apply:hover::before {
+      left: 100%;
     }
 
     .filter-btn-reset {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
+      background: rgba(249, 250, 251, 0.8);
+      border: 1px solid rgba(229, 231, 235, 0.8);
+      color: #1f2937;
     }
 
     .filter-btn-reset:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 1);
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-color: rgba(209, 213, 219, 0.8);
     }
 
     .filter-card .glass-body {
@@ -542,6 +602,11 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
       .page-title {
         font-size: 1.25rem;
         width: 100%;
+        position: static;
+        transform: none;
+        left: auto;
+        padding: 0 1rem;
+        justify-content: flex-start;
       }
 
       .btn-ghost {
@@ -1112,7 +1177,22 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
   }
 
   onCreateReport(): void {
-    this.router.navigate(['/admin/financial/employee-salaries']);
+    const dialogRef = this.dialog.open(CreateSalaryReportDialogComponent, {
+      panelClass: 'glass-dialog-panel',
+      backdropClass: 'transparent-backdrop',
+      width: '95vw',
+      maxWidth: '95vw',
+      height: '85vh',
+      maxHeight: '85vh',
+      disableClose: false
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Reload salary reports after successful creation
+        this.loadSalaryReports();
+      }
+    });
   }
 
   onDownloadReport(report: SalaryReportDto): void {

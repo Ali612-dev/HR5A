@@ -5,102 +5,59 @@
         <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
         {{ 'Back' | translate }}
       </button>
-      <div class="page-title">
-        <fa-icon [icon]="faHourglassHalf" class="me-2"></fa-icon>
-        {{ 'PendingRequests' | translate }}
-      </div>
     </div>
+    <div class="header-center">
+      <fa-icon [icon]="faHourglassHalf" class="header-icon"></fa-icon>
+      <h2 class="page-title">{{ 'PendingRequests' | translate }}</h2>
+    </div>
+    <div class="header-right"></div>
   </div>
 
   <div class="content-container">
-    <ng-container *ngIf="isLoading; else loadedContent">
-      <div class="glass-card h-100">
-        <div class="glass-body p-4">
-          <app-shimmer></app-shimmer>
+    <app-material-data-table
+      [data]="pendingRequests"
+      [columns]="tableColumns"
+      [actions]="tableActions"
+      [isLoading]="isLoading"
+      [error]="error"
+      [emptyMessage]="'NoPendingRequests'"
+      [emptyDescription]="'AllRequestsProcessed'"
+      [loadingMessage]="'LoadingPendingRequests'"
+      (retry)="fetchPendingRequests()">
+      
+      <!-- Templates for custom cell rendering -->
+      <ng-template #nameTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <div class="avatar-sm">
+            <fa-icon [icon]="faHourglassHalf" class="avatar-icon"></fa-icon>
+          </div>
+          <span class="name-text">{{ row.fullName }}</span>
         </div>
-      </div>
-    </ng-container>
+      </ng-template>
 
-    <ng-template #loadedContent>
-      <div *ngIf="error" class="alert alert-danger" role="alert">
-        {{ error }}
-      </div>
+      <ng-template #phoneTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span class="phone-text">{{ row.phoneNumber }}</span>
+        </div>
+      </ng-template>
 
-      <div *ngIf="!error" class="glass-card">
-        <div class="glass-body p-4">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="mb-0">{{ 'PendingRequests' | translate }}</h5>
-            <span class="badge bg-purple-accent">{{ totalCount }}</span>
-          </div>
-
-          <div *ngIf="pendingRequests.length > 0; else noPendingRequests" class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr>
-                  <th class="table-header">{{ 'Name' | translate }}</th>
-                  <th class="table-header">{{ 'Phone' | translate }}</th>
-                  <th class="table-header">{{ 'Department' | translate }}</th>
-                  <th class="table-header">{{ 'Date' | translate }}</th>
-                  <th class="table-header text-center">{{ 'Actions' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let request of pendingRequests" class="table-row">
-                  <td class="table-cell name-cell">
-                    <div class="d-flex align-items-center">
-                      <div class="avatar-sm me-2">
-                        <fa-icon [icon]="faHourglassHalf" class="avatar-icon"></fa-icon>
-                      </div>
-                      <span class="name-text">{{ request.fullName }}</span>
-                    </div>
-                  </td>
-                  <td class="table-cell phone-cell">
-                    <span class="phone-text">{{ request.phoneNumber }}</span>
-                  </td>
-                  <td class="table-cell department-cell">
-                    <span class="department-text" *ngIf="request.department; else noDepartment">
-                      {{ request.department }}
-                    </span>
-                    <ng-template #noDepartment>
-                      <span class="text-muted">{{ 'NotSpecified' | translate }}</span>
-                    </ng-template>
-                  </td>
-                  <td class="table-cell date-cell">
-                    <span class="date-text">{{ request.requestDate | date:'MMM dd, yyyy' }}</span>
-                  </td>
-                  <td class="table-cell actions-cell text-center">
-                    <div class="action-buttons">
-                      <button 
-                        class="btn btn-action btn-approve" 
-                        (click)="processRequest(request.id, true)" 
-                        appCustomTooltip 
-                        [appCustomTooltipText]="'TOOLTIP.ACCEPT_REQUEST' | translate">
-                        <fa-icon [icon]="faCheck" class="action-icon"></fa-icon>
-                      </button>
-                      <button 
-                        class="btn btn-action btn-reject" 
-                        (click)="rejectRequest(request)" 
-                        appCustomTooltip 
-                        [appCustomTooltipText]="'TOOLTIP.REJECT_REQUEST' | translate">
-                        <fa-icon [icon]="faXmark" class="action-icon"></fa-icon>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <ng-template #noPendingRequests>
-            <div class="text-center py-5">
-              <fa-icon [icon]="faHourglassHalf" class="display-1 text-muted mb-3"></fa-icon>
-              <h5 class="text-muted">{{ 'NoPendingRequests' | translate }}</h5>
-              <p class="text-muted">{{ 'AllRequestsProcessed' | translate }}</p>
-            </div>
+      <ng-template #departmentTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span *ngIf="row.department; else noDepartment" class="department-text">
+            {{ row.department }}
+          </span>
+          <ng-template #noDepartment>
+            <span class="text-muted">{{ 'NotSpecified' | translate }}</span>
           </ng-template>
         </div>
-      </div>
-    </ng-template>
+      </ng-template>
+
+      <ng-template #dateTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span class="date-text">{{ row.requestDate | date:'MMM dd, yyyy' }}</span>
+        </div>
+      </ng-template>
+    </app-material-data-table>
   </div>
 </div>
 

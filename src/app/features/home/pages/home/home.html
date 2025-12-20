@@ -9,7 +9,6 @@
         <div class="navbar-actions">
             <app-language-switcher (langChange)="changeLanguage($event)"></app-language-switcher>
             <a routerLink="/admin-login" class="btn btn-login">{{ ('ADMIN_LOGIN.LOGIN_BUTTON' | translate) || 'Admin Login' }}</a>
-            <button class="btn btn-register" routerLink="/register">{{ ('register' | translate) || 'Register' }}</button>
             <a *ngIf="showGoToDashboardButton()" routerLink="/admin-dashboard" class="btn btn-register ms-2">{{ ('GoToDashboard' | translate) || 'Dashboard' }}</a>
         </div>
     </nav>
@@ -57,7 +56,6 @@
         <nav class="footer-links">
             <a href="#features" class="footer-link" (click)="scrollToFeatures()">{{ ('Features' | translate) || 'Features' }}</a>
             <a routerLink="/admin-login" class="footer-link">{{ ('ADMIN_LOGIN.LOGIN_BUTTON' | translate) || 'Admin Login' }}</a>
-            <a routerLink="/register" class="footer-link">{{ ('register' | translate) || 'Register' }}</a>
         </nav>
         
         <p>{{ ('footerCopyright' | translate) || '© 2025 HR5A. All rights reserved.' }}</p>

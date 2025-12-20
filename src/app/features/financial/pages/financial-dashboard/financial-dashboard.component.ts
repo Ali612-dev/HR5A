@@ -1,9 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Chart, registerables } from 'chart.js';
 import {
   faArrowLeft,
   faArrowRight,
@@ -31,6 +32,8 @@ import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.
 import { catchError, of } from 'rxjs';
 import { trigger, state, style, animate, transition, query, stagger } from '@angular/animations';
 
+Chart.register(...registerables);
+
 @Component({
   selector: 'app-financial-dashboard',
   standalone: true,
@@ -39,8 +42,7 @@ import { trigger, state, style, animate, transition, query, stagger } from '@ang
     RouterModule,
     FormsModule,
     TranslateModule,
-    FontAwesomeModule,
-    ShimmerComponent
+    FontAwesomeModule
   ],
   templateUrl: './financial-dashboard.component.html',
   styleUrls: ['./financial-dashboard.component.css'],
@@ -63,10 +65,19 @@ import { trigger, state, style, animate, transition, query, stagger } from '@ang
     ])
   ]
 })
-export class FinancialDashboardComponent implements OnInit {
+export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('workRulesChart') workRulesChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('salaryReportsChart') salaryReportsChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('employeeSalariesChart') employeeSalariesChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('monthlyTrendsChart') monthlyTrendsChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('salaryDistributionChart') salaryDistributionChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('reportsStatusChart') reportsStatusChartRef!: ElementRef<HTMLCanvasElement>;
+  
+  private charts: Chart[] = [];
   private financialService = inject(FinancialService);
   private translate = inject(TranslateService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   // FontAwesome Icons
   faArrowLeft = faArrowLeft;
@@ -171,6 +182,10 @@ export class FinancialDashboardComponent implements OnInit {
         this.statsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_FINANCIAL_STATS');
       }
       this.isLoadingStats = false;
+      // Reinitialize charts after data is loaded
+      setTimeout(() => {
+        this.initializeCharts();
+      }, 300);
     });
   }
 
@@ -293,6 +308,10 @@ export class FinancialDashboardComponent implements OnInit {
 
   refreshData(): void {
     this.loadDashboardData();
+    // Reinitialize charts after refresh
+    setTimeout(() => {
+      this.initializeCharts();
+    }, 500);
   }
 
   goBack(): void {
@@ -423,5 +442,400 @@ export class FinancialDashboardComponent implements OnInit {
     if (!timeString) return '';
     // Convert "HH:mm:ss" to "HH:mm"
     return timeString.substring(0, 5);
+  }
+
+  ngAfterViewInit(): void {
+    // Wait for view to be fully initialized
+    this.cdr.detectChanges();
+    // Try multiple times to ensure canvas elements are ready
+    let attempts = 0;
+    const maxAttempts = 10;
+    const tryInit = () => {
+      attempts++;
+      if (this.workRulesChartRef?.nativeElement && 
+          this.salaryReportsChartRef?.nativeElement &&
+          this.employeeSalariesChartRef?.nativeElement &&
+          this.monthlyTrendsChartRef?.nativeElement &&
+          this.salaryDistributionChartRef?.nativeElement &&
+          this.reportsStatusChartRef?.nativeElement) {
+        this.initializeCharts();
+      } else if (attempts < maxAttempts) {
+        setTimeout(tryInit, 150);
+      } else {
+        console.warn('Charts initialization failed after multiple attempts');
+        // Try to initialize anyway with available charts
+        this.initializeCharts();
+      }
+    };
+    setTimeout(tryInit, 500);
+  }
+
+  initializeCharts(): void {
+    // Destroy existing charts first
+    this.charts.forEach(chart => {
+      try {
+        if (chart && typeof chart.destroy === 'function') {
+          chart.destroy();
+        }
+      } catch (e) {
+        console.warn('Error destroying chart:', e);
+      }
+    });
+    this.charts = [];
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      // Initialize all charts
+      this.createWorkRulesChart();
+      this.createSalaryReportsChart();
+      this.createEmployeeSalariesChart();
+      this.createMonthlyTrendsChart();
+      this.createSalaryDistributionChart();
+      this.createReportsStatusChart();
+    });
+  }
+
+  createWorkRulesChart(): void {
+    if (!this.workRulesChartRef?.nativeElement) {
+      console.warn('Work Rules Chart canvas not found');
+      return;
+    }
+    
+    // Check if chart already exists on this canvas
+    const existingChart = Chart.getChart(this.workRulesChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.workRulesChartRef.nativeElement.getContext('2d');
+    if (!ctx) {
+      console.warn('Could not get 2d context for Work Rules Chart');
+      return;
+    }
+
+    try {
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: this.translate.instant('WorkRules'),
+            data: [12, 19, 15, 25, 22, 30],
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Work Rules Chart:', error);
+    }
+  }
+
+  createSalaryReportsChart(): void {
+    if (!this.salaryReportsChartRef?.nativeElement) {
+      console.warn('Salary Reports Chart canvas not found');
+      return;
+    }
+    
+    // Check if chart already exists on this canvas
+    const existingChart = Chart.getChart(this.salaryReportsChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.salaryReportsChartRef.nativeElement.getContext('2d');
+    if (!ctx) {
+      console.warn('Could not get 2d context for Salary Reports Chart');
+      return;
+    }
+
+    try {
+      const chart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: [
+          this.translate.instant('New'),
+          this.translate.instant('InProgress'),
+          this.translate.instant('Completed'),
+          this.translate.instant('Cancelled')
+        ],
+        datasets: [{
+          data: [15, 20, 45, 5],
+          backgroundColor: [
+            '#f97316',
+            '#ea580c',
+            '#fb923c',
+            '#fdba74'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'left'
+          }
+        }
+      }
+    });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Salary Reports Chart:', error);
+    }
+  }
+
+  createEmployeeSalariesChart(): void {
+    if (!this.employeeSalariesChartRef?.nativeElement) {
+      console.warn('Employee Salaries Chart canvas not found');
+      return;
+    }
+    
+    // Check if chart already exists on this canvas
+    const existingChart = Chart.getChart(this.employeeSalariesChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.employeeSalariesChartRef.nativeElement.getContext('2d');
+    if (!ctx) {
+      console.warn('Could not get 2d context for Employee Salaries Chart');
+      return;
+    }
+
+    try {
+      const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Dept A', 'Dept B', 'Dept C', 'Dept D', 'Dept E', 'Dept F'],
+        datasets: [{
+          label: this.translate.instant('EmployeeSalaries'),
+          data: [450, 520, 480, 600, 550, 580],
+          backgroundColor: [
+            '#f97316',
+            '#ea580c',
+            '#fb923c',
+            '#fdba74',
+            '#fed7aa',
+            '#ffedd5'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Employee Salaries Chart:', error);
+    }
+  }
+
+  createMonthlyTrendsChart(): void {
+    if (!this.monthlyTrendsChartRef?.nativeElement) {
+      console.warn('Monthly Trends Chart canvas not found');
+      return;
+    }
+    
+    // Check if chart already exists on this canvas
+    const existingChart = Chart.getChart(this.monthlyTrendsChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.monthlyTrendsChartRef.nativeElement.getContext('2d');
+    if (!ctx) {
+      console.warn('Could not get 2d context for Monthly Trends Chart');
+      return;
+    }
+
+    try {
+      const chart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: [
+          this.translate.instant('Review'),
+          this.translate.instant('InProcess'),
+          this.translate.instant('Completed')
+        ],
+        datasets: [{
+          data: [30, 50, 20],
+          backgroundColor: [
+            '#f97316',
+            '#ea580c',
+            '#fb923c'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Monthly Trends Chart:', error);
+    }
+  }
+
+  createSalaryDistributionChart(): void {
+    if (!this.salaryDistributionChartRef?.nativeElement) {
+      console.warn('Salary Distribution Chart canvas not found');
+      return;
+    }
+    
+    // Check if chart already exists on this canvas
+    const existingChart = Chart.getChart(this.salaryDistributionChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.salaryDistributionChartRef.nativeElement.getContext('2d');
+    if (!ctx) {
+      console.warn('Could not get 2d context for Salary Distribution Chart');
+      return;
+    }
+
+    try {
+      const chart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: [
+          this.translate.instant('PerDay'),
+          this.translate.instant('PerMonth'),
+          this.translate.instant('PerHour'),
+          this.translate.instant('Custom'),
+          this.translate.instant('Other')
+        ],
+        datasets: [{
+          label: this.translate.instant('Distribution'),
+          data: [65, 80, 70, 60, 75],
+          backgroundColor: 'rgba(249, 115, 22, 0.15)',
+          borderColor: '#f97316',
+          borderWidth: 2,
+          pointBackgroundColor: '#f97316',
+          pointBorderColor: '#ffffff',
+          pointHoverBackgroundColor: '#ea580c',
+          pointHoverBorderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          r: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Salary Distribution Chart:', error);
+    }
+  }
+
+  createReportsStatusChart(): void {
+    if (!this.reportsStatusChartRef?.nativeElement) {
+      console.warn('Reports Status Chart canvas not found');
+      return;
+    }
+    
+    // Check if chart already exists on this canvas
+    const existingChart = Chart.getChart(this.reportsStatusChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.reportsStatusChartRef.nativeElement.getContext('2d');
+    if (!ctx) {
+      console.warn('Could not get 2d context for Reports Status Chart');
+      return;
+    }
+
+    try {
+      const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [
+          this.translate.instant('Registered'),
+          this.translate.instant('FromMinistry'),
+          this.translate.instant('Returned'),
+          this.translate.instant('Other')
+        ],
+        datasets: [{
+          label: this.translate.instant('SalaryReports'),
+          data: [1200, 800, 600, 250],
+          backgroundColor: [
+            '#f97316',
+            '#ea580c',
+            '#fb923c',
+            '#fdba74'
+          ]
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Reports Status Chart:', error);
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Destroy all charts on component destroy
+    this.charts.forEach(chart => chart.destroy());
   }
 }

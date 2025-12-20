@@ -1,0 +1,16 @@
+<div class="empty-data-container">
+  <div class="empty-data-content">
+    <mat-icon class="empty-data-icon">{{ icon }}</mat-icon>
+    <div class="empty-data-text">
+      <h4 class="empty-data-title">{{ title | translate }}</h4>
+      <p *ngIf="description" class="empty-data-description">{{ description | translate }}</p>
+    </div>
+    <div *ngIf="showAction && actionLabel" class="empty-data-actions">
+      <button mat-raised-button color="primary" (click)="onActionClick()">
+        <mat-icon>{{ actionIcon }}</mat-icon>
+        {{ actionLabel | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+

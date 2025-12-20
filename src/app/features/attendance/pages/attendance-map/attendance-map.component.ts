@@ -263,15 +263,9 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         container.style.minHeight = '400px';
       }
       
+      // Always start with default view - we'll fit bounds to markers after data loads
       this.map = L.map(container).setView([initialView[0], initialView[1]], initialView[2]);
-    
-      // Ensure map is fully rendered before proceeding
-      setTimeout(() => {
-        if (savedState) {
-          console.log('🔄 Restoring saved map state after delay');
-          this.map.setView([savedState[0], savedState[1]], savedState[2]);
-        }
-      }, 100);
+      console.log('🗺️ Map initialized with default view. Will fit bounds to markers when data loads.');
 
       // Add tile layer with error handling
       try {
@@ -564,278 +558,130 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     const fontSize = this.isMobile ? '0.7rem' : '1rem';
     const titleFontSize = this.isMobile ? '0.8rem' : '1.1rem';
 
-    // Group attendance by location (latitude, longitude) only
-    // This allows same employee to have multiple markers at different locations
-    const locationGroups = new Map<string, any[]>();
+    // Create separate markers for attendance (green) and departure (red)
+    // We'll process each attendance record and create markers based on timeIn and timeOut locations
+    const markerData: Array<{
+      point: AttendanceViewModel;
+      lat: number;
+      lng: number;
+      type: 'attendance' | 'departure';
+    }> = [];
     
     this.attendancePoints.forEach(point => {
-      if (point.latitude && point.longitude) {
-        // Group only by location, not by employee
-        const locationKey = `${point.latitude.toFixed(6)}_${point.longitude.toFixed(6)}`;
-        
-        if (!locationGroups.has(locationKey)) {
-          locationGroups.set(locationKey, []);
-        }
-        locationGroups.get(locationKey)!.push(point);
+      // Add green marker for attendance (timeIn) if location exists
+      const attendanceLat = point.checkInLat || point.latitude;
+      const attendanceLng = point.checkInLng || point.longitude;
+      
+      if (point.timeIn && attendanceLat && attendanceLng) {
+        markerData.push({
+          point: point,
+          lat: attendanceLat,
+          lng: attendanceLng,
+          type: 'attendance'
+        });
+      }
+      
+      // Add red marker for departure (timeOut) if location exists
+      const departureLat = point.checkOutLat || point.outLatitude;
+      const departureLng = point.checkOutLng || point.outLongitude;
+      
+      if (point.timeOut && departureLat && departureLng) {
+        markerData.push({
+          point: point,
+          lat: departureLat,
+          lng: departureLng,
+          type: 'departure'
+        });
       }
     });
 
-    console.log(`Grouped ${this.attendancePoints.length} points into ${locationGroups.size} location groups`);
+    console.log(`Created ${markerData.length} markers from ${this.attendancePoints.length} attendance records`);
     
-    // Debug: Log each group to see what we have
-    locationGroups.forEach((points, key) => {
-      console.log(`Group ${key}: ${points.length} records`, points.map(p => ({
-        name: p.employeeName,
-        timeIn: p.timeIn,
-        timeOut: p.timeOut,
-        lat: p.latitude,
-        lng: p.longitude
-      })));
-    });
-
-    // Create markers for each location group
+    // Create markers for each attendance/departure record
     let markerCount = 0;
-    locationGroups.forEach((points, locationKey) => {
-      const firstPoint = points[0];
+    markerData.forEach((markerInfo, index) => {
+      const { point, lat, lng, type } = markerInfo;
+      
       hasValidPoints = true;
       if (bounds && bounds.extend) {
-        bounds.extend([firstPoint.latitude, firstPoint.longitude]);
+        bounds.extend([lat, lng]);
       }
       
-      console.log(`Creating marker for group: ${locationKey} with ${points.length} records`);
+      // Use green icon for attendance, red icon for departure
+      let icon = type === 'attendance' ? checkInIcon : checkOutIcon;
+      const typeLabel = type === 'attendance' ? 'Attendance' : 'Departure';
+      const timeValue = type === 'attendance' ? point.timeIn : point.timeOut;
+      const typeColor = type === 'attendance' ? '#4CAF50' : '#f44336';
       
-      let icon = mixedAttendanceIcon; // Default to mixed (purple) for multiple records
-      let popupContent = '';
+      console.log(`Creating ${type} marker for ${point.employeeName} at ${lat}, ${lng}`);
       
-      if (points.length === 1) {
-        // Single attendance record
-        const point = points[0];
-        
-        // Determine correct icon and time label for single record
-        if (point.timeIn && point.timeOut) {
-          // Complete attendance record
-          icon = mixedAttendanceIcon; // Use purple for complete records
-          const timeLabel = 'Complete Attendance';
-          const timeValue = `${point.timeIn} - ${point.timeOut}`;
-          
-          console.log(`Single complete record: ${timeLabel} for ${point.employeeName}`);
-          
-          popupContent = `
-                       <div style="min-width: ${popupWidth}; font-size: ${fontSize};">
-                         <h4 style="margin: 0 0 ${this.isMobile ? '3px' : '6px'} 0; color: #2c3e50; font-size: ${titleFontSize}; font-weight: 600;">${point.employeeName}</h4>
-                         <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                           <strong>${timeLabel}:</strong> ${timeValue}
-                         </p>
-                         <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                           <strong>Dept:</strong> ${point.department || 'N/A'}
-                         </p>
-                         <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                           <strong>Status:</strong> ${point.status || 'N/A'}
-                         </p>
-                         <small style="color: #6c757d; font-size: ${this.isMobile ? '0.6rem' : '0.8rem'};">ID: ${point.employeeId}</small>
-                       </div>
-                     `;
-        } else if (point.timeIn && !point.timeOut) {
-          // Check-in only
-          icon = checkInIcon;
-          const timeLabel = 'Check In Only';
-          
-          console.log(`Single check-in record: ${timeLabel} for ${point.employeeName}`);
-          
-          popupContent = `
-            <div style="min-width: ${popupWidth}; font-size: ${fontSize};">
-              <h4 style="margin: 0 0 ${this.isMobile ? '3px' : '6px'} 0; color: #2c3e50; font-size: ${titleFontSize}; font-weight: 600;">${point.employeeName}</h4>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>${timeLabel}:</strong> ${point.timeIn}
-              </p>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>Dept:</strong> ${point.department || 'N/A'}
-              </p>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>Status:</strong> ${point.status || 'N/A'}
-              </p>
-              <small style="color: #6c757d; font-size: ${this.isMobile ? '0.6rem' : '0.8rem'};">ID: ${point.employeeId}</small>
-            </div>
-          `;
-        } else if (!point.timeIn && point.timeOut) {
-          // Check-out only
-          icon = checkOutIcon;
-          const timeLabel = 'Check Out Only';
-          
-          console.log(`Single check-out record: ${timeLabel} for ${point.employeeName}`);
-          
-          popupContent = `
-            <div style="min-width: ${popupWidth}; font-size: ${fontSize};">
-              <h4 style="margin: 0 0 ${this.isMobile ? '3px' : '6px'} 0; color: #2c3e50; font-size: ${titleFontSize}; font-weight: 600;">${point.employeeName}</h4>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>${timeLabel}:</strong> ${point.timeOut}
-              </p>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>Dept:</strong> ${point.department || 'N/A'}
-              </p>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>Status:</strong> ${point.status || 'N/A'}
-              </p>
-              <small style="color: #6c757d; font-size: ${this.isMobile ? '0.6rem' : '0.8rem'};">ID: ${point.employeeId}</small>
-            </div>
-          `;
-        } else {
-          // No time data
-          icon = mixedAttendanceIcon;
-          const timeLabel = 'No Time Data';
-          
-          console.log(`Single record with no time data: ${timeLabel} for ${point.employeeName}`);
-          
-          popupContent = `
-            <div style="min-width: ${popupWidth}; font-size: ${fontSize};">
-              <h4 style="margin: 0 0 ${this.isMobile ? '3px' : '6px'} 0; color: #2c3e50; font-size: ${titleFontSize}; font-weight: 600;">${point.employeeName}</h4>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>${timeLabel}:</strong> N/A
-              </p>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>Dept:</strong> ${point.department || 'N/A'}
-              </p>
-              <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
-                <strong>Status:</strong> ${point.status || 'N/A'}
-              </p>
-              <small style="color: #6c757d; font-size: ${this.isMobile ? '0.6rem' : '0.8rem'};">ID: ${point.employeeId}</small>
-            </div>
-          `;
-        }
-      } else {
-        // Multiple attendance records at same location
-        // Check if all records are from the same employee
-        const uniqueEmployees = [...new Set(points.map(p => p.employeeId))];
-        const isSameEmployee = uniqueEmployees.length === 1;
-        
-        if (isSameEmployee) {
-          console.log(`Multiple records marker: ${points.length} records for ${firstPoint.employeeName} at same location`);
-          
-                     const multiPopupWidth = this.isMobile ? '140px' : '250px';
-                     const multiFontSize = this.isMobile ? '0.65rem' : '0.9rem';
-                     const multiTitleFontSize = this.isMobile ? '0.75rem' : '1rem';
-                     
-                     popupContent = `
-                       <div style="min-width: ${multiPopupWidth}; font-size: ${multiFontSize};">
-                         <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: ${multiTitleFontSize}; font-weight: 600;">${firstPoint.employeeName}</h4>
-                         <p style="margin: 3px 0; color: #495057; font-weight: bold; line-height: 1.3;">
-                           Multiple Records (${points.length})
-                         </p>
-          `;
-        } else {
-          console.log(`Multiple records marker: ${points.length} records from ${uniqueEmployees.length} employees at same location`);
-          
-          popupContent = `
-            <div style="min-width: 280px;">
-              <h4 style="margin: 0 0 12px 0; color: #2c3e50;">Multiple Employees at Same Location</h4>
-              <p style="margin: 4px 0; color: #495057; font-weight: bold;">
-                ${points.length} Records from ${uniqueEmployees.length} Employees
-              </p>
-          `;
-        }
-        
-        points.forEach((point, index) => {
-          // Determine the correct time label and value for each individual record
-          let timeLabel = '';
-          let timeValue = '';
-          let statusColor = '';
-          
-          if (point.timeIn && point.timeOut) {
-            // This record has both check-in and check-out
-            timeLabel = 'Check In & Out';
-            timeValue = `${point.timeIn} - ${point.timeOut}`;
-            statusColor = '#FF9800'; // Orange for complete attendance
-          } else if (point.timeIn && !point.timeOut) {
-            // This record has only check-in
-            timeLabel = 'Check In Only';
-            timeValue = point.timeIn;
-            statusColor = '#4CAF50'; // Green for check-in
-          } else if (!point.timeIn && point.timeOut) {
-            // This record has only check-out
-            timeLabel = 'Check Out Only';
-            timeValue = point.timeOut;
-            statusColor = '#f44336'; // Red for check-out
-          } else {
-            // This record has no time data
-            timeLabel = 'No Time Data';
-            timeValue = 'N/A';
-            statusColor = '#9E9E9E'; // Gray for no data
-          }
-          
-          console.log(`  Record ${index + 1}: ${timeLabel} at ${timeValue}`);
-          
-          // Show employee name if there are multiple employees at this location
-          const showEmployeeName = !isSameEmployee;
-          
-          popupContent += `
-            <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid ${statusColor};">
-              ${showEmployeeName ? `<p style="margin: 2px 0; font-weight: bold; color: #2c3e50;">${point.employeeName} (ID: ${point.employeeId})</p>` : ''}
-              <p style="margin: 2px 0; font-weight: bold; color: ${statusColor};">${timeLabel}</p>
-              <p style="margin: 2px 0; color: #495057;">Time: ${timeValue}</p>
-              <p style="margin: 2px 0; color: #495057;">Status: ${point.status || 'N/A'}</p>
-            </div>
-          `;
-        });
-        
-        if (isSameEmployee) {
-          popupContent += `
-              <p style="margin: 8px 0 4px 0; color: #495057;">
-                <strong>Department:</strong> ${firstPoint.department || 'N/A'}
-              </p>
-              <small>ID: ${firstPoint.employeeId}</small>
-            </div>
-          `;
-        } else {
-          // For multiple employees, show unique departments
-          const uniqueDepartments = [...new Set(points.map(p => p.department || 'N/A'))];
-          popupContent += `
-              <p style="margin: 8px 0 4px 0; color: #495057;">
-                <strong>Departments:</strong> ${uniqueDepartments.join(', ')}
-              </p>
-              <small>Location: ${firstPoint.latitude.toFixed(4)}, ${firstPoint.longitude.toFixed(4)}</small>
-            </div>
-          `;
-        }
-      }
+      // Create popup content
+      const popupContent = `
+        <div style="min-width: ${popupWidth}; font-size: ${fontSize};">
+          <h4 style="margin: 0 0 ${this.isMobile ? '3px' : '6px'} 0; color: #2c3e50; font-size: ${titleFontSize}; font-weight: 600;">${point.employeeName}</h4>
+          <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: ${typeColor}; font-weight: bold; line-height: ${this.isMobile ? '1.2' : '1.3'};">
+            <strong>${typeLabel}:</strong> ${timeValue ? new Date(timeValue).toLocaleString() : 'N/A'}
+          </p>
+          ${point.date ? `<p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
+            <strong>Date:</strong> ${new Date(point.date).toLocaleDateString()}
+          </p>` : ''}
+          <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
+            <strong>Dept:</strong> ${point.department || 'N/A'}
+          </p>
+          <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #495057; line-height: ${this.isMobile ? '1.2' : '1.3'};">
+            <strong>Status:</strong> ${point.status || 'N/A'}
+          </p>
+          <p style="margin: ${this.isMobile ? '1px' : '3px'} 0; color: #6c757d; line-height: ${this.isMobile ? '1.2' : '1.3'}; font-size: ${this.isMobile ? '0.65rem' : '0.8rem'};">
+            <strong>Location:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}
+          </p>
+          <small style="color: #6c757d; font-size: ${this.isMobile ? '0.6rem' : '0.8rem'};">ID: ${point.employeeId}</small>
+        </div>
+      `;
       
-      // Create marker with or without custom icon
+      // Create marker with custom icon
       const markerOptions: any = {};
       if (icon) {
         markerOptions.icon = icon;
       }
       
-      const marker = L.marker([firstPoint.latitude, firstPoint.longitude], markerOptions)
+      const marker = L.marker([lat, lng], markerOptions)
         .bindPopup(popupContent);
       
       this.markers.addLayer(marker);
       markerCount++;
-      const iconType = icon === null ? 'default' : 
-                      icon === mixedAttendanceIcon ? 'purple' : 
-                      icon === checkInIcon ? 'green' : 'red';
-      console.log(`✅ Added marker ${markerCount} (${points.length} records, icon: ${iconType}) to cluster group`);
+      console.log(`✅ Added ${type} marker ${markerCount} (${point.employeeName}) - ${typeColor}`);
     });
 
-    // Focus map on attendance points if we have valid data and no saved state
+    // Focus map on attendance points if we have valid data
+    // Always fit bounds to show all attendance markers when data is loaded
     if (hasValidPoints && bounds && bounds.isValid && bounds.isValid()) {
-      const savedState = this.getSavedMapState();
-      if (!savedState) {
-        console.log('No saved state, fitting bounds to attendance points');
-        // Use different padding for mobile vs desktop
-        const padding = this.isMobile ? [10, 10] : [20, 20];
-        this.map.fitBounds(bounds, { padding });
-      } else {
-        console.log('Saved state exists, keeping current view');
-      }
-    } else if (hasValidPoints) {
-      console.log('Has valid points but bounds are invalid or unavailable, using default view');
+      console.log('Fitting bounds to attendance points to show all markers');
+      // Use different padding for mobile vs desktop
+      const padding = this.isMobile ? [30, 30] : [50, 50];
+      
+      // Use a small delay to ensure map is fully rendered
+      setTimeout(() => {
+        if (this.map && bounds.isValid()) {
+          this.map.fitBounds(bounds, { 
+            padding: padding,
+            maxZoom: 18 // Don't zoom in too close
+          });
+          console.log('✅ Map bounds fitted to attendance points');
+        }
+      }, 200);
+    } else if (hasValidPoints && markerData.length > 0) {
+      console.log('Has valid points but bounds are invalid, using default view with first marker');
       // Set a default view if we have points but no bounds
-      if (this.map && locationGroups.size > 0) {
-        const firstGroup = Array.from(locationGroups.values())[0];
-        const firstPoint = firstGroup[0];
-        const fallbackZoom = this.isMobile ? 18 : 16;
-        this.map.setView([firstPoint.latitude, firstPoint.longitude], fallbackZoom);
-        console.log(`Set default view to first attendance point with zoom ${fallbackZoom}`);
-      }
+      const firstMarker = markerData[0];
+      const fallbackZoom = this.isMobile ? 15 : 13; // Zoom out more to show more area
+      
+      // Use a small delay to ensure map is fully rendered
+      setTimeout(() => {
+        if (this.map) {
+          this.map.setView([firstMarker.lat, firstMarker.lng], fallbackZoom);
+          console.log(`✅ Set default view to first marker (${firstMarker.type}) with zoom ${fallbackZoom}`);
+        }
+      }, 200);
     } else {
       console.log('No valid attendance points found');
     }

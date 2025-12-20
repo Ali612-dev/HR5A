@@ -48,12 +48,23 @@ export const AttendanceStore = signalStore(
             });
             
             if (response.isSuccess && response.data) {
+              // Handle successful response with data (even if empty)
               patchState(store, {
-                attendances: response.data.attendances,
-                totalCount: response.data.totalCount,
+                attendances: response.data.attendances || [],
+                totalCount: response.data.totalCount || 0,
                 isLoading: false,
+                error: null, // Clear any previous errors
+              });
+            } else if (response.isSuccess && !response.data) {
+              // Handle successful response with no data (empty result)
+              patchState(store, {
+                attendances: [],
+                totalCount: 0,
+                isLoading: false,
+                error: null, // No error, just empty data
               });
             } else {
+              // Handle actual error response
               console.error('❌ AttendanceStore: API failed with response:', response);
               patchState(store, { error: 'ERROR.FAILED_TO_LOAD_ATTENDANCES', isLoading: false });
             }

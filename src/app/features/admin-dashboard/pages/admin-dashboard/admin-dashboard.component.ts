@@ -2,7 +2,7 @@
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
 import { RejectionReasonDialogComponent } from '../../../../shared/components/rejection-reason-dialog/rejection-reason-dialog.component';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -20,11 +20,11 @@ import {
   faXmark,
   faInbox,
   faUsers,
-  faDollarSign
+  faDollarSign,
+  faChartLine
 } from '@fortawesome/free-solid-svg-icons';
 import { faUserCheck } from '@fortawesome/free-solid-svg-icons';
 import { trigger, state, style, animate, transition, query, stagger } from '@angular/animations';
-import { TypingTextComponent } from '../../../../shared/components/typing-text/typing-text.component';
 import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
 import { CustomTooltipDirective } from '../../../../shared/directives/custom-tooltip.directive';
 import { DashboardService } from '../../../../core/dashboard.service';
@@ -33,6 +33,9 @@ import { RequestService } from '../../../../core/request.service';
 import { RequestDto, RequestStatus, LatestRequestsResponseData } from '../../../../core/interfaces/request.interface';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 interface PendingRequest {
   id: number;
@@ -56,8 +59,6 @@ interface RecentApproval {
     RouterLink,
     TranslateModule,
     FontAwesomeModule,
-    CustomTooltipDirective,
-    ShimmerComponent,
   ],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css'],
@@ -80,21 +81,23 @@ interface RecentApproval {
     ])
   ]
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('employeesChart') employeesChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('attendanceChart') attendanceChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('pendingRequestsChart') pendingRequestsChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('approvedRequestsChart') approvedRequestsChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('monthlyTrendsChart') monthlyTrendsChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('requestsStatusChart') requestsStatusChartRef!: ElementRef<HTMLCanvasElement>;
+  
+  private charts: Chart[] = [];
+  private cdr = inject(ChangeDetectorRef);
+
   totalEmployees = 0;
   pendingCount = 0;
   approvedCount = 0;
-  pendingRequests: PendingRequest[] = [];
-  recentApprovals: RecentApproval[] = [];
 
   isLoadingStats = false;
   statsError: string | null = null;
-
-  isLoadingPendingRequests = false;
-  pendingRequestsError: string | null = null;
-
-  isLoadingApprovedRequests = false;
-  approvedRequestsError: string | null = null;
 
   // Font Awesome Icons
   faPeopleGroup = faPeopleGroup;
@@ -109,6 +112,7 @@ export class AdminDashboardComponent implements OnInit {
   faUsers = faUsers;
   faUserCheck = faUserCheck;
   faDollarSign = faDollarSign;
+  faChartLine = faChartLine;
 
   public authStore = inject(AuthStore);
   private dialog = inject(MatDialog);
@@ -146,43 +150,381 @@ export class AdminDashboardComponent implements OnInit {
         this.statsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_DASHBOARD_STATISTICS');
       }
       this.isLoadingStats = false;
+      // Initialize charts after data is loaded
+      setTimeout(() => {
+        this.initializeCharts();
+      }, 300);
     });
+  }
 
-    // Fetch Pending Requests
-    this.isLoadingPendingRequests = true;
-    this.pendingRequestsError = null;
-    this.requestService.getRequests({ status: RequestStatus.Pending, pageNumber: 1, pageSize: 10 }).pipe(
-      catchError(err => {
-        this.pendingRequestsError = this.translate.instant('ERROR.FAILED_TO_LOAD_PENDING_REQUESTS');
-        console.error('Error fetching pending requests:', err);
-        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
-      })
-    ).subscribe(response => {
-      if (response.isSuccess && response.data) {
-        this.pendingRequests = response.data.requests;
-      } else if (!this.pendingRequestsError) { // Only set if not already set by catchError
-        this.pendingRequestsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_PENDING_REQUESTS');
-      }
-      this.isLoadingPendingRequests = false;
-    });
+  refreshData(): void {
+    this.fetchDashboardData();
+    // Reinitialize charts after refresh
+    setTimeout(() => {
+      this.initializeCharts();
+    }, 500);
+  }
 
-    // Fetch Approved Requests
-    this.isLoadingApprovedRequests = true;
-    this.approvedRequestsError = null;
-    this.requestService.getLatestApprovedRequests(RequestStatus.Approved).pipe(
-      catchError(err => {
-        this.approvedRequestsError = this.translate.instant('ERROR.FAILED_TO_LOAD_APPROVED_REQUESTS');
-        console.error('Error fetching approved requests:', err);
-        return of({ isSuccess: false, data: null, message: this.translate.instant('ERROR.TITLE'), errors: [err] });
-      })
-    ).subscribe(response => {
-      if (response.isSuccess && response.data) {
-        this.recentApprovals = (response.data as LatestRequestsResponseData).requests;
-      } else if (!this.approvedRequestsError) { // Only set if not already set by catchError
-        this.approvedRequestsError = response.message || this.translate.instant('ERROR.UNKNOWN_ERROR_FETCHING_APPROVED_REQUESTS');
+  ngAfterViewInit(): void {
+    // Wait for view to be fully initialized
+    this.cdr.detectChanges();
+    // Try multiple times to ensure canvas elements are ready
+    let attempts = 0;
+    const maxAttempts = 10;
+    const tryInit = () => {
+      attempts++;
+      if (this.employeesChartRef?.nativeElement && 
+          this.attendanceChartRef?.nativeElement &&
+          this.pendingRequestsChartRef?.nativeElement &&
+          this.approvedRequestsChartRef?.nativeElement &&
+          this.monthlyTrendsChartRef?.nativeElement &&
+          this.requestsStatusChartRef?.nativeElement) {
+        this.initializeCharts();
+      } else if (attempts < maxAttempts) {
+        setTimeout(tryInit, 150);
+      } else {
+        console.warn('Charts initialization failed after multiple attempts');
+        // Try to initialize anyway with available charts
+        this.initializeCharts();
       }
-      this.isLoadingApprovedRequests = false;
+    };
+    setTimeout(tryInit, 500);
+  }
+
+  ngOnDestroy(): void {
+    // Destroy all charts
+    this.charts.forEach(chart => {
+      try {
+        if (chart && typeof chart.destroy === 'function') {
+          chart.destroy();
+        }
+      } catch (e) {
+        console.warn('Error destroying chart:', e);
+      }
     });
+    this.charts = [];
+  }
+
+  initializeCharts(): void {
+    // Destroy existing charts first
+    this.charts.forEach(chart => {
+      try {
+        if (chart && typeof chart.destroy === 'function') {
+          chart.destroy();
+        }
+      } catch (e) {
+        console.warn('Error destroying chart:', e);
+      }
+    });
+    this.charts = [];
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      // Initialize all charts
+      this.createEmployeesChart();
+      this.createAttendanceChart();
+      this.createPendingRequestsChart();
+      this.createApprovedRequestsChart();
+      this.createMonthlyTrendsChart();
+      this.createRequestsStatusChart();
+    });
+  }
+
+  createEmployeesChart(): void {
+    if (!this.employeesChartRef?.nativeElement) {
+      console.warn('Employees Chart canvas not found');
+      return;
+    }
+    
+    const existingChart = Chart.getChart(this.employeesChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.employeesChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: this.translate.instant('TotalEmployees'),
+            data: [120, 135, 150, 145, 160, 175],
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Employees Chart:', error);
+    }
+  }
+
+  createAttendanceChart(): void {
+    if (!this.attendanceChartRef?.nativeElement) {
+      console.warn('Attendance Chart canvas not found');
+      return;
+    }
+    
+    const existingChart = Chart.getChart(this.attendanceChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.attendanceChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: [
+            this.translate.instant('Present'),
+            this.translate.instant('Absent'),
+            this.translate.instant('Late')
+          ],
+          datasets: [{
+            data: [85, 10, 5],
+            backgroundColor: [
+              '#f97316',
+              '#ea580c',
+              '#fb923c'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'left'
+            }
+          }
+        }
+      });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Attendance Chart:', error);
+    }
+  }
+
+  createPendingRequestsChart(): void {
+    if (!this.pendingRequestsChartRef?.nativeElement) {
+      console.warn('Pending Requests Chart canvas not found');
+      return;
+    }
+    
+    const existingChart = Chart.getChart(this.pendingRequestsChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.pendingRequestsChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+          datasets: [{
+            label: this.translate.instant('PendingRequests'),
+            data: [15, 20, 18, 25],
+            backgroundColor: [
+              '#f97316',
+              '#ea580c',
+              '#fb923c',
+              '#fdba74'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Pending Requests Chart:', error);
+    }
+  }
+
+  createApprovedRequestsChart(): void {
+    if (!this.approvedRequestsChartRef?.nativeElement) {
+      console.warn('Approved Requests Chart canvas not found');
+      return;
+    }
+    
+    const existingChart = Chart.getChart(this.approvedRequestsChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.approvedRequestsChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: [
+            this.translate.instant('Approved'),
+            this.translate.instant('Rejected'),
+            this.translate.instant('Pending')
+          ],
+          datasets: [{
+            data: [60, 20, 20],
+            backgroundColor: [
+              '#f97316',
+              '#ea580c',
+              '#fb923c'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'left'
+            }
+          }
+        }
+      });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Approved Requests Chart:', error);
+    }
+  }
+
+  createMonthlyTrendsChart(): void {
+    if (!this.monthlyTrendsChartRef?.nativeElement) {
+      console.warn('Monthly Trends Chart canvas not found');
+      return;
+    }
+    
+    const existingChart = Chart.getChart(this.monthlyTrendsChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.monthlyTrendsChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: this.translate.instant('MonthlyTrends'),
+            data: [100, 120, 115, 130, 125, 140],
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Monthly Trends Chart:', error);
+    }
+  }
+
+  createRequestsStatusChart(): void {
+    if (!this.requestsStatusChartRef?.nativeElement) {
+      console.warn('Requests Status Chart canvas not found');
+      return;
+    }
+    
+    const existingChart = Chart.getChart(this.requestsStatusChartRef.nativeElement);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const ctx = this.requestsStatusChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const chart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: [
+            this.translate.instant('Pending'),
+            this.translate.instant('Approved'),
+            this.translate.instant('Rejected'),
+            this.translate.instant('Processing'),
+            this.translate.instant('Completed')
+          ],
+          datasets: [{
+            label: this.translate.instant('RequestsStatus'),
+            data: [25, 60, 15, 10, 40],
+            backgroundColor: 'rgba(249, 115, 22, 0.2)',
+            borderColor: '#f97316',
+            pointBackgroundColor: '#f97316',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#f97316'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+      this.charts.push(chart);
+    } catch (error) {
+      console.error('Error creating Requests Status Chart:', error);
+    }
   }
 
   logout(): void {

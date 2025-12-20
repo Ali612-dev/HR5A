@@ -42,25 +42,25 @@ interface AssignDialogData {
     .assign-dialog { 
       min-width: 1200px; 
       max-width: 100%; 
-      background: #f8f9fa;
+      background: #f3f4f6;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
     }
     .dialog-header { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-bottom: none;
+      background: #ffffff;
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
       padding: 1.5rem 2rem; 
       margin-bottom: 0;
     }
     .dialog-header h5 {
-      color: white;
+      color: #1f2937;
       font-weight: 600;
       margin: 0;
       font-size: 1.25rem;
     }
     .dialog-header small {
-      color: rgba(255, 255, 255, 0.9);
+      color: #6b7280;
       font-weight: 500;
       font-size: 0.9rem;
     }
@@ -72,8 +72,8 @@ interface AssignDialogData {
       overflow-y: auto;
     }
     .dialog-actions { 
-      background: #f8f9fa;
-      border-top: 1px solid #e9ecef;
+      background: #ffffff;
+      border-top: 1px solid rgba(209, 213, 219, 0.8);
       padding: 1.5rem 2rem;
       margin-top: 0;
     }
@@ -84,28 +84,48 @@ interface AssignDialogData {
       border-radius: 8px;
       font-size: 0.9rem;
       transition: all 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
     .dialog-actions .btn-primary {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border: none;
-      color: white;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.2)) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(249, 115, 22, 0.4) !important;
+      color: #f97316 !important;
+      position: relative;
+      overflow: hidden;
+    }
+    .dialog-actions .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.5s ease;
     }
     .dialog-actions .btn-primary:hover {
-      background: linear-gradient(135deg, #5a6fd8, #6a4190);
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(234, 88, 12, 0.3)) !important;
+      border-color: rgba(249, 115, 22, 0.6) !important;
+      color: #ea580c !important;
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+    }
+    .dialog-actions .btn-primary:hover::before {
+      left: 100%;
     }
     .dialog-actions .btn-secondary {
-      background: #6c757d;
-      border: 1px solid #6c757d;
-      color: white;
+      background: #ffffff !important;
+      border: 1px solid rgba(209, 213, 219, 0.8) !important;
+      color: #1f2937 !important;
     }
     .dialog-actions .btn-secondary:hover {
-      background: #5a6268;
-      border-color: #545b62;
+      background: #f9fafb !important;
+      border-color: rgba(156, 163, 175, 0.8) !important;
+      color: #1f2937 !important;
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
   `]
 })

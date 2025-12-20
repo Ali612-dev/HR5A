@@ -1,53 +1,54 @@
 <div class="employees-container">
   <div class="container-fluid flex-grow-1">
     <!-- Header -->
-<div *ngIf="!store.isLoading(); else headerShimmer">
-  <div class="page-header">
-    <div class="header-left">
-      <button type="button" class="btn btn-light back-button" (click)="onBack()">
-        <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
-        {{ 'Back' | translate }}
-      </button>
-      <h2 class="page-title">{{ 'Employees' | translate }}</h2>
-    </div>
-    <div class="header-actions">
-      <div class="header-actions-top">
-        <button class="btn btn-secondary me-2" routerLink="/employees/add">
-          <fa-icon [icon]="faPlus" class="me-1"></fa-icon> {{ 'AddEmployee' | translate }}
-        </button>
-        <div class="whatsapp-button-container">
-          <button class="btn btn-secondary" (click)="sendWhatsAppMessage()" [disabled]="selectedCount === 0 || groupWhatsappLoading">
-            <fa-icon [icon]="whatsappIcon" *ngIf="!groupWhatsappLoading" class="me-1"></fa-icon>
-            <fa-icon [icon]="faSpinner" *ngIf="groupWhatsappLoading" class="me-1 fa-spin"></fa-icon>
-            {{ groupWhatsappLoading ? ('Sending...' | translate) : ('SendWhatsApp' | translate) }}
+    <div *ngIf="!store.isLoading(); else headerShimmer">
+      <div class="page-header">
+        <div class="header-left">
+          <button type="button" class="btn btn-ghost" (click)="onBack()">
+            <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+            {{ 'Back' | translate }}
           </button>
-          <span class="badge bg-info" *ngIf="selectedCount > 0">{{ selectedCount }}</span>
+        </div>
+        <div class="header-center">
+          <h2 class="page-title">
+            <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
+            {{ 'Employees' | translate }}
+          </h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary me-2" routerLink="/employees/add">
+            <fa-icon [icon]="faPlus" class="me-1"></fa-icon> {{ 'AddEmployee' | translate }}
+          </button>
+          <div class="whatsapp-button-container">
+            <button class="btn btn-primary" (click)="sendWhatsAppMessage()" [disabled]="selectedCount === 0 || groupWhatsappLoading">
+              <fa-icon [icon]="whatsappIcon" *ngIf="!groupWhatsappLoading" class="me-1"></fa-icon>
+              <fa-icon [icon]="faSpinner" *ngIf="groupWhatsappLoading" class="me-1 fa-spin"></fa-icon>
+              {{ groupWhatsappLoading ? ('Sending...' | translate) : ('SendWhatsApp' | translate) }}
+            </button>
+            <span class="badge bg-info" *ngIf="selectedCount > 0">{{ selectedCount }}</span>
+          </div>
+          <button class="btn btn-outline-light ms-2" (click)="toggleFilter()">
+            <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
+          </button>
         </div>
       </div>
-      <div class="header-actions-bottom mt-3">
-        <button class="btn btn-secondary" (click)="toggleFilter()">
-          <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
-        </button>
-      </div>
     </div>
-  </div>
-</div>
 
-<!-- Header Shimmer Template -->
-<ng-template #headerShimmer>
-  <div class="page-header shimmer-header">
-    <div class="shimmer-line page-title-shimmer"></div>
-    <div class="header-actions">
-      <div class="header-actions-top">
-        <div class="shimmer-line btn-shimmer"></div>
-        <div class="shimmer-line btn-shimmer"></div>
+    <!-- Header Shimmer Template -->
+    <ng-template #headerShimmer>
+      <div class="page-header shimmer-header">
+        <div class="shimmer-line page-title-shimmer"></div>
+        <div class="header-actions">
+          <div class="header-actions-top">
+            <div class="shimmer-line btn-shimmer"></div>
+            <div class="shimmer-line btn-shimmer"></div>
+          </div>
+          <div class="header-actions-bottom mt-3">
+            <div class="shimmer-line btn-shimmer filter-btn-shimmer"></div>
+          </div>
+        </div>
       </div>
-      <div class="header-actions-bottom mt-3">
-        <div class="shimmer-line btn-shimmer filter-btn-shimmer"></div>
-      </div>
-    </div>
-  </div>
-</ng-template>
+    </ng-template>
 
     <!-- Filtering -->
     <div *ngIf="!isFilterCollapsed" class="glass-card filter-card">
@@ -68,20 +69,59 @@
       </form>
     </div>
 
+    <!-- Templates for Material Data Table -->
+    <ng-template #checkboxHeaderTemplate>
+      <input 
+        type="checkbox" 
+        [checked]="isAllSelected" 
+        [indeterminate]="isSomeSelected && !isAllSelected"
+        (change)="toggleSelection(null)"
+        class="employee-checkbox">
+    </ng-template>
+
+    <ng-template #checkboxTemplate let-row>
+      <input 
+        type="checkbox" 
+        [checked]="row.selected" 
+        (change)="toggleSelection(row)"
+        class="employee-checkbox">
+    </ng-template>
+
+    <ng-template #nameTemplate let-row>
+      <div class="employee-name-cell">
+        <div class="employee-name">{{ row.name }}</div>
+        <div class="employee-card-number" *ngIf="row.cardNumber">{{ row.cardNumber }}</div>
+      </div>
+    </ng-template>
+
+    <ng-template #statusTemplate let-row>
+      <span class="badge-soft" [class.badge-success]="row.isActive" [class.badge-muted]="!row.isActive">
+        {{ row.isActive ? ('Active' | translate) : ('Inactive' | translate) }}
+      </span>
+    </ng-template>
+
     <!-- Employees Table -->
-        <app-responsive-employee-table
-      [employees]="store.employees()"
-      [totalCount]="store.totalCount()"
-      [request]="store.request()"
+    <app-material-data-table
+      [data]="store.employees()"
+      [columns]="tableColumns"
+      [actions]="tableActions"
       [isLoading]="store.isLoading()"
       [error]="store.error()"
-      [selectedEmployees]="selectedEmployees"
-      (pageChange)="onPageChange($event)"
-      (sort)="onSort($event)"
-      (delete)="onDelete($event)"
-      (toggleSelection)="toggleSelection($event)"
-      (retry)="onRetryLoadEmployees()"
-    ></app-responsive-employee-table>
+      [sortField]="store.request().sortField || ''"
+      [sortOrder]="store.request().sortOrder || 'asc'"
+      [emptyMessage]="'NoEmployees'"
+      [showActions]="true"
+      (sortChange)="onSort($event)"
+      (retry)="onRetryLoadEmployees()">
+    </app-material-data-table>
+
+    <!-- Pagination -->
+    <app-pagination
+      *ngIf="!store.isLoading() && !store.error() && store.totalCount() > 0"
+      [totalCount]="store.totalCount()"
+      [request]="store.request()"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
 
   </div>
 </div>

@@ -7,15 +7,18 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EmployeeService } from '../../../../core/employee.service';
 import { EmployeeDto } from '../../../../core/interfaces/employee.interface';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSave, faTimes, faArrowLeft, faUserPlus, faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTimes, faArrowLeft, faUserPlus, faPeopleGroup, faDollarSign } from '@fortawesome/free-solid-svg-icons';
 import { AddEmployeeStore } from '../../../../store/add-employee.store';
 import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, catchError, forkJoin, map, of, takeUntil } from 'rxjs';
 import { AuthService } from '../../../../core/auth.service';
 import { UpdateUserCredentialsRequest, UserDetailsDto } from '../../../../core/interfaces/auth.interface';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { FinancialService } from '../../../../core/services/financial.service';
+import { WorkRuleDto, ShiftDto, SalaryType, AssignedEmployeeDto } from '../../../../core/interfaces/financial.interface';
+import { AssignShiftDialogComponent } from '../../../financial/pages/work-rules/assign-shift-dialog.component';
 
 @Component({
   selector: 'app-update-employee',
@@ -44,6 +47,7 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
   faArrowLeft = faArrowLeft;
   faUserPlus = faUserPlus;
   faPeopleGroup = faPeopleGroup;
+  faDollarSign = faDollarSign;
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -52,12 +56,26 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
   private employeeService = inject(EmployeeService);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
+  private financialService = inject(FinancialService);
   private destroy$ = new Subject<void>();
+  private pendingShiftId: number | null = null;
 
   // Translation cache to avoid repeated lookups
   private errorMessages: { [key: string]: string } = {};
   private isTranslationLoaded = false;
   private loadingDialogRef: MatDialogRef<NotificationDialogComponent> | null = null;
+
+  workRules: WorkRuleDto[] = [];
+  shifts: ShiftDto[] = [];
+  isWorkRulesLoading = false;
+  isShiftsLoading = false;
+  SalaryType = SalaryType;
+  salaryTypeOptions = [
+    { value: SalaryType.PerMonth, labelKey: 'SalaryType_PerMonth' },
+    { value: SalaryType.PerDay, labelKey: 'SalaryType_PerDay' },
+    { value: SalaryType.PerHour, labelKey: 'SalaryType_PerHour' },
+    { value: SalaryType.Custom, labelKey: 'SalaryType_Custom' }
+  ];
 
   constructor() {
     effect(() => {
@@ -88,6 +106,10 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
     this.initializeForm();
     this.loadTranslations();
     this.store.resetState();
+    this.loadWorkRules();
+    this.loadShifts();
+    this.setupWorkRuleShiftListener();
+    this.setupSalaryTypeListener();
     this.employeeId = this.route.snapshot.paramMap.get('id')!;
     if (this.employeeId) {
       this.employeeService.getEmployeeById(Number(this.employeeId)).subscribe(response => {
@@ -104,6 +126,7 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
             cardNumber: employee.cardNumber,
             isActive: employee.isActive
           });
+          this.prefillFinancialData(employee);
 
           if (this.userId) {
             console.log('🔗 UpdateEmployee: Loading user credentials for userId:', this.userId);
@@ -155,8 +178,17 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       department: [''],
       email: ['', [Validators.required, Validators.email]],
       cardNumber: ['', Validators.required],
-      isActive: [true]
+      isActive: [true],
+      workRuleId: [null, Validators.required],
+      shiftId: [null, Validators.required],
+      salaryType: [SalaryType.PerMonth, Validators.required],
+      salaryAmount: [null, [Validators.required, Validators.min(0)]],
+      hourlyRate: [null],
+      overtimeRate: [null, Validators.min(0)],
+      salaryNotes: ['', Validators.maxLength(300)]
     });
+
+    this.updateHourlyRateValidators(this.employeeForm.get('salaryType')?.value ?? SalaryType.PerMonth);
   }
 
   private loadTranslations(): void {
@@ -171,7 +203,21 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       'ERROR.CARD_NUMBER_REQUIRED',
       'ERROR.NAME_MINLENGTH',
       'ERROR.PHONE_PATTERN',
-      'ERROR.EMAIL_EMAIL'
+      'ERROR.EMAIL_EMAIL',
+      'ERROR.WORK_RULE_REQUIRED',
+      'ERROR.SHIFT_REQUIRED',
+      'ERROR.SALARY_TYPE_REQUIRED',
+      'ERROR.SALARY_AMOUNT_REQUIRED',
+      'ERROR.SALARY_AMOUNT_MIN',
+      'ERROR.HOURLY_RATE_REQUIRED',
+      'ERROR.HOURLY_RATE_MIN',
+      'ERROR.OVERTIME_RATE_MIN',
+      'ERROR.SALARY_NOTES_MAXLENGTH',
+      'ERROR.SELECT_WORK_RULE_AND_SHIFT',
+      'ERROR.NO_ELIGIBLE_EMPLOYEES_SHIFT',
+      'ERROR.SHIFT_ASSIGNMENT_FAILED',
+      'ERROR.SHIFT_NOT_FOUND',
+      'SUCCESS.SHIFT_ASSIGNMENT'
     ];
 
     // Load translations when language changes
@@ -272,9 +318,77 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
     });
   }
 
+  private prefillFinancialData(employee: EmployeeDto): void {
+    const workRuleId = employee.workRuleId ?? null;
+    const shiftId = this.extractShiftId(employee.shift);
+
+    if (workRuleId !== null) {
+      this.pendingShiftId = shiftId;
+      this.employeeForm.get('workRuleId')?.setValue(workRuleId, { emitEvent: false });
+      this.loadShifts(workRuleId);
+    } else {
+      this.pendingShiftId = null;
+      this.employeeForm.get('workRuleId')?.setValue(null, { emitEvent: false });
+      this.employeeForm.get('shiftId')?.setValue(null, { emitEvent: false });
+    }
+
+    this.loadEmployeeSalary(employee.id);
+  }
+
+  private loadEmployeeSalary(employeeId: number): void {
+    this.financialService.getEmployeeSalaryByEmployeeId(employeeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.isSuccess && response.data) {
+            const salary = response.data;
+            const salaryTypeValue =
+              typeof salary.salaryType === 'number'
+                ? salary.salaryType
+                : SalaryType[salary.salaryType as keyof typeof SalaryType] ?? SalaryType.PerMonth;
+
+            this.employeeForm.patchValue({
+              salaryType: salaryTypeValue,
+              salaryAmount: salary.amount ?? null,
+              hourlyRate: salary.hourlyRate ?? null,
+              overtimeRate: salary.overtimeRate ?? null,
+              salaryNotes: salary.notes ?? ''
+            });
+
+            this.updateHourlyRateValidators(salaryTypeValue);
+          }
+        },
+        error: (error) => {
+          console.error('Error loading employee salary:', error);
+        }
+      });
+  }
+
+  private extractShiftId(shift: any): number | null {
+    if (!shift) {
+      return null;
+    }
+
+    if (typeof shift === 'number') {
+      return shift;
+    }
+
+    if (typeof shift === 'string') {
+      const parsed = Number(shift);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    if (typeof shift === 'object') {
+      return shift.id ?? shift.shiftId ?? null;
+    }
+
+    return null;
+  }
+
   private navigateToEmployeesList(): void {
     this.router.navigate(['/employees']);
     this.store.resetState();
+    window.history.pushState({}, '', '/employees');
   }
 
   private resetForm(): void {
@@ -465,6 +579,30 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Handle min validation
+    if (errors['min']) {
+      const errorKey = this.getMinValueErrorKey(controlName);
+      const message = errorKey ? this.errorMessages[errorKey] : null;
+      if (message && message !== errorKey) {
+        errorMessages.push(message);
+      } else if (errorKey) {
+        const fallbackMessage = this.translate.instant(errorKey);
+        errorMessages.push(fallbackMessage !== errorKey ? fallbackMessage : this.getDefaultErrorMessage(controlName, 'min'));
+      }
+    }
+
+    // Handle maxlength validation
+    if (errors['maxlength']) {
+      const errorKey = this.getMaxLengthErrorKey(controlName);
+      const message = errorKey ? this.errorMessages[errorKey] : null;
+      if (message && message !== errorKey) {
+        errorMessages.push(message);
+      } else if (errorKey) {
+        const fallbackMessage = this.translate.instant(errorKey);
+        errorMessages.push(fallbackMessage !== errorKey ? fallbackMessage : this.getDefaultErrorMessage(controlName, 'maxlength'));
+      }
+    }
+
     // Handle email validation
     if (errors['email']) {
       const errorKey = 'ERROR.EMAIL_EMAIL';
@@ -486,7 +624,12 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       'name': 'ERROR.NAME_REQUIRED',
       'phone': 'ERROR.PHONE_REQUIRED',
       'email': 'ERROR.EMAIL_REQUIRED',
-      'cardNumber': 'ERROR.CARD_NUMBER_REQUIRED'
+      'cardNumber': 'ERROR.CARD_NUMBER_REQUIRED',
+      'workRuleId': 'ERROR.WORK_RULE_REQUIRED',
+      'shiftId': 'ERROR.SHIFT_REQUIRED',
+      'salaryType': 'ERROR.SALARY_TYPE_REQUIRED',
+      'salaryAmount': 'ERROR.SALARY_AMOUNT_REQUIRED',
+      'hourlyRate': 'ERROR.HOURLY_RATE_REQUIRED'
     };
     return fieldKeyMap[controlName] || `ERROR.${controlName.toUpperCase()}_REQUIRED`;
   }
@@ -505,6 +648,22 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       'phone': 'ERROR.PHONE_PATTERN'
     };
     return fieldKeyMap[controlName] || `ERROR.${controlName.toUpperCase()}_PATTERN`;
+  }
+
+  private getMinValueErrorKey(controlName: string): string | null {
+    const fieldKeyMap: { [key: string]: string } = {
+      'salaryAmount': 'ERROR.SALARY_AMOUNT_MIN',
+      'hourlyRate': 'ERROR.HOURLY_RATE_MIN',
+      'overtimeRate': 'ERROR.OVERTIME_RATE_MIN'
+    };
+    return fieldKeyMap[controlName] || null;
+  }
+
+  private getMaxLengthErrorKey(controlName: string): string | null {
+    const fieldKeyMap: { [key: string]: string } = {
+      'salaryNotes': 'ERROR.SALARY_NOTES_MAXLENGTH'
+    };
+    return fieldKeyMap[controlName] || null;
   }
 
   private getDefaultErrorMessage(controlName: string, errorType: string): string {
@@ -531,6 +690,29 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       },
       'newPassword': {
         'minlength': 'Password must be at least 6 characters long'
+      },
+      'workRuleId': {
+        'required': 'Work rule selection is required'
+      },
+      'shiftId': {
+        'required': 'Shift selection is required'
+      },
+      'salaryType': {
+        'required': 'Salary type is required'
+      },
+      'salaryAmount': {
+        'required': 'Salary amount is required',
+        'min': 'Salary amount must be zero or greater'
+      },
+      'hourlyRate': {
+        'required': 'Hourly rate is required for this salary type',
+        'min': 'Hourly rate must be zero or greater'
+      },
+      'overtimeRate': {
+        'min': 'Overtime rate must be zero or greater'
+      },
+      'salaryNotes': {
+        'maxlength': 'Salary notes cannot exceed 300 characters'
       }
     };
 
@@ -560,6 +742,223 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  private loadWorkRules(): void {
+    this.isWorkRulesLoading = true;
+    this.financialService.getWorkRules({ pageNumber: 1, pageSize: 100 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.isSuccess && response.data) {
+            this.workRules = Array.isArray(response.data) ? response.data : (response.data as any)?.data ?? [];
+          } else {
+            this.workRules = [];
+          }
+        },
+        error: (error) => {
+          console.error('Error loading work rules:', error);
+          this.workRules = [];
+        },
+        complete: () => {
+          this.isWorkRulesLoading = false;
+        }
+      });
+  }
+
+  private loadShifts(workRuleId?: number): void {
+    this.isShiftsLoading = true;
+    this.financialService.getShifts(workRuleId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.isSuccess && response.data) {
+            this.shifts = response.data;
+            if (this.pendingShiftId !== null && this.shifts.some(shift => shift.id === this.pendingShiftId)) {
+              this.employeeForm.get('shiftId')?.setValue(this.pendingShiftId, { emitEvent: false });
+              this.pendingShiftId = null;
+            }
+          } else {
+            this.shifts = [];
+            this.pendingShiftId = null;
+          }
+        },
+        error: (error) => {
+          console.error('Error loading shifts:', error);
+          this.shifts = [];
+          this.pendingShiftId = null;
+        },
+        complete: () => {
+          this.isShiftsLoading = false;
+        }
+      });
+  }
+
+  private setupWorkRuleShiftListener(): void {
+    const workRuleControl = this.employeeForm.get('workRuleId');
+    workRuleControl?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        const numericValue = this.toNumber(value);
+        this.pendingShiftId = null;
+        this.employeeForm.get('shiftId')?.setValue(null);
+        if (numericValue !== null) {
+          this.loadShifts(numericValue);
+        } else {
+          this.loadShifts();
+        }
+      });
+  }
+
+  private setupSalaryTypeListener(): void {
+    const salaryTypeControl = this.employeeForm.get('salaryType');
+    salaryTypeControl?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => this.updateHourlyRateValidators(value));
+  }
+
+  private updateHourlyRateValidators(value: SalaryType): void {
+    const hourlyControl = this.employeeForm.get('hourlyRate');
+    if (!hourlyControl) {
+      return;
+    }
+
+    if (this.requiresHourlyRate(value)) {
+      hourlyControl.setValidators([Validators.required, Validators.min(0)]);
+    } else {
+      hourlyControl.clearValidators();
+      hourlyControl.setValue(null);
+    }
+    hourlyControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  requiresHourlyRate(value?: SalaryType): boolean {
+    const type = value ?? this.employeeForm.get('salaryType')?.value ?? SalaryType.PerMonth;
+    return type === SalaryType.PerHour || type === SalaryType.Custom;
+  }
+
+  openAssignShiftDialog(): void {
+    const workRuleId = this.toNumber(this.employeeForm.get('workRuleId')?.value);
+    const shiftId = this.toNumber(this.employeeForm.get('shiftId')?.value);
+
+    if (!workRuleId || !shiftId) {
+      this.showErrorDialog(this.translate.instant('ERROR.SELECT_WORK_RULE_AND_SHIFT'));
+      return;
+    }
+
+    this.financialService.getWorkRuleDetails(workRuleId).subscribe({
+      next: (response) => {
+        if (response.isSuccess && response.data) {
+          const targetShift = response.data.shifts?.find(shift => shift.id === shiftId);
+          if (!targetShift) {
+            this.showErrorDialog(this.translate.instant('ERROR.SHIFT_NOT_FOUND'));
+            return;
+          }
+
+          const eligibleEmployees = this.getEligibleEmployeesForShift(response.data.assignedEmployees ?? [], targetShift);
+          if (!eligibleEmployees.length) {
+            this.showErrorDialog(this.translate.instant('ERROR.NO_ELIGIBLE_EMPLOYEES_SHIFT'));
+            return;
+          }
+
+          const dialogRef = this.dialog.open(AssignShiftDialogComponent, {
+            panelClass: 'glass-dialog-panel',
+            data: {
+              shiftId,
+              shiftName: targetShift.name,
+              availableEmployees: eligibleEmployees
+            }
+          });
+
+          dialogRef.afterClosed().subscribe((selectedIds: number[] | null) => {
+            if (selectedIds?.length) {
+              this.assignEmployeesToShift(shiftId, selectedIds);
+            }
+          });
+        } else {
+          this.showErrorDialog(response.message || this.translate.instant('ERROR.FAILED_TO_LOAD_WORK_RULE_DETAILS'));
+        }
+      },
+      error: (error) => {
+        console.error('Error loading work rule details:', error);
+        this.showErrorDialog(error?.error?.message || this.translate.instant('ERROR.FAILED_TO_LOAD_WORK_RULE_DETAILS'));
+      }
+    });
+  }
+
+  private getEligibleEmployeesForShift(employees: AssignedEmployeeDto[], shift: ShiftDto): AssignedEmployeeDto[] {
+    const assignedIds = new Set((shift.employees ?? []).map(employee => employee.employeeId));
+    return employees.filter(employee => !assignedIds.has(employee.id));
+  }
+
+  private assignEmployeesToShift(shiftId: number, employeeIds: number[]): void {
+    const assignments = employeeIds.map(employeeId =>
+      this.financialService.assignEmployeeToShift(shiftId, employeeId).pipe(
+        map(response => ({ isSuccess: response.isSuccess, message: response.message })),
+        catchError(error => {
+          console.error('Error assigning employee to shift:', error);
+          return of({ isSuccess: false, message: error?.error?.message || error.message || '' });
+        })
+      )
+    );
+
+    forkJoin(assignments).subscribe(results => {
+      const failed = results.find(result => !result.isSuccess);
+      if (failed) {
+        this.showShiftAssignmentMessage(failed.message || this.translate.instant('ERROR.SHIFT_ASSIGNMENT_FAILED'), false);
+      } else {
+        this.showShiftAssignmentMessage(this.translate.instant('SUCCESS.SHIFT_ASSIGNMENT'), true);
+      }
+    });
+  }
+
+  private showShiftAssignmentMessage(message: string, isSuccess: boolean): void {
+    const title = isSuccess ? this.translate.instant('SUCCESS.TITLE') : this.translate.instant('ERROR.TITLE');
+    this.dialog.open(NotificationDialogComponent, {
+      panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+      data: { title, message, isSuccess }
+    });
+  }
+
+  getWorkRuleLabel(rule: WorkRuleDto): string {
+    const typeLabel = this.getWorkRuleTypeText(rule.type);
+    return rule.category ? `${rule.category} • ${typeLabel}` : typeLabel;
+  }
+
+  private getWorkRuleTypeText(type: WorkRuleDto['type']): string {
+    if (typeof type === 'number') {
+      switch (type) {
+        case 0:
+        case 1:
+          return this.translate.instant('WorkRuleType.Daily');
+        case 2:
+          return this.translate.instant('WorkRuleType.Weekly');
+        case 3:
+          return this.translate.instant('WorkRuleType.Monthly');
+        case 4:
+          return this.translate.instant('WorkRuleType.Hourly');
+        case 5:
+          return this.translate.instant('WorkRuleType.Custom');
+        case 6:
+          return this.translate.instant('WorkRuleType.Shifts');
+        default: return this.translate.instant('WorkRuleType.Custom');
+      }
+    }
+    const translated = this.translate.instant(`WorkRuleType.${type}`);
+    return translated !== `WorkRuleType.${type}` ? translated : String(type);
+  }
+
+  formatShiftLabel(shift: ShiftDto): string {
+    const start = shift.startTime?.slice(0, 5) ?? '';
+    const end = shift.endTime?.slice(0, 5) ?? '';
+    return `${shift.name} • ${start} - ${end}`;
+  }
+
+  private toNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
 
   /**
    * Debug method to test translations - remove in production

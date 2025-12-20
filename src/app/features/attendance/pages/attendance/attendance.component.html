@@ -1,5 +1,5 @@
 <div class="attendance-container">
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-3 py-md-4">
     <!-- Header -->
     <div class="page-header">
       <div class="header-left">
@@ -7,6 +7,9 @@
           <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
           {{ 'Back' | translate }}
         </button>
+      </div>
+      <div class="header-center">
+        <fa-icon [icon]="faClock" class="header-icon"></fa-icon>
         <h2 class="page-title">{{ 'DailyAttendance' | translate }}</h2>
       </div>
       <div class="header-actions">
@@ -40,17 +43,61 @@
     </div>
 
     <!-- Attendance Table -->
-    <app-responsive-attendance-table
-      [attendances]="filteredAttendances()"
-      [totalCount]="store.totalCount()"
-      [request]="store.request()"
+    <app-material-data-table
+      [data]="filteredAttendances()"
+      [columns]="tableColumns"
+      [actions]="tableActions"
       [isLoading]="store.isLoading()"
       [error]="store.error()"
-      (pageChange)="onPageChange($event)"
-      (sort)="onSort($event)"
-      (delete)="onDelete($event)"
+      [sortField]="store.request().sortField || ''"
+      [sortOrder]="store.request().sortOrder || 'asc'"
+      [emptyMessage]="'NoAttendanceRecords'"
+      [emptyDescription]="'NoAttendanceRecordsDescription'"
+      [loadingMessage]="'LoadingAttendance'"
+      (sortChange)="onSort($event)"
       (retry)="onRetryLoadAttendances()">
-    </app-responsive-attendance-table>
+      
+      <!-- Templates for custom cell rendering -->
+      <ng-template #employeeNameTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span>{{ row.employeeName }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #dateTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span>{{ row.date | date: 'shortDate' }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #timeInTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span>{{ row.timeIn | date: 'shortTime' }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #timeOutTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span>{{ row.timeOut | date: 'shortTime' }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #statusTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span [class]="row.status === 'Present' ? 'badge badge-success' : 'badge badge-danger'">
+            {{ row.status }}
+          </span>
+        </div>
+      </ng-template>
+    </app-material-data-table>
+
+    <!-- Pagination -->
+    <app-pagination
+      *ngIf="!store.isLoading() && !store.error() && filteredAttendances().length > 0"
+      [totalCount]="store.totalCount()"
+      [request]="store.request()"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
   </div>
 
   <!-- Mobile Bottom Sheet Filter -->

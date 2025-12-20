@@ -6,13 +6,27 @@ import { tap, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../core/auth.service';
 import { RegisterRequest, CreateUserRequest, UpdateUserCredentialsRequest } from '../core/interfaces/auth.interface';
-import { throwError, EMPTY } from 'rxjs';
+import { throwError, of } from 'rxjs';
+import { FinancialService } from '../core/services/financial.service';
+import { CreateEmployeeSalaryDto } from '../core/interfaces/financial.interface';
 
 export interface AddEmployeeState {
   employee: CreateEmployeeDto | null;
   isLoading: boolean;
   error: string | null;
   isSuccess: boolean;
+}
+
+interface AddEmployeeFinancialPayload {
+  workRuleId: number;
+  shiftId: number;
+  salary: {
+    salaryType: number;
+    amount: number;
+    notes?: string;
+    hourlyRate?: number;
+    overtimeRate?: number;
+  };
 }
 
 const initialState: AddEmployeeState = {
@@ -29,6 +43,7 @@ export const AddEmployeeStore = signalStore(
     const employeeService = inject(EmployeeService);
     const translate = inject(TranslateService);
     const authService = inject(AuthService);
+    const financialService = inject(FinancialService);
 
     const coalesceErrors = (errors: unknown): string | null => {
       if (!errors) {
@@ -83,8 +98,67 @@ export const AddEmployeeStore = signalStore(
           : translate.instant(fallbackKey);
     };
 
+    const runFinancialSetup = (employeeId: number, payload: AddEmployeeFinancialPayload) => {
+      const assignWorkRule$ = financialService.assignWorkRule(payload.workRuleId, { employeeIds: [employeeId] }).pipe(
+        switchMap((response) => {
+          if (!response.isSuccess) {
+            const errorMessage = buildErrorMessage(
+              response.message,
+              response.errors,
+              'ERROR.ASSIGN_WORK_RULE_FAILED'
+            );
+            return throwError(() => new Error(errorMessage));
+          }
+          return of(response);
+        })
+      );
+
+      const assignShift$ = () => financialService.assignEmployeeToShift(payload.shiftId, employeeId).pipe(
+        switchMap((response) => {
+          if (!response.isSuccess) {
+            const errorMessage = buildErrorMessage(
+              response.message,
+              response.errors,
+              'ERROR.ASSIGN_SHIFT_FAILED'
+            );
+            return throwError(() => new Error(errorMessage));
+          }
+          return of(response);
+        })
+      );
+
+      const salaryDto: CreateEmployeeSalaryDto = {
+        employeeId,
+        salaryType: payload.salary.salaryType,
+        amount: payload.salary.amount,
+        notes: payload.salary.notes,
+        hourlyRate: payload.salary.hourlyRate,
+        overtimeRate: payload.salary.overtimeRate
+      };
+
+      const createSalary$ = () => financialService.createEmployeeSalary(salaryDto).pipe(
+        switchMap((response) => {
+          if (!response.isSuccess) {
+            const errorMessage = buildErrorMessage(
+              response.message,
+              response.errors,
+              'ERROR.CREATE_SALARY_FAILED'
+            );
+            return throwError(() => new Error(errorMessage));
+          }
+          return of(response);
+        })
+      );
+
+      return assignWorkRule$.pipe(
+        switchMap(() => assignShift$()),
+        switchMap(() => createSalary$()),
+        switchMap(() => of(true))
+      );
+    };
+
     return {
-      addEmployee(employee: CreateEmployeeDto, user: CreateUserRequest) {
+      addEmployee(employee: CreateEmployeeDto, user: CreateUserRequest, financialSetup: AddEmployeeFinancialPayload) {
         patchState(store, { isLoading: true, error: null, isSuccess: false });
 
         const registerRequest: RegisterRequest = {
@@ -115,19 +189,44 @@ export const AddEmployeeStore = signalStore(
             const userId = registerResponse.data?.userId ?? null;
             const existingEmployeeId = registerResponse.data?.employeeId ?? null;
 
-            if (existingEmployeeId) {
-              const registeredEmployee: CreateEmployeeDto = {
-                ...employee,
-                userId: userId ?? undefined
-              };
-
-              patchState(store, { employee: registeredEmployee, isLoading: false, isSuccess: true });
-              return EMPTY;
-            }
-
             const employeePayload = userId ? { ...employee, userId } : employee;
 
-            return employeeService.createEmployee(employeePayload);
+            if (existingEmployeeId) {
+              const registeredEmployee: EmployeeDto = {
+                ...(employeePayload as EmployeeDto),
+                id: existingEmployeeId,
+                userId: userId ?? undefined,
+                joinedDate: (employeePayload as any).joinedDate ?? new Date().toISOString()
+              };
+
+              return runFinancialSetup(existingEmployeeId, financialSetup).pipe(
+                switchMap(() => of({
+                  isSuccess: true,
+                  data: registeredEmployee,
+                  message: registerResponse.message ?? '',
+                  errors: []
+                }))
+              );
+            }
+
+            return employeeService.createEmployee(employeePayload).pipe(
+              switchMap((response) => {
+                if (!response.isSuccess || !response.data) {
+                  const errorMessage = buildErrorMessage(
+                    response.message,
+                    response.errors,
+                    'ERROR.ADD_EMPLOYEE_FAILED'
+                  );
+
+                  patchState(store, { error: errorMessage, isLoading: false, isSuccess: false });
+                  return throwError(() => new Error(errorMessage));
+                }
+
+                return runFinancialSetup(response.data.id, financialSetup).pipe(
+                  switchMap(() => of(response))
+                );
+              })
+            );
           }),
           tap({
             next: (response) => {

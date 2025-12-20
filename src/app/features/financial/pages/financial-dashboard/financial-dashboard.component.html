@@ -3,18 +3,20 @@
     <!-- Header -->
     <div class="row mb-4">
       <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center">
-            <button class="btn btn-ghost me-3" (click)="goBack()">
+        <div class="dashboard-header">
+          <div class="header-left">
+            <button class="btn btn-ghost" (click)="goBack()">
               <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
               {{ 'Back' | translate }}
             </button>
-            <h2 class="text-white mb-0">
+          </div>
+          <div class="header-center">
+            <h2 class="dashboard-title">
               <fa-icon [icon]="faDollarSign" class="me-2"></fa-icon>
               {{ 'FinancialDashboard' | translate }}
             </h2>
           </div>
-          <div class="d-flex" style="gap: 10px;">
+          <div class="header-right">
             <button class="btn btn-outline-light" (click)="refreshData()">
               <fa-icon [icon]="faChartLine" class="me-1"></fa-icon>
               {{ 'Refresh' | translate }}
@@ -109,241 +111,87 @@
       </ng-template>
     </div>
 
-    <div class="dashboard-main-content">
-      <!-- Recent Work Rules -->
-      <div class="recent-section" @fadeInUp>
-        <ng-container *ngIf="isLoadingWorkRules; else loadedWorkRules">
-          <div *ngIf="workRulesError" class="alert alert-danger col-12" role="alert">
-            {{ workRulesError }}
-          </div>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <app-shimmer></app-shimmer>
+    <!-- Charts Section -->
+    <div class="charts-container" @staggerFadeInUp>
+      <!-- Work Rules Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'WorkRules' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'AttendanceRate' | translate }} 92%</p>
+            <div class="chart-wrapper">
+              <canvas #workRulesChart></canvas>
             </div>
           </div>
-        </ng-container>
-        <ng-template #loadedWorkRules>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">{{ 'RecentWorkRules' | translate }}</h5>
-                <a routerLink="/admin/financial/work-rules" class="btn btn-sm btn-outline-light">
-                  {{ 'ViewAll' | translate }}
-                </a>
-              </div>
-
-              <div *ngIf="recentWorkRules.length > 0; else noWorkRules" class="list-group list-group-flush">
-                <div *ngFor="let rule of recentWorkRules" class="list-group-item bg-transparent border-0 py-3">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-2">
-                        <fa-icon [icon]="faClock" class="icon-unified"></fa-icon>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="mb-1">{{ rule.category }}</h6>
-                      <small class="text-muted">
-                        {{ getWorkRuleTypeLabel(rule.type) }} • 
-                        {{ rule.employeeCount }} {{ 'Employees' | translate }}
-                      </small>
-                    </div>
-                    <div class="flex-shrink-0">
-                      <span class="badge" [ngClass]="rule.isPrivate ? 'bg-warning' : 'bg-success'">
-                        {{ rule.isPrivate ? ('Private' | translate) : ('Public' | translate) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <ng-template #noWorkRules>
-                <div class="text-center py-4">
-                  <fa-icon [icon]="faClock" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
-                  <p class="mt-2 mb-0">{{ 'NoWorkRules' | translate }}</p>
-                </div>
-              </ng-template>
-            </div>
-          </div>
-        </ng-template>
+        </div>
       </div>
 
-      <!-- Recent Employee Salaries -->
-      <div class="recent-section" @fadeInUp>
-        <ng-container *ngIf="isLoadingSalaries; else loadedSalaries">
-          <div *ngIf="salariesError" class="alert alert-danger col-12" role="alert">
-            {{ salariesError }}
-          </div>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <app-shimmer></app-shimmer>
+      <!-- Salary Reports Status Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'SalaryReports' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'TotalReports' | translate }} {{ financialStats?.totalSalaryReports || 0 }}</p>
+            <div class="chart-wrapper">
+              <canvas #salaryReportsChart></canvas>
             </div>
           </div>
-        </ng-container>
-        <ng-template #loadedSalaries>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">{{ 'RecentEmployeeSalaries' | translate }}</h5>
-                <a routerLink="/admin/financial/employee-salaries" class="btn btn-sm btn-outline-light">
-                  {{ 'ViewAll' | translate }}
-                </a>
-              </div>
-
-              <div *ngIf="recentSalaries.length > 0; else noSalaries" class="list-group list-group-flush">
-                <div *ngFor="let salary of recentSalaries" class="list-group-item bg-transparent border-0 py-3">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-2">
-                        <fa-icon [icon]="faUsers" class="icon-unified"></fa-icon>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="mb-1">{{ salary.employeeName || ('Employee' | translate) + ' #' + salary.employeeId }}</h6>
-                      <small class="text-muted">
-                        {{ getSalaryTypeLabel(salary.salaryType) }} • 
-                        {{ formatCurrency(salary.amount) }}
-                      </small>
-                    </div>
-                    <div class="flex-shrink-0 d-flex align-items-center gap-2">
-                      <span class="badge bg-info me-2">
-                        {{ getSalaryTypeLabel(salary.salaryType) }}
-                      </span>
-                      <button 
-                        class="btn btn-sm btn-outline-primary"
-                        (click)="openCreateReportDialog(salary)"
-                        [title]="'CreateSalaryReport' | translate"
-                      >
-                        <fa-icon [icon]="faCalculator" class="me-1"></fa-icon>
-                        {{ 'CreateSalaryReport' | translate }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <ng-template #noSalaries>
-                <div class="text-center py-4">
-                  <fa-icon [icon]="faUsers" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
-                  <p class="mt-2 mb-0">{{ 'NoEmployeeSalaries' | translate }}</p>
-                </div>
-              </ng-template>
-            </div>
-          </div>
-        </ng-template>
+        </div>
       </div>
 
-      <!-- Recent Salary Reports -->
-      <div class="recent-section" @fadeInUp>
-        <ng-container *ngIf="isLoadingReports; else loadedReports">
-          <div *ngIf="reportsError" class="alert alert-danger col-12" role="alert">
-            {{ reportsError }}
-          </div>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <app-shimmer></app-shimmer>
+      <!-- Employee Salaries Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'EmployeeSalaries' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'TotalSalaries' | translate }} {{ financialStats?.totalEmployeeSalaries || 0 }}</p>
+            <div class="chart-wrapper">
+              <canvas #employeeSalariesChart></canvas>
             </div>
           </div>
-        </ng-container>
-        <ng-template #loadedReports>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">{{ 'RecentSalaryReports' | translate }}</h5>
-                <a routerLink="/admin/financial/salary-reports" class="btn btn-sm btn-outline-light">
-                  {{ 'ViewAll' | translate }}
-                </a>
-              </div>
-
-              <div *ngIf="recentReports.length > 0; else noReports" class="list-group list-group-flush">
-                <div *ngFor="let report of recentReports" class="list-group-item bg-transparent border-0 py-3">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-2">
-                        <fa-icon [icon]="faFileInvoice" class="icon-unified"></fa-icon>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="mb-1">{{ report.employeeName || ('Employee' | translate) + ' #' + report.employeeId }}</h6>
-                      <small class="text-muted">
-                        {{ report.reportMonth }}/{{ report.reportYear }} • 
-                        {{ formatCurrency(report.netCalculatedSalary) }}
-                      </small>
-                    </div>
-                    <div class="flex-shrink-0">
-                      <span class="badge" [ngClass]="report.isPaid ? 'bg-success' : 'bg-warning'">
-                        {{ report.isPaid ? ('Paid' | translate) : ('Unpaid' | translate) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <ng-template #noReports>
-                <div class="text-center py-4">
-                  <fa-icon [icon]="faFileInvoice" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
-                  <p class="mt-2 mb-0">{{ 'NoSalaryReports' | translate }}</p>
-                </div>
-              </ng-template>
-            </div>
-          </div>
-        </ng-template>
+        </div>
       </div>
 
-      <!-- Recent Shifts -->
-      <div class="recent-section" @fadeInUp>
-        <ng-container *ngIf="isLoadingShifts; else loadedShifts">
-          <div *ngIf="shiftsError" class="alert alert-danger col-12" role="alert">
-            {{ shiftsError }}
-          </div>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <app-shimmer></app-shimmer>
+      <!-- Monthly Trends Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'MonthlyTrends' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'Revenues' | translate }} 245</p>
+            <div class="chart-wrapper">
+              <canvas #monthlyTrendsChart></canvas>
             </div>
           </div>
-        </ng-container>
-        <ng-template #loadedShifts>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">{{ 'RecentShifts' | translate }}</h5>
-                <a routerLink="/admin/financial/shifts" class="btn btn-sm btn-outline-light">
-                  {{ 'ViewAll' | translate }}
-                </a>
-              </div>
+        </div>
+      </div>
 
-              <div *ngIf="recentShifts.length > 0; else noShifts" class="list-group list-group-flush">
-                <div *ngFor="let shift of recentShifts" class="list-group-item bg-transparent border-0 py-3">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-2">
-                        <fa-icon [icon]="faClock" class="icon-unified"></fa-icon>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="mb-1">{{ shift.name }}</h6>
-                      <small class="text-muted">
-                        {{ formatTime(shift.startTime) }} - {{ formatTime(shift.endTime) }}
-                        <span *ngIf="shift.employeeCount !== undefined && shift.employeeCount > 0">
-                          • {{ shift.employeeCount }} {{ 'Employees' | translate }}
-                        </span>
-                      </small>
-                    </div>
-                    <div class="flex-shrink-0">
-                      <span *ngIf="shift.isOvernight" class="badge bg-info">
-                        {{ 'Overnight' | translate }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <ng-template #noShifts>
-                <div class="text-center py-4">
-                  <fa-icon [icon]="faClock" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
-                  <p class="mt-2 mb-0">{{ 'NoShifts' | translate }}</p>
-                </div>
-              </ng-template>
+      <!-- Salary Distribution Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'SalaryDistribution' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'FormsCount' | translate }} 115</p>
+            <div class="chart-wrapper">
+              <canvas #salaryDistributionChart></canvas>
             </div>
           </div>
-        </ng-template>
+        </div>
+      </div>
+
+      <!-- Reports Status Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'ReportsStatus' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'TotalReports' | translate }} {{ financialStats?.totalSalaryReports || 0 }}</p>
+            <div class="chart-wrapper">
+              <canvas #reportsStatusChart></canvas>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
   </div>
 </div>
 

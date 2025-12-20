@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowLeft, faUserCircle, faPhone, faEnvelope, faBuilding, faIdCard, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faUserCircle, faPhone, faEnvelope, faBuilding, faIdCard, faCalendarAlt, faEdit, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 
 import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
 import { ViewEmployeeStore } from '../../../../store/view-employee.store';
@@ -32,6 +32,8 @@ export class ViewEmployeeComponent implements OnInit {
   faBuilding = faBuilding;
   faIdCard = faIdCard;
   faCalendarAlt = faCalendarAlt;
+  faEdit = faEdit;
+  faTimesCircle = faTimesCircle;
 
   private route = inject(ActivatedRoute);
 

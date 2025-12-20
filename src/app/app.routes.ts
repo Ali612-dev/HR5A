@@ -43,10 +43,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin-login/pages/admin-login/admin-login.component').then(m => m.AdminLoginComponent)
     },
     {
-        path: 'register',
-        loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent)
-    },
-    {
         path: 'blank',
         loadComponent: () => import('./features/blank-page/pages/blank-page/blank-page.component').then(m => m.BlankPageComponent)
     },
@@ -73,6 +69,14 @@ export const routes: Routes = [
     {
         path: 'admin/financial/work-rules',
         loadComponent: () => import('./features/financial/pages/work-rules/work-rules.component').then(m => m.WorkRulesComponent)
+    },
+    {
+        path: 'admin/financial/work-rules/add',
+        loadComponent: () => import('./features/financial/pages/work-rules/add-work-rule.component').then(m => m.AddWorkRuleComponent)
+    },
+    {
+        path: 'admin/financial/work-rules/update/:id',
+        loadComponent: () => import('./features/financial/pages/work-rules/update-work-rule.component').then(m => m.UpdateWorkRuleComponent)
     },
     {
         path: 'admin/financial/work-rules/:id/details',

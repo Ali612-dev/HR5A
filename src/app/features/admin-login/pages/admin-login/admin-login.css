@@ -2,29 +2,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #6B46C1 0%, #8B5CF6 50%, #A855F7 100%);
+  background: #f3f4f6 !important;
   min-height: 100vh;
   padding: 2rem;
   position: relative;
   overflow: hidden;
-}
-
-/* Background animation effect */
-.admin-login-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
-  pointer-events: none;
-  animation: subtle-flow 15s ease-in-out infinite;
-}
-
-@keyframes subtle-flow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
 }
 
 .admin-login-container .card {
@@ -34,41 +16,18 @@
   text-align: center;
   position: relative;
   z-index: 2;
-  
-  /* Modern glass morphism design */
-  background: linear-gradient(145deg, 
-    rgba(139, 92, 246, 0.95) 0%, 
-    rgba(168, 85, 247, 0.9) 50%, 
-    rgba(192, 132, 252, 0.85) 100%);
-  
-  /* Glass effect */
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  
-  /* Enhanced border and shadow */
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 32px;
-  
-  /* Multi-layered shadow for depth */
-  box-shadow: 
-    0 25px 50px rgba(139, 92, 246, 0.4),
-    0 10px 30px rgba(168, 85, 247, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-  
-  /* Smooth transitions */
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Animation */
+  background: #ffffff;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  border-radius: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
   animation: fadeInUp 0.8s ease-out both;
 }
 
 .admin-login-container .card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 
-    0 35px 70px rgba(139, 92, 246, 0.5),
-    0 15px 40px rgba(168, 85, 247, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.4);
 }
 
 @keyframes fadeInUp {
@@ -84,12 +43,9 @@
 
 .admin-login-container h1 {
   margin-bottom: 2rem;
-  color: white;
+  color: #1f2937;
   font-size: 2.5rem;
-  font-weight: 800;
-  text-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    0 2px 10px rgba(139, 92, 246, 0.4);
+  font-weight: 700;
   letter-spacing: -0.02em;
   position: relative;
   z-index: 2;
@@ -103,74 +59,76 @@
 .admin-login-container label {
   display: block;
   margin-bottom: 0.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1f2937;
   font-weight: 600;
   font-size: 0.95rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .admin-login-container .input-field {
   width: 100%;
   padding: 1rem 1.25rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1f2937;
   font-size: 1rem;
   font-weight: 500;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
 .admin-login-container .input-field::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: #9ca3af;
   opacity: 1;
   font-weight: 400;
 }
 
 .admin-login-container .input-field:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 
-    0 0 0 4px rgba(255, 255, 255, 0.1),
-    0 8px 25px rgba(139, 92, 246, 0.3);
-  transform: translateY(-2px);
+  border-color: #f97316;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  transform: translateY(-1px);
 }
 
 .admin-login-container .btn-primary {
   width: 100%;
   padding: 1rem 2rem;
   margin-top: 1.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50px;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.9) 0%, 
-    rgba(255, 255, 255, 0.8) 100%);
-  color: #6B46C1;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
   font-size: 1.1rem;
   font-weight: 700;
-  backdrop-filter: blur(10px);
-  box-shadow: 
-    0 10px 30px rgba(255, 255, 255, 0.2),
-    0 4px 15px rgba(107, 70, 193, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+  transition: all 0.3s ease;
   cursor: pointer;
   text-transform: none;
   letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-login-container .btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.admin-login-container .btn-primary:hover::before {
+  left: 100%;
 }
 
 .admin-login-container .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 1) 0%, 
-    rgba(255, 255, 255, 0.95) 100%);
-  color: #553C9A;
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 
-    0 15px 40px rgba(255, 255, 255, 0.3),
-    0 6px 20px rgba(107, 70, 193, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
 }
 
 .admin-login-container .btn-primary:disabled {
@@ -183,22 +141,22 @@
   width: 100%;
   padding: 0.875rem 1.5rem;
   margin-top: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1f2937;
   font-size: 1rem;
   font-weight: 600;
-  backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .admin-login-container .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #f9fafb;
+  color: #1f2937;
+  transform: translateY(-1px);
+  border-color: rgba(209, 213, 219, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Mobile Responsiveness */

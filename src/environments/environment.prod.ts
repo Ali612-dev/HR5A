@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: '/api/proxy' // Use Vercel proxy to call HTTP API
+  apiBaseUrl: 'http://3.76.5.172:6400' // Use Vercel proxy to call HTTP API
 };
 

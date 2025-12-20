@@ -4,7 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faFilter, faMapMarkerAlt, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faFilter, faMapMarkerAlt, faArrowLeft, faClock } from '@fortawesome/free-solid-svg-icons';
 
 import { AttendanceStore } from '../../../../store/attendance.store';
 import { AttendanceViewModel } from '../../../../core/interfaces/attendance.interface';
@@ -14,9 +14,13 @@ import { NotificationDialogComponent } from '../../../../shared/components/notif
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
 import { DeleteAttendanceStore } from '../../../../store/delete-attendance.store'; // Reusing for now, will create specific attendance delete store later
 import { effect } from '@angular/core';
-import { ResponsiveAttendanceTableComponent } from '../../../../shared/components/responsive-attendance-table/responsive-attendance-table.component';
+import { MaterialDataTableComponent, TableColumn, TableAction } from '../../../../shared/components/material-data-table';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { AttendanceDataService } from '../../../../core/attendance-data.service';
+import { AttendanceStateService } from '../../../../core/attendance-state.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject, takeUntil } from 'rxjs';
+import { TemplateRef, ViewChild, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-attendance',
@@ -27,12 +31,13 @@ import { Subject, takeUntil } from 'rxjs';
     ReactiveFormsModule,
     FontAwesomeModule,
     RouterLink,
-    ResponsiveAttendanceTableComponent
+    MaterialDataTableComponent,
+    PaginationComponent
   ],
   templateUrl: './attendance.component.html',
   styleUrls: ['./attendance.component.css']
 })
-export class AttendanceComponent implements OnInit, OnDestroy {
+export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly store = inject(AttendanceStore);
   private router = inject(Router);
   filterForm!: FormGroup;
@@ -41,6 +46,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   faFilter = faFilter;
   faMapMarkerAlt = faMapMarkerAlt;
   faArrowLeft = faArrowLeft;
+  faClock = faClock;
 
   isFilterCollapsed: boolean = true;
   isMobile: boolean = false;
@@ -49,11 +55,23 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   readonly deleteStore = inject(DeleteAttendanceStore);
   private dialog = inject(MatDialog);
+  private attendanceDataService = inject(AttendanceDataService);
+  private attendanceStateService = inject(AttendanceStateService);
 
   private fb = inject(FormBuilder);
   private datePipe = inject(DatePipe);
   private destroy$ = new Subject<void>();
   private translate = inject(TranslateService);
+
+  // Material Data Table
+  tableColumns: TableColumn[] = [];
+  tableActions: TableAction[] = [];
+  
+  @ViewChild('employeeNameTemplate') employeeNameTemplate!: TemplateRef<any>;
+  @ViewChild('dateTemplate') dateTemplate!: TemplateRef<any>;
+  @ViewChild('timeInTemplate') timeInTemplate!: TemplateRef<any>;
+  @ViewChild('timeOutTemplate') timeOutTemplate!: TemplateRef<any>;
+  @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
 
   filteredAttendances = computed(() => {
     const attendances = this.store.attendances();
@@ -123,38 +141,46 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     // Listen for window resize to update mobile state
     window.addEventListener('resize', this.resizeHandler);
 
-    // Restore saved state from localStorage
-    const savedState = this.getSavedAttendanceState();
+    // Try to restore state from memory service (only during navigation, not from localStorage)
+    const savedState = this.attendanceStateService.getState();
     
     // Get current date as default
     const currentDate = new Date().toISOString().split('T')[0];
     console.log('📅 Attendance: Current date set to:', currentDate);
     
+    // Use saved state if available (from navigation), otherwise use current date
+    let defaultDate = savedState?.date || currentDate;
+    let defaultEmployeeName = savedState?.employeeName || '';
+    let defaultIsFilterCollapsed = savedState?.isFilterCollapsed !== undefined ? savedState.isFilterCollapsed : true;
+    
+    if (savedState) {
+      console.log('📂 Restoring state from memory:', savedState);
+      
+      // Restore pagination and sorting if available
+      if (savedState.pageNumber) {
+        this.store.updateRequest({ pageNumber: savedState.pageNumber });
+      }
+      if (savedState.sortField && savedState.sortOrder) {
+        this.store.updateRequest({ 
+          sortField: savedState.sortField, 
+          sortOrder: savedState.sortOrder 
+        });
+      }
+    } else {
+      console.log('📂 No saved state found, using defaults');
+    }
+    
     this.filterForm = this.fb.group({
-      date: [savedState.date || this.store.request().date || currentDate],
-      employeeName: [savedState.employeeName || '']
+      date: [defaultDate],
+      employeeName: [defaultEmployeeName]
     });
 
     // Restore filter collapsed state
-    this.isFilterCollapsed = savedState.isFilterCollapsed !== undefined ? savedState.isFilterCollapsed : true;
+    this.isFilterCollapsed = defaultIsFilterCollapsed;
 
-    // Restore pagination and sorting if available
-    if (savedState.pageNumber) {
-      this.store.updateRequest({ pageNumber: savedState.pageNumber });
-    }
-    if (savedState.sortField && savedState.sortOrder) {
-      this.store.updateRequest({ 
-        sortField: savedState.sortField, 
-        sortOrder: savedState.sortOrder 
-      });
-    }
-
-    // Update store with current date if not already set
-    if (!this.store.request().date) {
-      this.store.updateRequest({ date: currentDate });
-    } else {
-      this.store.loadDailyAttendances();
-    }
+    // Update store with the default date
+    this.store.updateRequest({ date: defaultDate });
+    this.store.loadDailyAttendances();
 
     this.filterForm.get('employeeName')?.valueChanges.pipe(
       debounceTime(300), // Wait for 300ms after the last keystroke
@@ -162,7 +188,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(() => {
       // The computed signal `filteredAttendances` will automatically react to changes
-      // Save state when employee name filter changes
+      // Save state to memory when employee name filter changes
       this.saveAttendanceState();
     });
 
@@ -173,12 +199,102 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngAfterViewInit(): void {
+    // Initialize columns and actions after templates are available
+    this.initializeTableColumns();
+    this.initializeTableActions();
+  }
+
+  private initializeTableColumns(): void {
+    this.tableColumns = [
+      {
+        key: 'employeeName',
+        label: 'EmployeeName',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.employeeNameTemplate
+      },
+      {
+        key: 'date',
+        label: 'Date',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.dateTemplate
+      },
+      {
+        key: 'timeIn',
+        label: 'TimeIn',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.timeInTemplate
+      },
+      {
+        key: 'timeOut',
+        label: 'TimeOut',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.timeOutTemplate
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.statusTemplate
+      }
+    ];
+  }
+
+  private initializeTableActions(): void {
+    this.tableActions = [
+      {
+        label: 'ViewAttendance',
+        icon: 'visibility',
+        color: 'primary',
+        action: (row: AttendanceViewModel) => {
+          this.router.navigate(['/attendance/view', row.id]);
+        }
+      },
+      {
+        label: 'EditAttendance',
+        icon: 'edit',
+        color: 'primary',
+        action: (row: AttendanceViewModel) => {
+          this.attendanceDataService.setAttendanceData(row);
+          this.router.navigate(['/attendance/update', row.id]);
+        }
+      },
+      {
+        label: 'ViewOnMap',
+        icon: 'location_on',
+        color: 'accent',
+        action: (row: AttendanceViewModel) => {
+          this.router.navigate(['/attendance/map'], {
+            queryParams: { employeeId: row.employeeId, date: row.date }
+          });
+        },
+        show: (row: AttendanceViewModel) => !!(row.latitude && row.longitude)
+      },
+      {
+        label: 'DeleteAttendance',
+        icon: 'delete',
+        color: 'warn',
+        action: (row: AttendanceViewModel) => {
+          this.onDelete(row);
+        }
+      }
+    ];
+  }
+
   private resizeHandler = () => {
     this.isMobile = window.innerWidth <= 768;
     console.log('📱 Mobile detection on resize:', this.isMobile, 'Screen width:', window.innerWidth);
   };
 
   ngOnDestroy(): void {
+    // Save state before component is destroyed (so it persists during navigation)
+    this.saveAttendanceState();
+    
     this.destroy$.next();
     this.destroy$.complete();
     
@@ -194,28 +310,29 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     const currentEmployeeName = this.filterForm.get('employeeName')?.value;
     this.filterForm.get('employeeName')?.setValue(currentEmployeeName, { emitEvent: true });
 
-    // Save state after filtering
+    // Save state to memory after filtering
     this.saveAttendanceState();
   }
 
   onResetFilters(): void {
+    const currentDate = new Date().toISOString().split('T')[0];
     this.filterForm.reset({
-      date: null,
+      date: currentDate,
       employeeName: ''
     });
     this.onFilter(); // Re-apply date filter after reset
-    this.saveAttendanceState(); // Save state after reset
+    this.saveAttendanceState(); // Save state to memory after reset
   }
 
   toggleFilter(): void {
     this.isFilterCollapsed = !this.isFilterCollapsed;
-    this.saveAttendanceState(); // Save filter collapsed state
+    this.saveAttendanceState(); // Save filter collapsed state to memory
   }
 
   closeMobileFilter(): void {
     this.isFilterCollapsed = true;
     console.log('❌ Close mobile filter:', this.isFilterCollapsed);
-    this.saveAttendanceState(); // Save filter collapsed state
+    this.saveAttendanceState(); // Save filter collapsed state to memory
   }
 
   onPageChange(pageNumber: number): void {
@@ -224,25 +341,18 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       currentRequest: this.store.request()
     });
     this.store.updateRequest({ pageNumber });
-    this.saveAttendanceState(); // Save pagination state
+    this.saveAttendanceState(); // Save pagination state to memory
   }
 
-  onSort(sortField: string): void {
-    const currentSortField = this.store.request().sortField;
-    const currentSortOrder = this.store.request().sortOrder;
-
-    const sortOrder = currentSortField === sortField && currentSortOrder === 'asc' ? 'desc' : 'asc';
-    
+  onSort(sortData: { field: string; order: 'asc' | 'desc' }): void {
     console.log('🔀 Attendance Sort: Handling sort change:', {
-      sortField,
-      newSortOrder: sortOrder,
-      currentSortField,
-      currentSortOrder,
+      sortField: sortData.field,
+      sortOrder: sortData.order,
       currentRequest: this.store.request()
     });
     
-    this.store.updateRequest({ sortField, sortOrder });
-    this.saveAttendanceState(); // Save sorting state
+    this.store.updateRequest({ sortField: sortData.field, sortOrder: sortData.order });
+    this.saveAttendanceState(); // Save sorting state to memory
   }
 
   onDelete(attendance: AttendanceViewModel): void {
@@ -271,41 +381,18 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   private saveAttendanceState(): void {
+    const request = this.store.request();
     const state = {
-      date: this.filterForm.get('date')?.value,
+      date: this.filterForm.get('date')?.value || null,
       employeeName: this.filterForm.get('employeeName')?.value || '',
       isFilterCollapsed: this.isFilterCollapsed,
-      pageNumber: this.store.request().pageNumber,
-      sortField: this.store.request().sortField,
-      sortOrder: this.store.request().sortOrder
+      pageNumber: request.pageNumber || 1,
+      sortField: request.sortField || null,
+      sortOrder: request.sortOrder || null
     };
 
-    try {
-      localStorage.setItem('attendanceScreenState', JSON.stringify(state));
-      console.log('💾 Attendance state saved:', state);
-    } catch (error) {
-      console.error('Failed to save attendance state:', error);
-    }
-  }
-
-  private getSavedAttendanceState(): any {
-    try {
-      const saved = localStorage.getItem('attendanceScreenState');
-      if (saved) {
-        const state = JSON.parse(saved);
-        console.log('📂 Attendance state restored:', state);
-        return state;
-      }
-    } catch (error) {
-      console.error('Failed to restore attendance state:', error);
-    }
-    return {};
-  }
-
-  // Method to clear saved state (useful for logout or manual reset)
-  clearAttendanceState(): void {
-    localStorage.removeItem('attendanceScreenState');
-    console.log('🗑️ Attendance state cleared');
+    // Save to memory service (not localStorage) - only persists during navigation
+    this.attendanceStateService.saveState(state);
   }
 
   onViewAllOnMap(): void {
@@ -346,6 +433,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
+    // Clear state when navigating away from attendance feature entirely
+    this.attendanceStateService.clearState();
     this.router.navigate(['/admin-dashboard']);
   }
 }

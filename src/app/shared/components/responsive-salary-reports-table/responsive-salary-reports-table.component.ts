@@ -1,7 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewInit, OnChanges, SimpleChanges, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCardModule } from '@angular/material/card';
 import { faSort, faSortUp, faSortDown, faEye, faEdit, faTrash, faDownload, faCheckCircle, faTimesCircle, faRefresh, faFileInvoice, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { SalaryReportDto } from '../../../core/interfaces/financial.interface';
 import { ScreenSizeService } from '../../services/screen-size.service';
@@ -10,11 +17,22 @@ import { Subject, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-responsive-salary-reports-table',
   standalone: true,
-  imports: [CommonModule, TranslateModule, FontAwesomeModule],
+  imports: [
+    CommonModule,
+    TranslateModule,
+    FontAwesomeModule,
+    MatTableModule,
+    MatSortModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
+    MatCardModule
+  ],
   templateUrl: './responsive-salary-reports-table.component.html',
   styleUrls: ['./responsive-salary-reports-table.component.css']
 })
-export class ResponsiveSalaryReportsTableComponent implements OnInit, OnDestroy {
+export class ResponsiveSalaryReportsTableComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @Input() reports: SalaryReportDto[] = [];
   @Input() isLoading: boolean = false;
   @Input() error: string | null = null;
@@ -51,12 +69,48 @@ export class ResponsiveSalaryReportsTableComponent implements OnInit, OnDestroy 
   private destroy$ = new Subject<void>();
   private screenSizeService = inject(ScreenSizeService);
 
+  @ViewChild(MatSort) matSort!: MatSort;
+
+  // Material Table columns
+  displayedColumns: string[] = [
+    'employeeName',
+    'reportMonth',
+    'reportYear',
+    'baseSalary',
+    'netCalculatedSalary',
+    'isPaid',
+    'generatedDate',
+    'actions'
+  ];
+
+  dataSource = new MatTableDataSource<SalaryReportDto>([]);
+
   ngOnInit(): void {
     this.screenSizeService.isMobile$
       .pipe(takeUntil(this.destroy$))
       .subscribe(isMobile => {
         this.isMobile = isMobile;
       });
+    
+    // Update data source when reports change
+    this.dataSource.data = this.reports;
+  }
+
+  ngAfterViewInit(): void {
+    // Set up Material sort
+    if (this.matSort) {
+      this.dataSource.sort = this.matSort;
+      this.matSort.sortChange.subscribe((sort: Sort) => {
+        this.onSort(sort.active);
+      });
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Update data source when reports input changes
+    if (changes['reports'] && this.reports) {
+      this.dataSource.data = this.reports;
+    }
   }
 
   ngOnDestroy(): void {

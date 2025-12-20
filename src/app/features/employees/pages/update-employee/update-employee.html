@@ -1,4 +1,3 @@
-
 <div class="add-employee-container">
   <div class="container-fluid py-4">
     <!-- Header -->
@@ -8,74 +7,21 @@
           <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
           {{ 'Back' | translate }}
         </button>
+      </div>
+      <div class="header-center">
+        <fa-icon [icon]="faUserPlus" class="header-icon"></fa-icon>
         <h2 class="page-title">{{ 'UpdateEmployee' | translate }}</h2>
       </div>
+      <div class="header-right"></div>
     </div>
 
     <!-- Update Employee Form -->
-    <div class="card">
+    <div class="glass-card">
       <div *ngIf="store.isLoading()">
         <app-shimmer></app-shimmer>
       </div>
       <div *ngIf="!store.isLoading()">
         <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
-          <div class="form-section">
-            <div class="form-section-header">
-              <div class="form-section-icon user-icon">
-                <fa-icon [icon]="faUserPlus"></fa-icon>
-              </div>
-              <div>
-                <h3 class="form-section-title">{{ 'UserAccountSectionTitle' | translate }}</h3>
-                <p class="form-section-subtitle">{{ 'UserAccountSectionSubtitle' | translate }}</p>
-              </div>
-            </div>
-            <div class="row g-4">
-              <div class="col-lg-6">
-                <div class="field-container">
-                  <div class="form-field-group">
-                    <label for="username" class="form-label">{{ 'Username' | translate }}</label>
-                    <div class="input-wrapper">
-                      <input type="text" class="form-control" id="username" formControlName="username" autocomplete="username">
-                      <div *ngIf="getValidationErrors('username').length > 0" class="form-error-message">
-                        <div *ngFor="let error of getValidationErrors('username')">{{ error }}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="field-container">
-                  <div class="form-field-group">
-                    <label for="newPassword" class="form-label">{{ 'NewPassword' | translate }}</label>
-                    <div class="input-wrapper">
-                      <input type="password" class="form-control" id="newPassword" formControlName="newPassword" autocomplete="new-password">
-                      <small class="hint-text">{{ 'NewPasswordHint' | translate }}</small>
-                      <div *ngIf="getValidationErrors('newPassword').length > 0" class="form-error-message">
-                        <div *ngFor="let error of getValidationErrors('newPassword')">{{ error }}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="field-container">
-                  <div class="form-field-group">
-                    <label for="email" class="form-label">{{ 'Email' | translate }}</label>
-                    <div class="input-wrapper">
-                      <input type="email" class="form-control" id="email" formControlName="email" autocomplete="email">
-                      <small class="hint-text">{{ 'EmailFieldHint' | translate }}</small>
-                      <div *ngIf="getValidationErrors('email').length > 0" class="form-error-message">
-                        <div *ngFor="let error of getValidationErrors('email')">{{ error }}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-divider"></div>
-
           <div class="form-section">
             <div class="form-section-header">
               <div class="form-section-icon employee-icon">
@@ -139,6 +85,256 @@
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive">
                   <label class="form-check-label" for="isActive">{{ 'IsActive' | translate }}</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <div class="form-section">
+            <div class="form-section-header">
+              <div class="form-section-icon user-icon">
+                <fa-icon [icon]="faUserPlus"></fa-icon>
+              </div>
+              <div>
+                <h3 class="form-section-title">{{ 'UserAccountSectionTitle' | translate }}</h3>
+                <p class="form-section-subtitle">{{ 'UserAccountSectionSubtitle' | translate }}</p>
+              </div>
+            </div>
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="username" class="form-label">{{ 'Username' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="text" class="form-control" id="username" formControlName="username" autocomplete="username">
+                      <div *ngIf="getValidationErrors('username').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('username')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="newPassword" class="form-label">{{ 'NewPassword' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="password" class="form-control" id="newPassword" formControlName="newPassword" autocomplete="new-password">
+                      <small class="hint-text">{{ 'NewPasswordHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('newPassword').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('newPassword')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="email" class="form-label">{{ 'Email' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input type="email" class="form-control" id="email" formControlName="email" autocomplete="email">
+                      <small class="hint-text">{{ 'EmailFieldHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('email').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('email')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <div class="form-section">
+            <div class="form-section-header">
+              <div class="form-section-icon financial-icon">
+                <fa-icon [icon]="faDollarSign"></fa-icon>
+              </div>
+              <div>
+                <h3 class="form-section-title">{{ 'FinancialSetupSectionTitle' | translate }}</h3>
+                <p class="form-section-subtitle">{{ 'FinancialSetupSectionSubtitle' | translate }}</p>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="workRuleId" class="form-label">{{ 'WorkRules' | translate }}</label>
+                    <div class="input-wrapper">
+                      <select
+                        id="workRuleId"
+                        class="form-select financial-select"
+                        formControlName="workRuleId"
+                        [disabled]="isWorkRulesLoading || workRules.length === 0">
+                        <option [ngValue]="null" disabled>{{ 'SelectWorkRule' | translate }}</option>
+                        <option *ngFor="let rule of workRules" [ngValue]="rule.id">
+                          {{ getWorkRuleLabel(rule) }}
+                        </option>
+                      </select>
+                      <small class="hint-text">{{ 'WorkRuleFieldHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('workRuleId').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('workRuleId')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="shiftId" class="form-label">{{ 'Shifts' | translate }}</label>
+                    <div class="input-wrapper">
+                      <select
+                        id="shiftId"
+                        class="form-select financial-select"
+                        formControlName="shiftId"
+                        [disabled]="isShiftsLoading || shifts.length === 0">
+                        <option [ngValue]="null" disabled>{{ 'SelectShift' | translate }}</option>
+                        <option *ngFor="let shift of shifts" [ngValue]="shift.id">
+                          {{ formatShiftLabel(shift) }}
+                        </option>
+                      </select>
+                      <small class="hint-text">{{ 'ShiftFieldHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('shiftId').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('shiftId')">{{ error }}</div>
+                      </div>
+                    </div>
+                    <div class="assign-shift-action" *ngIf="employeeForm.get('workRuleId')?.value && employeeForm.get('shiftId')?.value">
+                      <button type="button" class="btn btn-outline-light assign-shift-btn" (click)="openAssignShiftDialog()">
+                        <fa-icon [icon]="faPeopleGroup" class="me-2"></fa-icon>
+                        {{ 'AssignEmployeesToShift' | translate }}
+                      </button>
+                      <small class="hint-text">{{ 'AssignShiftButtonHint' | translate }}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-lg-4">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="salaryType" class="form-label">{{ 'SalaryType' | translate }}</label>
+                    <div class="input-wrapper">
+                      <select id="salaryType" class="form-select financial-select" formControlName="salaryType">
+                        <option *ngFor="let option of salaryTypeOptions" [ngValue]="option.value">
+                          {{ option.labelKey | translate }}
+                        </option>
+                      </select>
+                      <div *ngIf="getValidationErrors('salaryType').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('salaryType')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="salaryAmount" class="form-label">{{ 'SalaryAmount' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.01"
+                        class="form-control"
+                        id="salaryAmount"
+                        formControlName="salaryAmount">
+                      <small class="hint-text">{{ 'SalaryDetailsHint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('salaryAmount').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('salaryAmount')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4" *ngIf="requiresHourlyRate()">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="hourlyRate" class="form-label">{{ 'HourlyRate' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.01"
+                        class="form-control"
+                        id="hourlyRate"
+                        formControlName="hourlyRate">
+                      <small class="hint-text">{{ 'HourlyRateConstraint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('hourlyRate').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('hourlyRate')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-lg-6" *ngIf="!requiresHourlyRate()">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="hourlyRateFallback" class="form-label">{{ 'HourlyRate' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="hourlyRateFallback"
+                        formControlName="hourlyRate"
+                        readonly>
+                      <small class="hint-text">{{ 'AutoCalculatedFromBaseSalary' | translate }}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="overtimeRate" class="form-label">{{ 'OvertimeRate' | translate }}</label>
+                    <div class="input-wrapper">
+                      <input
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.01"
+                        class="form-control"
+                        id="overtimeRate"
+                        formControlName="overtimeRate">
+                      <small class="hint-text">{{ 'OvertimeRateConstraint' | translate }}</small>
+                      <div *ngIf="getValidationErrors('overtimeRate').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('overtimeRate')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-12">
+                <div class="field-container">
+                  <div class="form-field-group">
+                    <label for="salaryNotes" class="form-label">{{ 'SalaryNotes' | translate }}</label>
+                    <div class="input-wrapper">
+                      <textarea
+                        id="salaryNotes"
+                        rows="3"
+                        class="form-control"
+                        formControlName="salaryNotes"
+                        placeholder="{{ 'SalaryNotesPlaceholder' | translate }}"></textarea>
+                      <div *ngIf="getValidationErrors('salaryNotes').length > 0" class="form-error-message">
+                        <div *ngFor="let error of getValidationErrors('salaryNotes')">{{ error }}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

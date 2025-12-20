@@ -1,10 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, AfterViewInit, inject, TemplateRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faFilter, faSpinner, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSort, faSortUp, faSortDown, faEdit, faTrash, faEye, faFilter, faSpinner, faArrowLeft, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 
 import { EmployeeStore } from '../../../../store/employee.store';
@@ -17,7 +17,8 @@ import { ErrorDialogComponent } from '../../../../shared/components/error-dialog
 import { WhatsAppService } from '../../../../core/services/whatsapp.service';
 import { DeleteEmployeeStore } from '../../../../store/delete-employee.store';
 import { effect } from '@angular/core';
-import { ResponsiveEmployeeTableComponent } from '../../../../shared/components/responsive-employee-table/responsive-employee-table.component';
+import { MaterialDataTableComponent, TableColumn, TableAction } from '../../../../shared/components/material-data-table';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 
 import { CustomDropdownComponent } from '../../../../shared/components/custom-dropdown/custom-dropdown.component';
 
@@ -30,13 +31,14 @@ import { CustomDropdownComponent } from '../../../../shared/components/custom-dr
     ReactiveFormsModule,
     FontAwesomeModule,
     RouterLink,
-    ResponsiveEmployeeTableComponent, // Added ResponsiveEmployeeTableComponent
+    MaterialDataTableComponent,
+    PaginationComponent,
     CustomDropdownComponent
   ],
   templateUrl: './employees.html',
   styleUrls: ['./employees.css']
 })
-export class Employees implements OnInit {
+export class Employees implements OnInit, AfterViewInit {
   readonly store = inject(EmployeeStore);
   filterForm!: FormGroup;
 
@@ -46,10 +48,20 @@ export class Employees implements OnInit {
   whatsappIcon = faWhatsapp;
   faSpinner = faSpinner;
   faArrowLeft = faArrowLeft;
+  faUsers = faUsers;
 
   isFilterCollapsed: boolean = true;
 
   statusOptions: { value: boolean | null; label: string }[] = [];
+
+  // Material Data Table
+  tableColumns: TableColumn[] = [];
+  tableActions: TableAction[] = [];
+  
+  @ViewChild('checkboxHeaderTemplate') checkboxHeaderTemplate!: TemplateRef<any>;
+  @ViewChild('checkboxTemplate') checkboxTemplate!: TemplateRef<any>;
+  @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
+  @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
 
   private loadingDialogRef: any; // Declare loadingDialogRef
 
@@ -58,7 +70,7 @@ export class Employees implements OnInit {
   private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private whatsAppService = inject(WhatsAppService);
-  private location = inject(Location);
+  private router = inject(Router);
 
   // Loading state for group WhatsApp button
   groupWhatsappLoading = false;
@@ -179,8 +191,88 @@ export class Employees implements OnInit {
     });
   }
 
+  ngAfterViewInit(): void {
+    // Initialize columns and actions after templates are available
+    this.initializeTableColumns();
+    this.initializeTableActions();
+  }
+
+  private initializeTableColumns(): void {
+    this.tableColumns = [
+      {
+        key: 'selected',
+        label: '',
+        sortable: false,
+        align: 'center',
+        width: '5%',
+        headerTemplate: this.checkboxHeaderTemplate,
+        cellTemplate: this.checkboxTemplate
+      },
+      {
+        key: 'name',
+        label: 'Name',
+        sortable: true,
+        align: 'left',
+        width: '20%',
+        cellTemplate: this.nameTemplate
+      },
+      {
+        key: 'phone',
+        label: 'Phone',
+        sortable: true,
+        align: 'center',
+        width: '15%'
+      },
+      {
+        key: 'email',
+        label: 'Email',
+        sortable: true,
+        align: 'center',
+        width: '20%'
+      },
+      {
+        key: 'department',
+        label: 'Department',
+        sortable: true,
+        align: 'center',
+        width: '15%'
+      },
+      {
+        key: 'isActive',
+        label: 'Status',
+        sortable: true,
+        align: 'center',
+        width: '10%',
+        cellTemplate: this.statusTemplate
+      }
+    ];
+  }
+
+  private initializeTableActions(): void {
+    this.tableActions = [
+      {
+        label: 'View',
+        icon: 'visibility',
+        color: 'primary',
+        action: (row: EmployeeDto) => this.router.navigate(['/employees/view', row.id])
+      },
+      {
+        label: 'Edit',
+        icon: 'edit',
+        color: 'primary',
+        action: (row: EmployeeDto) => this.router.navigate(['/employees/update', row.id])
+      },
+      {
+        label: 'Delete',
+        icon: 'delete',
+        color: 'warn',
+        action: (row: EmployeeDto) => this.onDelete(row)
+      }
+    ];
+  }
+
   onBack(): void {
-    this.location.back();
+    this.router.navigate(['/admin-dashboard']);
   }
 
   onFilter(): void {
@@ -203,6 +295,14 @@ export class Employees implements OnInit {
 
   get selectedCount(): number {
     return this.store.employees().filter(e => e.selected).length;
+  }
+
+  get isAllSelected(): boolean {
+    return this.store.employees().length > 0 && this.store.employees().every(e => e.selected);
+  }
+
+  get isSomeSelected(): boolean {
+    return this.store.employees().some(e => e.selected);
   }
 
   sendWhatsAppMessage(): void {
@@ -282,21 +382,9 @@ export class Employees implements OnInit {
     this.store.updateRequest({ pageNumber });
   }
 
-  onSort(sortField: string): void {
-    const currentSortField = this.store.request().sortField;
-    const currentSortOrder = this.store.request().sortOrder;
-
-    const sortOrder = currentSortField === sortField && currentSortOrder === 'asc' ? 'desc' : 'asc';
-    
-    console.log('🔀 Employee Sort: Handling sort change:', {
-      sortField,
-      newSortOrder: sortOrder,
-      currentSortField,
-      currentSortOrder,
-      currentRequest: this.store.request()
-    });
-    
-    this.store.updateRequest({ sortField, sortOrder });
+  onSort(sortChange: { field: string; order: 'asc' | 'desc' }): void {
+    console.log('🔀 Employee Sort: Handling sort change:', sortChange);
+    this.store.updateRequest({ sortField: sortChange.field, sortOrder: sortChange.order });
   }
 
   onDelete(employee: EmployeeDto): void {

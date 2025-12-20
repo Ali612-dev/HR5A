@@ -1,64 +1,107 @@
-
-<div class="add-employee-container">
+<div class="view-employee-container">
   <div class="container-fluid py-4">
     <!-- Header -->
     <div class="page-header">
-      <a routerLink="/employees" class="back-button">
-        <fa-icon [icon]="faArrowLeft"></fa-icon>
-      </a>
+      <div class="header-left">
+        <button type="button" class="btn btn-ghost" routerLink="/employees">
+          <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
+          {{ 'Back' | translate }}
+        </button>
+      </div>
+      <div class="header-center">
+        <h2 class="page-title">
+          <fa-icon [icon]="faUserCircle" class="me-2"></fa-icon>
+          {{ 'EmployeeDetails' | translate }}
+        </h2>
+      </div>
+      <div class="header-right">
+        <button *ngIf="!store.isLoading() && store.employee()" class="btn btn-primary" [routerLink]="['/employees/update', store.employee()?.id]">
+          <fa-icon [icon]="faEdit" class="me-1"></fa-icon>
+          {{ 'Edit' | translate }}
+        </button>
+      </div>
     </div>
 
-    <!-- Employee Details -->
-    <div class="card">
-      <div *ngIf="store.isLoading()">
+    <!-- Employee Details Card -->
+    <div *ngIf="store.isLoading()" class="glass-card">
+      <div class="glass-body p-4">
         <app-shimmer></app-shimmer>
       </div>
-      <div *ngIf="store.error()" class="alert alert-danger">
-        {{ store.error()! | translate }}
-      </div>
-      <div *ngIf="!store.isLoading() && store.employee() as employee">
-        <div class="employee-header">
-          <fa-icon [icon]="faUserCircle" class="employee-avatar"></fa-icon>
-          <h2 class="employee-name">{{ employee.name }}</h2>
-          <div class="status-badge" [ngClass]="employee.isActive ? 'active' : 'inactive'">
-            {{ employee.isActive ? ('Active' | translate) : ('Inactive' | translate) }}
-          </div>
-        </div>
+    </div>
 
-        <div class="details-grid">
-          <div class="detail-item">
-            <fa-icon [icon]="faPhone" class="detail-icon"></fa-icon>
-            <div class="detail-content">
-              <span class="label">{{ 'Phone' | translate }}</span>
-              <span class="value">{{ employee.phone }}</span>
+    <div *ngIf="store.error()" class="glass-card">
+      <div class="glass-body p-4">
+        <div class="alert alert-danger">
+          <fa-icon [icon]="faTimesCircle" class="me-2"></fa-icon>
+          {{ store.error()! | translate }}
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!store.isLoading() && !store.error() && store.employee() as employee" class="employee-details-card">
+      <div class="glass-card">
+        <div class="glass-body p-4">
+          <!-- Employee Header -->
+          <div class="employee-header">
+            <div class="employee-avatar-wrapper">
+              <fa-icon [icon]="faUserCircle" class="employee-avatar"></fa-icon>
+            </div>
+            <h2 class="employee-name">{{ employee.name }}</h2>
+            <div class="status-badge" [ngClass]="employee.isActive ? 'active' : 'inactive'">
+              {{ employee.isActive ? ('Active' | translate) : ('Inactive' | translate) }}
             </div>
           </div>
-          <div class="detail-item">
-            <fa-icon [icon]="faEnvelope" class="detail-icon"></fa-icon>
-            <div class="detail-content">
-              <span class="label">{{ 'Email' | translate }}</span>
-              <span class="value">{{ employee.email || '-' }}</span>
+
+          <!-- Employee Details Grid -->
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-icon-wrapper">
+                <fa-icon [icon]="faPhone" class="detail-icon"></fa-icon>
+              </div>
+              <div class="detail-content">
+                <span class="detail-label">{{ 'Phone' | translate }}</span>
+                <span class="detail-value">{{ employee.phone }}</span>
+              </div>
             </div>
-          </div>
-          <div class="detail-item">
-            <fa-icon [icon]="faBuilding" class="detail-icon"></fa-icon>
-            <div class="detail-content">
-              <span class="label">{{ 'Department' | translate }}</span>
-              <span class="value">{{ employee.department || '-' }}</span>
+
+            <div class="detail-item">
+              <div class="detail-icon-wrapper">
+                <fa-icon [icon]="faEnvelope" class="detail-icon"></fa-icon>
+              </div>
+              <div class="detail-content">
+                <span class="detail-label">{{ 'Email' | translate }}</span>
+                <span class="detail-value">{{ employee.email || '-' }}</span>
+              </div>
             </div>
-          </div>
-          <div class="detail-item">
-            <fa-icon [icon]="faIdCard" class="detail-icon"></fa-icon>
-            <div class="detail-content">
-              <span class="label">{{ 'CardNumber' | translate }}</span>
-              <span class="value">{{ employee.cardNumber }}</span>
+
+            <div class="detail-item">
+              <div class="detail-icon-wrapper">
+                <fa-icon [icon]="faBuilding" class="detail-icon"></fa-icon>
+              </div>
+              <div class="detail-content">
+                <span class="detail-label">{{ 'Department' | translate }}</span>
+                <span class="detail-value">{{ employee.department || '-' }}</span>
+              </div>
             </div>
-          </div>
-          <div class="detail-item">
-            <fa-icon [icon]="faCalendarAlt" class="detail-icon"></fa-icon>
-            <div class="detail-content">
-              <span class="label">{{ 'JoinedDate' | translate }}</span>
-              <span class="value">{{ employee.joinedDate | date: 'longDate' }}</span>
+
+            <div class="detail-item">
+              <div class="detail-icon-wrapper">
+                <fa-icon [icon]="faIdCard" class="detail-icon"></fa-icon>
+              </div>
+              <div class="detail-content">
+                <span class="detail-label">{{ 'CardNumber' | translate }}</span>
+                <span class="detail-value">{{ employee.cardNumber }}</span>
+              </div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-icon-wrapper">
+                <fa-icon [icon]="faCalendarAlt" class="detail-icon"></fa-icon>
+              </div>
+              <div class="detail-content">
+                <span class="detail-label">{{ 'JoinedDate' | translate }}</span>
+                <span class="detail-value">{{ employee.joinedDate | date: 'longDate' }}</span>
+              </div>
             </div>
           </div>
         </div>

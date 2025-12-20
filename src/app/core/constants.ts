@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
   REGISTER: isUsingVercelProxy ? '?path=/api/Auth/register' : '/api/Auth/register',
   AUTH_USERS: isUsingVercelProxy ? '?path=/api/Auth/users' : '/api/Auth/users',
   AUTH_UPDATE: isUsingVercelProxy ? '?path=/api/Auth/update' : '/api/Auth/update',
+  REFRESH_ADMIN_TOKEN: isUsingVercelProxy ? '?path=/api/Auth/refresh-admin-token' : '/api/Auth/refresh-admin-token',
   DASHBOARD_STATS: isUsingVercelProxy ? '?path=/api/Dashboard' : '/api/Dashboard',
   REQUESTS: isUsingVercelProxy ? '?path=/api/Request' : '/api/Request',
   LatestRequestsDashboard: isUsingVercelProxy ? '?path=/api/Request/GetLatestApprovedRequests' : '/api/Request/GetLatestApprovedRequests',

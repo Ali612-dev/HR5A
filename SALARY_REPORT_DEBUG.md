@@ -186,3 +186,10 @@ SELECT * FROM Attendances WHERE EmployeeId = 2 AND MONTH(Date) = 12 AND YEAR(Dat
 
 
 
+
+
+
+
+
+
+

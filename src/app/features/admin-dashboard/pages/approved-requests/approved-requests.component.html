@@ -5,90 +5,69 @@
         <fa-icon [icon]="faArrowLeft" class="me-2"></fa-icon>
         {{ 'Back' | translate }}
       </button>
-      <div class="page-title">
-        <fa-icon [icon]="faCircleCheck" class="me-2"></fa-icon>
-        {{ 'ApprovedRequests' | translate }}
-      </div>
     </div>
+    <div class="header-center">
+      <fa-icon [icon]="faCircleCheck" class="header-icon"></fa-icon>
+      <h2 class="page-title">{{ 'ApprovedRequests' | translate }}</h2>
+    </div>
+    <div class="header-right"></div>
   </div>
 
   <div class="content-container">
-    <ng-container *ngIf="isLoading; else loadedContent">
-      <div class="glass-card h-100">
-        <div class="glass-body p-4">
-          <app-shimmer></app-shimmer>
+    <app-material-data-table
+      [data]="approvedRequests"
+      [columns]="tableColumns"
+      [actions]="tableActions"
+      [isLoading]="isLoading"
+      [error]="error"
+      [emptyMessage]="'NoApprovedRequests'"
+      [emptyDescription]="'NoRequestsApprovedYet'"
+      [loadingMessage]="'LoadingApprovedRequests'"
+      [showActions]="false"
+      (retry)="fetchApprovedRequests()">
+      
+      <!-- Templates for custom cell rendering -->
+      <ng-template #nameTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <div class="avatar-sm">
+            <fa-icon [icon]="faCircleCheck" class="avatar-icon"></fa-icon>
+          </div>
+          <span class="name-text">{{ row.fullName }}</span>
         </div>
-      </div>
-    </ng-container>
+      </ng-template>
 
-    <ng-template #loadedContent>
-      <div *ngIf="error" class="alert alert-danger" role="alert">
-        {{ error }}
-      </div>
+      <ng-template #phoneTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span class="phone-text">{{ row.phoneNumber }}</span>
+        </div>
+      </ng-template>
 
-      <div *ngIf="!error" class="glass-card">
-        <div class="glass-body p-4">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="mb-0">{{ 'ApprovedRequests' | translate }}</h5>
-            <span class="badge bg-success-accent">{{ totalCount }}</span>
-          </div>
-
-          <div *ngIf="approvedRequests.length > 0; else noApprovedRequests" class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr>
-                  <th class="table-header">{{ 'Name' | translate }}</th>
-                  <th class="table-header">{{ 'Phone' | translate }}</th>
-                  <th class="table-header">{{ 'Department' | translate }}</th>
-                  <th class="table-header">{{ 'ApprovedDate' | translate }}</th>
-                  <th class="table-header text-center">{{ 'Status' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let request of approvedRequests" class="table-row">
-                  <td class="table-cell name-cell">
-                    <div class="d-flex align-items-center">
-                      <div class="avatar-sm me-2">
-                        <fa-icon [icon]="faCircleCheck" class="avatar-icon"></fa-icon>
-                      </div>
-                      <span class="name-text">{{ request.fullName }}</span>
-                    </div>
-                  </td>
-                  <td class="table-cell phone-cell">
-                    <span class="phone-text">{{ request.phoneNumber }}</span>
-                  </td>
-                  <td class="table-cell department-cell">
-                    <span class="department-text" *ngIf="request.department; else noDepartment">
-                      {{ request.department }}
-                    </span>
-                    <ng-template #noDepartment>
-                      <span class="text-muted">{{ 'NotSpecified' | translate }}</span>
-                    </ng-template>
-                  </td>
-                  <td class="table-cell date-cell">
-                    <span class="date-text">{{ request.approvedDate | date:'MMM dd, yyyy HH:mm' }}</span>
-                  </td>
-                  <td class="table-cell status-cell text-center">
-                    <span class="badge bg-success-accent status-badge">
-                      <fa-icon [icon]="faCircleCheck" class="me-1"></fa-icon>
-                      {{ 'Approved' | translate }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <ng-template #noApprovedRequests>
-            <div class="text-center py-5">
-              <fa-icon [icon]="faCircleCheck" class="display-1 text-muted mb-3"></fa-icon>
-              <h5 class="text-muted">{{ 'NoApprovedRequests' | translate }}</h5>
-              <p class="text-muted">{{ 'NoRequestsApprovedYet' | translate }}</p>
-            </div>
+      <ng-template #departmentTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span *ngIf="row.department; else noDepartment" class="department-text">
+            {{ row.department }}
+          </span>
+          <ng-template #noDepartment>
+            <span class="text-muted">{{ 'NotSpecified' | translate }}</span>
           </ng-template>
         </div>
-      </div>
-    </ng-template>
+      </ng-template>
+
+      <ng-template #dateTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span class="date-text">{{ row.approvedDate | date:'MMM dd, yyyy HH:mm' }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #statusTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span class="badge badge-success">
+            <fa-icon [icon]="faCircleCheck" class="me-1"></fa-icon>
+            {{ 'Approved' | translate }}
+          </span>
+        </div>
+      </ng-template>
+    </app-material-data-table>
   </div>
 </div>
 

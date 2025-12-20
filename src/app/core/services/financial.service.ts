@@ -386,11 +386,8 @@ export class FinancialService {
 
   getWorkRuleTypeOptions(): { value: string; label: string }[] {
     return [
-      { value: 'Daily', label: this.translate.instant('WorkRuleType.Daily') },
-      { value: 'Weekly', label: this.translate.instant('WorkRuleType.Weekly') },
-      { value: 'Monthly', label: this.translate.instant('WorkRuleType.Monthly') },
-      { value: 'Hourly', label: this.translate.instant('WorkRuleType.Hourly') },
-      { value: 'Custom', label: this.translate.instant('WorkRuleType.Custom') }
+      { value: 'Custom', label: this.translate.instant('WorkRuleType.Custom') },
+      { value: 'Shifts', label: this.translate.instant('WorkRuleType.Shifts') }
     ];
   }
 
@@ -484,6 +481,20 @@ export class FinancialService {
 
   unassignEmployeeFromShift(shiftId: number, employeeId: number): Observable<ApiResponse<string>> {
     const url = `${this.baseUrl}/api/shifts/${shiftId}/assign/${employeeId}`;
+    return this.http.delete<ApiResponse<string>>(url, {
+      headers: this.getHeaders()
+    });
+  }
+
+  assignShiftToWorkRule(workRuleId: number, shiftId: number): Observable<ApiResponse<string>> {
+    const url = `${this.baseUrl}/api/WorkRule/${workRuleId}/shifts/${shiftId}`;
+    return this.http.post<ApiResponse<string>>(url, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  unassignShiftFromWorkRule(workRuleId: number, shiftId: number): Observable<ApiResponse<string>> {
+    const url = `${this.baseUrl}/api/WorkRule/${workRuleId}/shifts/${shiftId}`;
     return this.http.delete<ApiResponse<string>>(url, {
       headers: this.getHeaders()
     });

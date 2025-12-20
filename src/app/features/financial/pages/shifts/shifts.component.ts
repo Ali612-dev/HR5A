@@ -1,24 +1,26 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faClock, faArrowLeft, faPlus, faEdit, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faArrowLeft, faPlus, faEdit, faTrash, faTimes, faEye } from '@fortawesome/free-solid-svg-icons';
 import { MatDialog } from '@angular/material/dialog';
 import { FinancialService } from '../../../../core/services/financial.service';
 import { ShiftDto, CreateShiftDto, UpdateShiftDto } from '../../../../core/interfaces/financial.interface';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
 import { TimePickerComponent } from '../../../../shared/components/time-picker/time-picker.component';
+import { ViewShiftDialogComponent } from './view-shift-dialog.component';
+import { MaterialDataTableComponent, TableColumn, TableAction } from '../../../../shared/components/material-data-table';
 
 @Component({
   selector: 'app-shifts',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslateModule, FontAwesomeModule, ReactiveFormsModule, TimePickerComponent],
+  imports: [CommonModule, RouterModule, TranslateModule, FontAwesomeModule, ReactiveFormsModule, TimePickerComponent, MaterialDataTableComponent],
   templateUrl: './shifts.component.html',
   styleUrls: ['./shifts.component.css']
 })
-export class ShiftsComponent implements OnInit {
+export class ShiftsComponent implements OnInit, AfterViewInit {
   private financialService = inject(FinancialService);
   private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
@@ -29,10 +31,22 @@ export class ShiftsComponent implements OnInit {
   faPlus = faPlus;
   faEdit = faEdit;
   faTrash = faTrash;
+  faEye = faEye;
 
   isLoading = true;
   error: string | null = null;
   shifts: ShiftDto[] = [];
+
+  // Material Data Table
+  tableColumns: TableColumn[] = [];
+  tableActions: TableAction[] = [];
+  
+  @ViewChild('shiftNameTemplate') shiftNameTemplate!: TemplateRef<any>;
+  @ViewChild('startTimeTemplate') startTimeTemplate!: TemplateRef<any>;
+  @ViewChild('endTimeTemplate') endTimeTemplate!: TemplateRef<any>;
+  @ViewChild('overnightTemplate') overnightTemplate!: TemplateRef<any>;
+  @ViewChild('breakTemplate') breakTemplate!: TemplateRef<any>;
+  @ViewChild('employeesTemplate') employeesTemplate!: TemplateRef<any>;
 
   // Time picker state
   showTimePicker = false;
@@ -83,6 +97,88 @@ export class ShiftsComponent implements OnInit {
     this.createForm.get('isBreakFixed')?.valueChanges.subscribe(isBreakFixed => {
       this.updateBreakTimeValidators();
     });
+  }
+
+  ngAfterViewInit(): void {
+    // Initialize columns and actions after templates are available
+    this.initializeTableColumns();
+    this.initializeTableActions();
+  }
+
+  private initializeTableColumns(): void {
+    this.tableColumns = [
+      {
+        key: 'name',
+        label: 'ShiftName',
+        sortable: true,
+        align: 'center',
+        width: '30%',
+        cellTemplate: this.shiftNameTemplate
+      },
+      {
+        key: 'startTime',
+        label: 'Start',
+        sortable: true,
+        align: 'center',
+        width: '12%',
+        cellTemplate: this.startTimeTemplate
+      },
+      {
+        key: 'endTime',
+        label: 'End',
+        sortable: true,
+        align: 'center',
+        width: '12%',
+        cellTemplate: this.endTimeTemplate
+      },
+      {
+        key: 'isOvernight',
+        label: 'Overnight',
+        sortable: true,
+        align: 'center',
+        width: '12%',
+        cellTemplate: this.overnightTemplate
+      },
+      {
+        key: 'isThereBreak',
+        label: 'Break',
+        sortable: false,
+        align: 'center',
+        width: '12%',
+        cellTemplate: this.breakTemplate
+      },
+      {
+        key: 'employeeCount',
+        label: 'Employees',
+        sortable: true,
+        align: 'center',
+        width: '12%',
+        cellTemplate: this.employeesTemplate
+      }
+    ];
+  }
+
+  private initializeTableActions(): void {
+    this.tableActions = [
+      {
+        label: 'View',
+        icon: 'visibility',
+        color: 'primary',
+        action: (row: ShiftDto) => this.viewShiftDetails(row)
+      },
+      {
+        label: 'Edit',
+        icon: 'edit',
+        color: 'primary',
+        action: (row: ShiftDto) => this.showEditForm(row)
+      },
+      {
+        label: 'Delete',
+        icon: 'delete',
+        color: 'warn',
+        action: (row: ShiftDto) => this.deleteShift(row)
+      }
+    ];
   }
 
   private updateBreakTimeValidators(): void {
@@ -287,10 +383,6 @@ export class ShiftsComponent implements OnInit {
         this.showErrorDialog(errorMsg);
       }
     });
-  }
-
-  formatTime(time: string): string {
-    return time ? time.substring(0, 5) : '';
   }
 
   showSuccessDialog(messageKey: string): void {
@@ -509,6 +601,41 @@ export class ShiftsComponent implements OnInit {
     return form?.get(fieldName)?.value || '';
   }
 
+  viewShiftDetails(shift: ShiftDto): void {
+    // Show loading dialog
+    const loadingDialog = this.dialog.open(NotificationDialogComponent, {
+      panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+      data: {
+        title: this.translate.instant('LOADING.TITLE'),
+        message: this.translate.instant('LOADING.LOADING_SHIFT_DETAILS'),
+        isSuccess: true
+      },
+      disableClose: true
+    });
+
+    this.financialService.getShift(shift.id).subscribe({
+      next: (response) => {
+        loadingDialog.close();
+        
+        if (response.isSuccess && response.data) {
+          this.dialog.open(ViewShiftDialogComponent, {
+            panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+            width: '700px',
+            maxWidth: '90vw',
+            data: response.data
+          });
+        } else {
+          this.showErrorDialog('ERROR.FAILED_TO_LOAD_SHIFT_DETAILS');
+        }
+      },
+      error: (error) => {
+        loadingDialog.close();
+        console.error('Error loading shift details:', error);
+        this.showErrorDialog('ERROR.FAILED_TO_LOAD_SHIFT_DETAILS');
+      }
+    });
+  }
+
   deleteShift(shift: ShiftDto): void {
     const confirmMessage = this.translate.instant('CONFIRM_DELETE_SHIFT', { name: shift.name });
     const confirmTitle = this.translate.instant('ConfirmDeletion');
@@ -532,5 +659,14 @@ export class ShiftsComponent implements OnInit {
         }
       });
     }
+  }
+
+  formatTime(time: string | null | undefined): string {
+    if (!time) return '—';
+    // If time is in HH:mm:ss format, extract HH:mm
+    if (time.length >= 5) {
+      return time.substring(0, 5);
+    }
+    return time;
   }
 }

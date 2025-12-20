@@ -1,5 +1,12 @@
 <div class="dialog-header">
-  <h2 class="dialog-title">{{ data.title }}</h2>
+  <div class="header-content">
+    <fa-icon 
+      [icon]="data.isSuccess ? faCheckCircle : faExclamationCircle" 
+      class="dialog-icon"
+      [ngClass]="{'success-icon': data.isSuccess, 'error-icon': !data.isSuccess}">
+    </fa-icon>
+    <h2 class="dialog-title">{{ data.title }}</h2>
+  </div>
   <button *ngIf="!data.isSuccess" class="close-button" (click)="onClose()">
     <fa-icon [icon]="faTimes"></fa-icon>
   </button>

@@ -1,16 +1,29 @@
-<div class="admin-dashboard">
+<div class="admin-dashboard-container">
   <div class="container-fluid py-4">
     <!-- Header -->
     <div class="row mb-4">
       <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-          <h2 class="text-white mb-0">{{ 'AdminDashboard' | translate }}</h2>
-          <div class="d-flex ms-auto" style="gap: 5px;">
-            <a routerLink="/home" class="btn btn-outline-light">
-              <fa-icon [icon]="faArrowRight" class="me-1 icon-header"></fa-icon> {{ 'GoToHome' | translate }}
+        <div class="dashboard-header">
+          <div class="header-left">
+            <a routerLink="/home" class="btn btn-ghost">
+              <fa-icon [icon]="faArrowRight" class="me-2"></fa-icon>
+              {{ 'GoToHome' | translate }}
             </a>
+          </div>
+          <div class="header-center">
+            <h2 class="dashboard-title">
+              <fa-icon [icon]="faUsers" class="me-2"></fa-icon>
+              {{ 'AdminDashboard' | translate }}
+            </h2>
+          </div>
+          <div class="header-right">
+            <button class="btn btn-outline-light" (click)="refreshData()">
+              <fa-icon [icon]="faChartLine" class="me-1"></fa-icon>
+              {{ 'Refresh' | translate }}
+            </button>
             <button (click)="logout()" class="btn btn-outline-light">
-              <fa-icon [icon]="faArrowRightFromBracket" class="me-1 icon-header"></fa-icon> {{ 'Logout' | translate }}
+              <fa-icon [icon]="faArrowRightFromBracket" class="me-1"></fa-icon>
+              {{ 'Logout' | translate }}
             </button>
           </div>
         </div>
@@ -23,7 +36,7 @@
         <div *ngIf="statsError" class="alert alert-danger col-12" role="alert">
           {{ statsError }}
         </div>
-        <div class="stat-card" *ngFor="let i of [1,2,3,4]">
+        <div class="stat-card" *ngFor="let i of [1,2,3,4,5]">
           <div class="glass-card h-100">
             <div class="glass-body p-4 text-center">
               <div class="stat-icon mb-3 shimmer-placeholder shimmer-circle"></div>
@@ -102,110 +115,86 @@
       </ng-template>
     </div>
 
-    <div class="dashboard-main-content">
-      <!-- Pending Requests -->
-      <div class="pending-requests-container" @fadeInUp>
-        <ng-container *ngIf="isLoadingPendingRequests; else loadedPendingRequests">
-          <div *ngIf="pendingRequestsError" class="alert alert-danger col-12" role="alert">
-            {{ pendingRequestsError }}
-          </div>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <app-shimmer></app-shimmer>
+    <!-- Charts Section -->
+    <div class="charts-container" @staggerFadeInUp>
+      <!-- Employees Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'TotalEmployees' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'TotalEmployees' | translate }} {{ totalEmployees }}</p>
+            <div class="chart-wrapper">
+              <canvas #employeesChart></canvas>
             </div>
           </div>
-        </ng-container>
-        <ng-template #loadedPendingRequests>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">{{ 'PendingRequests' | translate }}</h5>
-                <span class="badge bg-purple-accent">{{ pendingCount }}</span>
-              </div>
-
-              <div *ngIf="pendingRequests.length > 0; else noPendingRequests" class="table-responsive">
-                <table class="table table-hover align-middle">
-                  <thead>
-                  <tr>
-                    <th>{{ 'Name' | translate }}</th>
-                    <th>{{ 'Phone' | translate }}</th>
-                    <th>{{ 'Department' | translate }}</th>
-                    <th>{{ 'Date' | translate }}</th>
-                    <th>{{ 'Actions' | translate }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr *ngFor="let request of pendingRequests">
-                    <td>{{ request.fullName }}</td>
-                    <td>{{ request.phoneNumber }}</td>
-                    <td>{{ request.department }}</td>
-                    <td>{{ request.requestDate | date:'MMM dd, yyyy' }}</td>
-                    <td class="text-nowrap">
-                      <button class="btn btn-sm btn-success me-1" (click)="processRequest(request.id, true)" appCustomTooltip [appCustomTooltipText]="'TOOLTIP.ACCEPT_REQUEST' | translate">
-                        <fa-icon [icon]="faCheck" class="icon-button"></fa-icon>
-                      </button>
-                      <button class="btn btn-sm btn-danger" (click)="rejectRequest(request)" appCustomTooltip [appCustomTooltipText]="'TOOLTIP.REJECT_REQUEST' | translate">
-                        <fa-icon [icon]="faXmark" class="icon-button"></fa-icon>
-                      </button>
-                    </td>
-
-                  </tr>
-                </table>
-              </div>
-              <ng-template #noPendingRequests>
-                <div class="text-center py-4">
-                  <fa-icon [icon]="faInbox" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
-                  <p class="mt-2 mb-0">{{ 'NoPendingRequests' | translate }}</p>
-                </div>
-              </ng-template>
-            </div>
-          </div>
-        </ng-template>
+        </div>
       </div>
 
-      <!-- Recent Approvals -->
-      <div class="recent-approvals-container" @fadeInUp>
-        <ng-container *ngIf="isLoadingApprovedRequests; else loadedRecentApprovals">
-          <div *ngIf="approvedRequestsError" class="alert alert-danger col-12" role="alert">
-            {{ approvedRequestsError }}
-          </div>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <app-shimmer></app-shimmer>
+      <!-- Attendance Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'Today Attendants' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'AttendanceRate' | translate }} 92%</p>
+            <div class="chart-wrapper">
+              <canvas #attendanceChart></canvas>
             </div>
           </div>
-        </ng-container>
-        <ng-template #loadedRecentApprovals>
-          <div class="glass-card h-100">
-            <div class="glass-body p-4">
-              <h5 class="mb-4">{{ 'RecentApprovals' | translate }}</h5>
+        </div>
+      </div>
 
-              <div *ngIf="recentApprovals.length > 0; else noRecentApprovals" class="list-group list-group-flush">
-                <div *ngFor="let request of recentApprovals" class="list-group-item bg-transparent border-0 px-0 py-3">
-                  <div class="d-flex align-items-center approval-item-flex">
-                    <div class="flex-shrink-0">
-                      <div class="avatar bg-purple-success bg-opacity-10 text-purple-success rounded-circle p-1">
-                        <fa-icon [icon]="faUsers" class="icon-unified"></fa-icon>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 approval-details">
-                      <h6 class="mb-0">{{ request.fullName }}</h6>
-                      <small class="text-muted">
-                        {{ 'ApprovedOn' | translate }} {{ request.processedDate | date:'MMM dd, yyyy' }}
-                      </small>
-                    </div>
-                    <span class="badge bg-purple-success">{{ 'Approved' | translate }}</span>
-                  </div>
-                </div>
-              </div>
-              <ng-template #noRecentApprovals>
-                <div class="text-center py-4">
-                  <fa-icon [icon]="faUsers" class="icon-large-unified" style="font-size: 3rem;"></fa-icon>
-                  <p class="mt-2 mb-0">{{ 'No Approved Requests Yet' | translate }}</p>
-                </div>
-              </ng-template>
+      <!-- Pending Requests Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'PendingRequests' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'TotalRequests' | translate }} {{ pendingCount }}</p>
+            <div class="chart-wrapper">
+              <canvas #pendingRequestsChart></canvas>
             </div>
           </div>
-        </ng-template>
+        </div>
+      </div>
+
+      <!-- Approved Requests Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'Approved' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'TotalApproved' | translate }} {{ approvedCount }}</p>
+            <div class="chart-wrapper">
+              <canvas #approvedRequestsChart></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Trends Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'MonthlyTrends' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'Revenues' | translate }} 245</p>
+            <div class="chart-wrapper">
+              <canvas #monthlyTrendsChart></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Requests Status Chart -->
+      <div class="chart-card">
+        <div class="glass-card h-100">
+          <div class="glass-body p-4">
+            <h5 class="chart-title">{{ 'ReportsStatus' | translate }}</h5>
+            <p class="chart-subtitle">{{ 'TotalRequests' | translate }} {{ pendingCount + approvedCount }}</p>
+            <div class="chart-wrapper">
+              <canvas #requestsStatusChart></canvas>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+  </div>
+</div>

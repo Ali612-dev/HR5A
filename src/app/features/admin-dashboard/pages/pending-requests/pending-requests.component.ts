@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -6,8 +6,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faHourglassHalf, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { RequestService } from '../../../../core/request.service';
 import { RequestStatus } from '../../../../core/interfaces/request.interface';
-import { ShimmerComponent } from '../../../../shared/components/shimmer/shimmer.component';
-import { CustomTooltipDirective } from '../../../../shared/directives/custom-tooltip.directive';
+import { MaterialDataTableComponent, TableColumn, TableAction } from '../../../../shared/components/material-data-table';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, of } from 'rxjs';
@@ -20,13 +19,12 @@ import { catchError, of } from 'rxjs';
     RouterModule,
     TranslateModule,
     FontAwesomeModule,
-    ShimmerComponent,
-    CustomTooltipDirective
+    MaterialDataTableComponent
   ],
   templateUrl: './pending-requests.component.html',
   styleUrls: ['./pending-requests.component.css']
 })
-export class PendingRequestsComponent implements OnInit {
+export class PendingRequestsComponent implements OnInit, AfterViewInit {
   private requestService = inject(RequestService);
   private translate = inject(TranslateService);
   private dialog = inject(MatDialog);
@@ -43,8 +41,76 @@ export class PendingRequestsComponent implements OnInit {
   error: string | null = null;
   totalCount = 0;
 
+  // Material Data Table
+  tableColumns: TableColumn[] = [];
+  tableActions: TableAction[] = [];
+  
+  @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
+  @ViewChild('phoneTemplate') phoneTemplate!: TemplateRef<any>;
+  @ViewChild('departmentTemplate') departmentTemplate!: TemplateRef<any>;
+  @ViewChild('dateTemplate') dateTemplate!: TemplateRef<any>;
+
   ngOnInit(): void {
     this.fetchPendingRequests();
+  }
+
+  ngAfterViewInit(): void {
+    this.initializeTableColumns();
+    this.initializeTableActions();
+  }
+
+  private initializeTableColumns(): void {
+    this.tableColumns = [
+      {
+        key: 'fullName',
+        label: 'Name',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.nameTemplate
+      },
+      {
+        key: 'phoneNumber',
+        label: 'Phone',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.phoneTemplate
+      },
+      {
+        key: 'department',
+        label: 'Department',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.departmentTemplate
+      },
+      {
+        key: 'requestDate',
+        label: 'Date',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.dateTemplate
+      }
+    ];
+  }
+
+  private initializeTableActions(): void {
+    this.tableActions = [
+      {
+        label: 'Approve',
+        icon: 'check',
+        color: 'primary',
+        action: (row: any) => {
+          this.processRequest(row.id, true);
+        }
+      },
+      {
+        label: 'Reject',
+        icon: 'close',
+        color: 'warn',
+        action: (row: any) => {
+          this.rejectRequest(row);
+        }
+      }
+    ];
   }
 
   fetchPendingRequests(): void {

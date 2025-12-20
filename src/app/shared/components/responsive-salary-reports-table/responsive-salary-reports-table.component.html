@@ -1,13 +1,7 @@
 <!-- Enhanced Loading State -->
-<div *ngIf="isLoading" class="enhanced-loading-container">
+<div *ngIf="isLoading" class="loading-container">
   <div class="loading-content">
-    <div class="spinner-container">
-      <div class="custom-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-      </div>
-    </div>
+    <mat-spinner diameter="60"></mat-spinner>
     <div class="loading-text">
       <h5 class="loading-title">{{ 'Loading' | translate }} {{ 'SalaryReports' | translate }}...</h5>
       <p class="loading-subtitle">{{ 'PleaseWait' | translate }}</p>
@@ -16,123 +10,147 @@
 </div>
 
 <!-- Enhanced Error State -->
-<div *ngIf="error && !isLoading" class="enhanced-error-container">
+<div *ngIf="error && !isLoading" class="error-container">
   <div class="error-content">
-    <div class="error-icon-container">
-      <fa-icon [icon]="faTimesCircle" class="error-icon"></fa-icon>
-    </div>
+    <mat-icon class="error-icon">error_outline</mat-icon>
     <div class="error-text">
       <h5 class="error-title">{{ 'Error' | translate }}</h5>
       <p class="error-message">{{ error | translate }}</p>
     </div>
     <div class="error-actions">
-      <button class="btn btn-retry" (click)="onRetry()">
-        <fa-icon [icon]="faRefresh" class="me-2"></fa-icon>
+      <button mat-raised-button color="warn" (click)="onRetry()">
+        <mat-icon>refresh</mat-icon>
         {{ 'Retry' | translate }}
       </button>
     </div>
   </div>
 </div>
 
-<!-- Desktop Table View -->
-<div *ngIf="!isLoading && !error && !isMobile" class="table-responsive desktop-table">
-  <table class="table table-hover glass-table">
-    <thead>
-      <tr>
-        <th scope="col" class="sortable" (click)="onSort('employeeName')">
+<!-- Desktop Material Table View -->
+<div *ngIf="!isLoading && !error && !isMobile" class="material-table-container">
+  <div class="table-wrapper">
+    <table mat-table [dataSource]="dataSource" matSort class="material-table">
+      
+      <!-- Employee Name Column -->
+      <ng-container matColumnDef="employeeName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="employeeName" class="text-center">
           {{ 'EmployeeName' | translate }}
-          <fa-icon [icon]="getSortIcon('employeeName')" class="ms-1"></fa-icon>
         </th>
-        <th scope="col" class="sortable" (click)="onSort('reportMonth')">
-          {{ 'ReportMonth' | translate }}
-          <fa-icon [icon]="getSortIcon('reportMonth')" class="ms-1"></fa-icon>
-        </th>
-        <th scope="col" class="sortable" (click)="onSort('reportYear')">
-          {{ 'ReportYear' | translate }}
-          <fa-icon [icon]="getSortIcon('reportYear')" class="ms-1"></fa-icon>
-        </th>
-        <th scope="col" class="sortable" (click)="onSort('baseSalary')">
-          {{ 'BaseSalary' | translate }}
-          <fa-icon [icon]="getSortIcon('baseSalary')" class="ms-1"></fa-icon>
-        </th>
-        <th scope="col" class="sortable" (click)="onSort('netCalculatedSalary')">
-          {{ 'NetSalary' | translate }}
-          <fa-icon [icon]="getSortIcon('netCalculatedSalary')" class="ms-1"></fa-icon>
-        </th>
-        <th scope="col" class="sortable" (click)="onSort('isPaid')">
-          {{ 'Status' | translate }}
-          <fa-icon [icon]="getSortIcon('isPaid')" class="ms-1"></fa-icon>
-        </th>
-        <th scope="col" class="sortable" (click)="onSort('generatedDate')">
-          {{ 'GeneratedDate' | translate }}
-          <fa-icon [icon]="getSortIcon('generatedDate')" class="ms-1"></fa-icon>
-        </th>
-        <th scope="col">{{ 'Actions' | translate }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let report of reports; trackBy: trackByFn" class="glass-row">
-        <td>
+        <td mat-cell *matCellDef="let report" class="employee-cell">
           <div class="employee-info">
             <div class="employee-name">{{ report.employeeName }}</div>
-            <small class="text-muted">{{ report.employeePhoneNumber }}</small>
+            <div class="employee-phone">{{ report.employeePhoneNumber }}</div>
           </div>
         </td>
-        <td class="text-center">{{ report.reportMonth }}</td>
-        <td class="text-center">{{ report.reportYear }}</td>
-        <td class="text-end">{{ formatCurrency(report.baseSalary) }}</td>
-        <td class="text-end">
-          <strong class="text-success">{{ formatCurrency(report.netCalculatedSalary) }}</strong>
+      </ng-container>
+
+      <!-- Month Column -->
+      <ng-container matColumnDef="reportMonth">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="reportMonth" class="text-center">
+          {{ 'ReportMonth' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let report" class="text-center">{{ report.reportMonth }}</td>
+      </ng-container>
+
+      <!-- Year Column -->
+      <ng-container matColumnDef="reportYear">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="reportYear" class="text-center">
+          {{ 'ReportYear' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let report" class="text-center">{{ report.reportYear }}</td>
+      </ng-container>
+
+      <!-- Base Salary Column -->
+      <ng-container matColumnDef="baseSalary">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="baseSalary" class="text-center">
+          {{ 'BaseSalary' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let report" class="text-end salary-cell">
+          {{ formatCurrency(report.baseSalary) }}
         </td>
-        <td class="text-center">
-          <span class="badge" [ngClass]="getStatusBadgeClass(report.isPaid)">
-            <fa-icon [icon]="report.isPaid ? faCheckCircle : faTimesCircle" class="me-1"></fa-icon>
+      </ng-container>
+
+      <!-- Net Salary Column -->
+      <ng-container matColumnDef="netCalculatedSalary">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="netCalculatedSalary" class="text-center">
+          {{ 'NetSalary' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let report" class="text-end net-salary-cell">
+          <span class="net-salary-value">{{ formatCurrency(report.netCalculatedSalary) }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="isPaid">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="isPaid" class="text-center">
+          {{ 'Status' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let report" class="text-center">
+          <mat-chip [class]="getStatusBadgeClass(report.isPaid)">
+            <mat-icon class="chip-icon">{{ report.isPaid ? 'check_circle' : 'cancel' }}</mat-icon>
             {{ getStatusText(report.isPaid) | translate }}
-          </span>
+          </mat-chip>
         </td>
-        <td class="text-center">{{ formatDateTime(report.generatedDate) }}</td>
-        <td class="text-center">
-          <div class="action-buttons-horizontal">
-            <button class="btn btn-sm btn-outline-primary" (click)="onView(report)" [title]="'View' | translate">
-              <fa-icon [icon]="faEye"></fa-icon>
+      </ng-container>
+
+      <!-- Generated Date Column -->
+      <ng-container matColumnDef="generatedDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="generatedDate" class="text-center">
+          {{ 'GeneratedDate' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let report" class="text-center date-cell">
+          {{ formatDateTime(report.generatedDate) }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-center">
+          {{ 'Actions' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let report" class="text-center actions-cell">
+          <div class="action-buttons">
+            <button mat-icon-button color="primary" (click)="onView(report)" [title]="'View' | translate">
+              <mat-icon>visibility</mat-icon>
             </button>
-            <button class="btn btn-sm btn-outline-success" (click)="onDownload(report)" [title]="'Download' | translate">
-              <fa-icon [icon]="faDownload"></fa-icon>
+            <button mat-icon-button color="accent" (click)="onDownload(report)" [title]="'Download' | translate">
+              <mat-icon>download</mat-icon>
             </button>
-            <button *ngIf="!report.isPaid" class="btn btn-sm btn-outline-info" (click)="onMarkAsPaid(report)" [title]="'MarkAsPaid' | translate">
-              <fa-icon [icon]="faCheckCircle"></fa-icon>
+            <button *ngIf="!report.isPaid" mat-icon-button color="primary" (click)="onMarkAsPaid(report)" [title]="'MarkAsPaid' | translate">
+              <mat-icon>check_circle</mat-icon>
             </button>
-            <button class="btn btn-sm btn-outline-danger" (click)="onDelete(report)" [title]="'Delete' | translate">
-              <fa-icon [icon]="faTrash"></fa-icon>
+            <button mat-icon-button color="warn" (click)="onDelete(report)" [title]="'Delete' | translate">
+              <mat-icon>delete</mat-icon>
             </button>
           </div>
         </td>
-      </tr>
-    </tbody>
-  </table>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+    </table>
+  </div>
 </div>
 
 <!-- Mobile/Tablet Card View -->
 <div *ngIf="!isLoading && !error && isMobile" class="card-container mobile-cards">
-  <div *ngFor="let report of reports; trackBy: trackByFn" class="salary-report-card">
+  <mat-card *ngFor="let report of reports; trackBy: trackByFn" class="salary-report-card">
     <!-- Card Header -->
-    <div class="card-header">
+    <mat-card-header>
       <div class="employee-header">
         <div class="employee-info">
-          <h6 class="employee-name">{{ report.employeeName }}</h6>
-          <small class="employee-id">{{ report.employeePhoneNumber }}</small>
+          <mat-card-title class="employee-name">{{ report.employeeName }}</mat-card-title>
+          <mat-card-subtitle class="employee-id">{{ report.employeePhoneNumber }}</mat-card-subtitle>
         </div>
-        <div class="status-badge">
-          <span class="badge" [ngClass]="getStatusBadgeClass(report.isPaid)">
-            <fa-icon [icon]="report.isPaid ? faCheckCircle : faTimesCircle" class="me-1"></fa-icon>
-            {{ getStatusText(report.isPaid) | translate }}
-          </span>
-        </div>
+        <mat-chip [class]="getStatusBadgeClass(report.isPaid)">
+          <mat-icon class="chip-icon">{{ report.isPaid ? 'check_circle' : 'cancel' }}</mat-icon>
+          {{ getStatusText(report.isPaid) | translate }}
+        </mat-chip>
       </div>
-    </div>
+    </mat-card-header>
 
     <!-- Card Body -->
-    <div class="card-body">
+    <mat-card-content>
       <div class="report-details">
         <!-- Salary Information -->
         <div class="salary-section">
@@ -142,7 +160,7 @@
           </div>
           <div class="salary-row net-salary">
             <div class="salary-label">{{ 'NetSalary' | translate }}</div>
-            <div class="salary-value text-success">{{ formatCurrency(report.netCalculatedSalary) }}</div>
+            <div class="salary-value net-salary-value">{{ formatCurrency(report.netCalculatedSalary) }}</div>
           </div>
         </div>
 
@@ -162,54 +180,47 @@
           </div>
         </div>
       </div>
-    </div>
+    </mat-card-content>
 
     <!-- Card Footer -->
-    <div class="card-footer">
-      <div class="action-buttons">
-        <button class="btn btn-sm btn-outline-primary" (click)="onView(report)" [title]="'View' | translate">
-          <fa-icon [icon]="faEye" class="me-1"></fa-icon>
-          {{ 'View' | translate }}
-        </button>
-        <button class="btn btn-sm btn-outline-success" (click)="onDownload(report)" [title]="'Download' | translate">
-          <fa-icon [icon]="faDownload" class="me-1"></fa-icon>
-          {{ 'Download' | translate }}
-        </button>
-        <button *ngIf="!report.isPaid" class="btn btn-sm btn-outline-info" (click)="onMarkAsPaid(report)" [title]="'MarkAsPaid' | translate">
-          <fa-icon [icon]="faCheckCircle" class="me-1"></fa-icon>
-          {{ 'MarkAsPaid' | translate }}
-        </button>
-        <button class="btn btn-sm btn-outline-danger" (click)="onDelete(report)" [title]="'Delete' | translate">
-          <fa-icon [icon]="faTrash" class="me-1"></fa-icon>
-          {{ 'Delete' | translate }}
-        </button>
-      </div>
-    </div>
-  </div>
+    <mat-card-actions class="card-actions">
+      <button mat-button color="primary" (click)="onView(report)">
+        <mat-icon>visibility</mat-icon>
+        {{ 'View' | translate }}
+      </button>
+      <button mat-button color="accent" (click)="onDownload(report)">
+        <mat-icon>download</mat-icon>
+        {{ 'Download' | translate }}
+      </button>
+      <button *ngIf="!report.isPaid" mat-button color="primary" (click)="onMarkAsPaid(report)">
+        <mat-icon>check_circle</mat-icon>
+        {{ 'MarkAsPaid' | translate }}
+      </button>
+      <button mat-button color="warn" (click)="onDelete(report)">
+        <mat-icon>delete</mat-icon>
+        {{ 'Delete' | translate }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
 </div>
 
-
-
 <!-- Enhanced Empty State -->
-<div *ngIf="!isLoading && !error && reports.length === 0" class="enhanced-empty-state">
+<div *ngIf="!isLoading && !error && reports.length === 0" class="empty-state">
   <div class="empty-content">
-    <div class="empty-icon-container">
-      <fa-icon [icon]="faFileInvoice" class="empty-icon"></fa-icon>
-    </div>
+    <mat-icon class="empty-icon">description</mat-icon>
     <div class="empty-text">
       <h4 class="empty-title">{{ 'NoSalaryReports' | translate }}</h4>
       <p class="empty-description">{{ 'NoSalaryReportsDescription' | translate }}</p>
     </div>
     <div class="empty-actions">
-      <button class="btn btn-primary btn-create" (click)="onCreateReport()">
-        <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+      <button mat-raised-button color="primary" (click)="onCreateReport()">
+        <mat-icon>add</mat-icon>
         {{ 'CreateFirstReport' | translate }}
       </button>
-      <button class="btn btn-outline-secondary btn-refresh" (click)="onRetry()">
-        <fa-icon [icon]="faRefresh" class="me-2"></fa-icon>
+      <button mat-stroked-button (click)="onRetry()">
+        <mat-icon>refresh</mat-icon>
         {{ 'Refresh' | translate }}
       </button>
     </div>
   </div>
 </div>
-

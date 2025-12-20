@@ -1,0 +1,443 @@
+/* ============================================
+   Material Design Table - Modern Style
+   Common Component for Reuse
+   ============================================ */
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 3rem 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin: 1rem 0;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  max-width: 400px;
+}
+
+.loading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.loading-title {
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin: 0;
+  line-height: 1.5;
+  direction: ltr; /* Let Angular Material handle RTL through translate */
+}
+
+[dir="rtl"] .loading-title {
+  direction: rtl;
+}
+
+.loading-subtitle {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+  direction: ltr;
+}
+
+[dir="rtl"] .loading-subtitle {
+  direction: rtl;
+}
+
+::ng-deep .mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: #f97316;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .loading-container {
+    min-height: 300px;
+    padding: 2rem 1rem;
+    margin: 0.5rem 0;
+  }
+
+  .loading-content {
+    gap: 1rem;
+  }
+
+  .loading-title {
+    font-size: 1.1rem;
+  }
+
+  .loading-subtitle {
+    font-size: 0.875rem;
+  }
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 3rem 2rem;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  max-width: 500px;
+}
+
+.error-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #f44336;
+  opacity: 0.8;
+}
+
+.error-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.error-title {
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.error-message {
+  color: #6b7280;
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.error-actions {
+  margin-top: 1rem;
+}
+
+/* Empty State - Now handled by EmptyDataComponent */
+
+/* ============================================
+   Material Table Container
+   ============================================ */
+.material-table-container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 16px;
+  background: #f3f4f6;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+}
+
+/* Material Table Override */
+.material-table {
+  width: 100%;
+  background: transparent;
+  color: #1f2937;
+}
+
+/* Force border-spacing for row separation */
+::ng-deep .material-table,
+::ng-deep .material-table table,
+::ng-deep table.material-table {
+  border-collapse: separate !important;
+  border-spacing: 0 1.5rem !important;
+}
+
+/* Override any Material default styles */
+::ng-deep .material-table.mat-mdc-table {
+  border-collapse: separate !important;
+  border-spacing: 0 1.5rem !important;
+}
+
+/* Table Header */
+::ng-deep .material-table .mat-mdc-header-cell {
+  background: #f3f4f6;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #1f2937 !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: none;
+  letter-spacing: 0;
+  border-bottom: 2px solid rgba(209, 213, 219, 0.8);
+  padding: 1.25rem 1rem;
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+::ng-deep .material-table .mat-mdc-header-cell.mat-sort-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+::ng-deep .material-table .mat-mdc-header-cell .mat-sort-header-container {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100%;
+  margin: 0 auto;
+}
+
+::ng-deep .material-table .mat-mdc-header-cell .mat-sort-header-content {
+  text-align: center !important;
+  width: 100%;
+  display: inline-block;
+}
+
+::ng-deep .material-table .mat-mdc-header-cell .mat-sort-header-arrow {
+  margin-left: 4px;
+}
+
+::ng-deep .material-table .mat-mdc-header-cell.mat-sort-header:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::ng-deep .material-table .mat-sort-header-arrow {
+  color: #6b7280 !important;
+}
+
+/* Table Body - Separated Rows */
+::ng-deep .material-table .mat-mdc-row {
+  border-bottom: none !important;
+  transition: all 0.2s ease;
+  background: #ffffff !important;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  display: table-row;
+  margin: 0;
+}
+
+::ng-deep .material-table .mat-mdc-row:hover {
+  background: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: rgba(156, 163, 175, 0.8);
+}
+
+::ng-deep .material-table .mat-mdc-row.row-clickable {
+  cursor: pointer;
+}
+
+/* Ensure tbody spacing works */
+::ng-deep .material-table tbody {
+  display: table-row-group;
+}
+
+::ng-deep .material-table tbody tr {
+  display: table-row;
+}
+
+::ng-deep .material-table .mat-mdc-cell {
+  color: #1f2937 !important;
+  border: none;
+  padding: 1.5rem 1rem;
+  font-size: 0.9375rem;
+  text-align: center !important;
+  vertical-align: middle;
+  background: transparent;
+}
+
+/* First and last cells rounded corners */
+::ng-deep .material-table .mat-mdc-row .mat-mdc-cell:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+::ng-deep .material-table .mat-mdc-row .mat-mdc-cell:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Text Alignment */
+.text-center {
+  text-align: center !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-end,
+.text-right {
+  text-align: right !important;
+}
+
+/* Action Buttons */
+.actions-cell {
+  padding: 0.75rem 1rem !important;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button {
+  color: #6b7280 !important;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="primary"] {
+  color: #3b82f6 !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="primary"]:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="accent"] {
+  color: #22c55e !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="accent"]:hover {
+  background: rgba(34, 197, 94, 0.1) !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="warn"] {
+  color: #ef4444 !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="warn"]:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="info"] {
+  color: #3b82f6 !important;
+}
+
+::ng-deep .material-table .mat-mdc-icon-button[color="info"]:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* ============================================
+   Mobile Card View
+   ============================================ */
+.mobile-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.data-table-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(209, 213, 219, 0.8) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease;
+}
+
+.data-table-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  border-color: rgba(156, 163, 175, 0.8) !important;
+}
+
+::ng-deep .data-table-card .mat-mdc-card-content {
+  padding: 1.25rem 1.5rem;
+}
+
+.card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.card-detail strong {
+  color: #1f2937;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.card-detail span {
+  color: #6b7280;
+  font-size: 0.9375rem;
+}
+
+::ng-deep .data-table-card .card-actions {
+  background: #f9fafb;
+  border-top: 1px solid rgba(209, 213, 219, 0.8);
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 1023px) {
+  .material-table-container {
+    display: none;
+  }
+  
+  .mobile-cards-container {
+    display: flex;
+  }
+}
+
+/* Custom Scrollbar */
+.table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.5);
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.7);
+}
+

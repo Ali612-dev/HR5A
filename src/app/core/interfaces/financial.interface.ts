@@ -13,7 +13,24 @@ export enum WorkRuleType {
   Weekly = 'Weekly',
   Monthly = 'Monthly',
   Hourly = 'Hourly',
-  Custom = 'Custom'
+  Custom = 'Custom',
+  Shifts = 'Shifts'
+}
+
+export interface ShiftEmployeeSummaryDto {
+  employeeId: number;
+  name: string;
+  phone: string;
+  isActive: boolean;
+  joinedDate?: string;
+}
+
+export interface ShiftSummaryDto {
+  id: number;
+  name: string;
+  startTime: string;
+  endTime: string;
+  isOvernight: boolean;
 }
 
 export interface WorkRuleDto {
@@ -29,6 +46,9 @@ export interface WorkRuleDto {
   isPrivate: boolean;
   employeeId?: number;
   employeeCount: number;
+  isShiftBased?: boolean;
+  validationWarnings?: string[];
+  shifts?: ShiftDto[];
   // New fields from detailed response
   lateArrivalToleranceMinutes?: number;
   earlyDepartureToleranceMinutes?: number;
@@ -370,6 +390,7 @@ export interface AssignedEmployeeDto {
   joinedDate?: string;
   salaryType?: string; // 'PerMonth' | 'PerDay' | 'PerHour'
   salaryAmount?: number;
+  shift?: ShiftSummaryDto | null;
 }
 
 export interface WorkRuleOffDayDto {
@@ -386,9 +407,33 @@ export interface WorkRuleDetailsDto {
   expectEndTime?: string; // "16:00"
   expectedHoursPerDay?: number;
   expectedDaysPerWeek?: number;
+  paymentFrequency?: number;
   description?: string;
   isPrivate: boolean;
   employeeId?: number;
+  employeeCount?: number;
+  isShiftBased?: boolean;
+  
+  // Late & Early Departure Rules
+  lateArrivalToleranceMinutes?: number;
+  earlyDepartureToleranceMinutes?: number;
+  lateDeductionMinutesPerHour?: number;
+  earlyDepartureDeductionMinutesPerHour?: number;
+  
+  // Overtime Rules
+  overtimeMultiplier?: number;
+  minimumOvertimeMinutes?: number;
+  
+  // Absence Rules
+  absenceDeductionMultiplier?: number;
+  allowedAbsenceDaysPerMonth?: number;
+  areOffDaysPaid?: boolean;
+  
+  // Off-Day Rules
+  allowWorkOnOffDays?: boolean;
+  treatOffDayWorkAsOvertime?: boolean;
+  offDayOvertimeMultiplier?: number | null;
+  offDayHourlyRate?: number | null;
   
   // Assigned Employees
   assignedEmployees: AssignedEmployeeDto[];
@@ -398,6 +443,7 @@ export interface WorkRuleDetailsDto {
   
   // Associated Shifts (many-to-many)
   shifts?: ShiftDto[];
+  validationWarnings?: string[];
   
   // Statistics
   totalAssignedEmployees: number;
@@ -407,9 +453,15 @@ export interface WorkRuleDetailsDto {
 
 // ==================== SHIFTS ====================
 export interface ShiftWorkRuleDto {
+  id: number;
+  shiftId: number;
+  shift: any;
+  workRuleId: number;
   workRule: {
     id: number;
     category: string;
+    type?: number;
+    [key: string]: any; // Allow additional properties from API
   };
 }
 
@@ -426,6 +478,7 @@ export interface ShiftDto {
   breakEndTime?: string; // "HH:mm:ss" or "HH:mm", optional
   employeeCount?: number; // Optional: count of assigned employees
   workRules?: ShiftWorkRuleDto[]; // WorkRules associated with this shift (many-to-many)
+  employees?: ShiftEmployeeSummaryDto[];
 }
 
 export interface CreateShiftDto {
