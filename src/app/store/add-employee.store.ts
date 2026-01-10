@@ -98,7 +98,11 @@ export const AddEmployeeStore = signalStore(
           : translate.instant(fallbackKey);
     };
 
-    const runFinancialSetup = (employeeId: number, payload: AddEmployeeFinancialPayload) => {
+    const runFinancialSetup = (employeeId: number, payload?: AddEmployeeFinancialPayload) => {
+      if (!payload || !payload.workRuleId || !payload.shiftId || !payload.salary) {
+        return of(true);
+      }
+
       const assignWorkRule$ = financialService.assignWorkRule(payload.workRuleId, { employeeIds: [employeeId] }).pipe(
         switchMap((response) => {
           if (!response.isSuccess) {
@@ -158,7 +162,7 @@ export const AddEmployeeStore = signalStore(
     };
 
     return {
-      addEmployee(employee: CreateEmployeeDto, user: CreateUserRequest, financialSetup: AddEmployeeFinancialPayload) {
+      addEmployee(employee: CreateEmployeeDto, user: CreateUserRequest, financialSetup?: AddEmployeeFinancialPayload) {
         patchState(store, { isLoading: true, error: null, isSuccess: false });
 
         const registerRequest: RegisterRequest = {
@@ -259,22 +263,22 @@ export const AddEmployeeStore = signalStore(
 
         const update$ = userUpdate
           ? authService.updateUserCredentials(userUpdate.userId, userUpdate.credentials).pipe(
-              switchMap((userResponse) => {
-                if (!userResponse.isSuccess) {
-                  const errorMessage = buildErrorMessage(
-                    userResponse.message,
-                    userResponse.errors,
-                    'ERROR.UPDATE_EMPLOYEE_FAILED'
-                  );
+            switchMap((userResponse) => {
+              if (!userResponse.isSuccess) {
+                const errorMessage = buildErrorMessage(
+                  userResponse.message,
+                  userResponse.errors,
+                  'ERROR.UPDATE_EMPLOYEE_FAILED'
+                );
 
-                  console.error('Error updating user:', userResponse);
-                  patchState(store, { error: errorMessage, isLoading: false, isSuccess: false });
-                  return throwError(() => new Error(errorMessage));
-                }
+                console.error('Error updating user:', userResponse);
+                patchState(store, { error: errorMessage, isLoading: false, isSuccess: false });
+                return throwError(() => new Error(errorMessage));
+              }
 
-                return employeeService.updateEmployee(employee);
-              })
-            )
+              return employeeService.updateEmployee(employee);
+            })
+          )
           : employeeService.updateEmployee(employee);
 
         update$.pipe(
