@@ -312,7 +312,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinner-wrapper p {
@@ -610,8 +612,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-container {
@@ -634,6 +641,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -803,6 +811,107 @@
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
+
+.form-text {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 0.25rem;
+}
+
+.form-text.text-muted {
+  color: #a0aec0;
+}
+
+/* ===== Salary Type Options Grid ===== */
+.salary-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.salary-type-option {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  background: #ffffff;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.salary-type-option:hover {
+  border-color: #f97316;
+  background: #fff7ed;
+}
+
+.salary-type-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.salary-type-option.active {
+  border-color: #f97316;
+  background: #fff7ed;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+}
+
+.option-content {
+  width: 100%;
+  padding: 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #4a5568;
+}
+
+.salary-type-option.active .option-content {
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.option-content fa-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ===== Input with Icon ===== */
+.input-with-icon {
+  position: relative;
+  width: 100%;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.input-with-icon input {
+  padding-left: 2.75rem;
+}
+
+.disabled-input {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+}
+
+.readonly-field {
+  background-color: #f8fafc;
+  cursor: default;
+}
+
 
 .form-control:read-only {
   background: #edf2f7;

@@ -96,7 +96,7 @@ export class WorkRulesComponent implements OnInit {
   isLoadingShifts = false;
   private unassigningFromShift = new Map<string, boolean>(); // Track unassigning state: key = "shiftId-employeeId"
   private unassigningShiftFromWorkRule = new Set<number>(); // Track unassigning shift from work rule: shiftId
-  
+
   // Inline shift form (for adding new work rules)
   isShiftFormExpanded = false;
   shiftForm!: FormGroup;
@@ -138,7 +138,7 @@ export class WorkRulesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadWorkRules();
-    
+
     // Watch for changes in isPrivate field and clear assigned employee when it becomes false
     this.workRuleForm.get('isPrivate')?.valueChanges.subscribe(isPrivate => {
       if (!isPrivate) {
@@ -252,38 +252,38 @@ export class WorkRulesComponent implements OnInit {
     // Check required fields manually
     const category = this.workRuleForm.get('category')?.value;
     const type = this.workRuleForm.get('type')?.value;
-    
+
     // Only validate if fields are actually empty
     if (!category || category.trim() === '' || !type) {
       const categoryControl = this.workRuleForm.get('category');
       const typeControl = this.workRuleForm.get('type');
-      
+
       // Mark invalid fields
       if (!category || category.trim() === '') {
         categoryControl?.setErrors({ required: true });
         categoryControl?.markAsTouched();
         categoryControl?.markAsDirty();
       }
-      
+
       if (!type) {
         typeControl?.markAsTouched();
         typeControl?.markAsDirty();
       }
-      
+
       // Show localized error message  
       const errorMessage = 'يرجى تعبئة جميع الحقول المطلوبة قبل الإرسال';
       this.showErrorDialog(errorMessage);
       return;
     }
 
-      const formData = this.workRuleForm.value;
-      
-      if (this.isEditing && this.editingRule) {
-        this.updateWorkRule(this.editingRule.id, formData);
-      } else {
-        this.createWorkRule(formData);
-      }
+    const formData = this.workRuleForm.value;
+
+    if (this.isEditing && this.editingRule) {
+      this.updateWorkRule(this.editingRule.id, formData);
+    } else {
+      this.createWorkRule(formData);
     }
+  }
 
   createWorkRule(data: any): void {
     // Show loading dialog
@@ -329,7 +329,7 @@ export class WorkRulesComponent implements OnInit {
         if (workRuleResponse.isSuccess && workRuleResponse.data) {
           const workRuleId = workRuleResponse.data.id;
           const workRuleType = payload.type; // payload.type is already a number
-          
+
           // If work rule type is Monthly (3), create a default shift
           if (workRuleType === 3 && workRuleResponse.data.expectStartTime && workRuleResponse.data.expectEndTime) {
             const shiftPayload: CreateShiftDto = {
@@ -340,7 +340,7 @@ export class WorkRulesComponent implements OnInit {
               isOvernight: false,
               breakMinutes: 0
             };
-            
+
             return this.financialService.createShift(shiftPayload).pipe(
               catchError(shiftErr => {
                 console.error('Error creating shift:', shiftErr);
@@ -438,7 +438,7 @@ export class WorkRulesComponent implements OnInit {
 
   deleteWorkRule(rule: WorkRuleDto): void {
     this.activeMenuId = null; // Close menu when action is clicked
-    
+
     // Show confirmation dialog
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -472,26 +472,26 @@ export class WorkRulesComponent implements OnInit {
           catchError(err => {
             console.error('Error deleting work rule:', err);
             this.deletingRuleIds.delete(rule.id);
-            
+
             // Close loading dialog
             if (this.loadingDialogRef) {
               this.loadingDialogRef.close();
               this.loadingDialogRef = null;
             }
-            
+
             const errorMessage = err?.error?.message || err?.message || 'ERROR.FAILED_TO_DELETE_WORK_RULE';
             this.showErrorDialog(errorMessage);
             return of({ isSuccess: false, data: null, message: errorMessage, errors: [err] });
           })
         ).subscribe(response => {
           this.deletingRuleIds.delete(rule.id);
-          
+
           // Close loading dialog
           if (this.loadingDialogRef) {
             this.loadingDialogRef.close();
             this.loadingDialogRef = null;
           }
-          
+
           if (response.isSuccess) {
             // Show success message
             this.showSuccessDialog('WORK_RULE_DELETED');
@@ -509,7 +509,7 @@ export class WorkRulesComponent implements OnInit {
   toggleActionMenu(event: Event, ruleId: number): void {
     // Stop propagation to prevent document click handler from interfering
     event.stopPropagation();
-    
+
     if (this.activeMenuId === ruleId) {
       // Close the menu
       this.activeMenuId = null;
@@ -574,28 +574,22 @@ export class WorkRulesComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
-    
+
     // Don't close if clicking inside dropdown menu
     if (target.closest('.dropdown-menu')) {
       return;
     }
-    
+
     // Don't close if clicking on the toggle button or its children
     const clickedButton = target.closest('.btn-menu-toggle');
     if (clickedButton) {
       // Let the button's click handler manage the toggle
       return;
     }
-    
+
     // Close menu when clicking outside
     if (this.activeMenuId !== null) {
       this.activeMenuId = null;
-      // Reset all dropdown positions
-      document.querySelectorAll('.dropdown-menu').forEach((dropdown: Element) => {
-        const menu = dropdown as HTMLElement;
-        menu.style.top = '-9999px';
-        menu.style.right = '-9999px';
-      });
     }
   }
 
@@ -693,10 +687,10 @@ export class WorkRulesComponent implements OnInit {
   getWorkRuleTypeLabel(type: WorkRuleType | string | number): string {
     // Handle both string and number types
     const typeValue = typeof type === 'number' ? type.toString() : type;
-    
+
     const typeMap: { [key: string]: string } = {
       '1': 'Daily',
-      '2': 'Weekly', 
+      '2': 'Weekly',
       '3': 'Monthly',
       '4': 'Hourly',
       '5': 'Custom',
@@ -708,10 +702,10 @@ export class WorkRulesComponent implements OnInit {
       'Custom': 'Custom',
       'Shifts': 'Shifts'
     };
-    
+
     const mappedType = typeMap[typeValue] || 'Custom'; // Default to Custom for unknown types
     const translatedValue = this.translate.instant(`WorkRuleType.${mappedType}`);
-    
+
     // If translation doesn't exist, return the mapped type directly
     return translatedValue !== `WorkRuleType.${mappedType}` ? translatedValue : mappedType;
   }
@@ -719,10 +713,10 @@ export class WorkRulesComponent implements OnInit {
   getWorkRuleTypeLabelArabic(type: WorkRuleType | string | number): string {
     // Handle both string and number types
     const typeValue = typeof type === 'number' ? type.toString() : type;
-    
+
     const typeMap: { [key: string]: string } = {
       '1': 'يومي',
-      '2': 'أسبوعي', 
+      '2': 'أسبوعي',
       '3': 'شهري',
       '4': 'بالساعة',
       '5': 'مخصص',
@@ -734,17 +728,17 @@ export class WorkRulesComponent implements OnInit {
       'Custom': 'مخصص',
       'Shifts': 'شيفتات'
     };
-    
+
     return typeMap[typeValue] || 'مخصص';
   }
 
   getWorkRuleCategoryLabelArabic(category: string | number): string {
     // Handle both string and number types
     const categoryValue = typeof category === 'number' ? category.toString() : category;
-    
+
     const categoryMap: { [key: string]: string } = {
       '1': 'منتظم',
-      '2': 'عام', 
+      '2': 'عام',
       '3': 'مرن',
       'Regular': 'منتظم',
       'General': 'عام',
@@ -753,23 +747,23 @@ export class WorkRulesComponent implements OnInit {
       'general': 'عام',
       'Standard 9 to 5': 'عادي 9 إلى 5'
     };
-    
+
     return categoryMap[categoryValue] || categoryValue;
   }
 
   getWorkRuleCategoryLabel(category: string | number): string {
     // Handle both string and number types
     const categoryValue = typeof category === 'number' ? category.toString() : category;
-    
+
     const categoryMap: { [key: string]: string } = {
       '1': 'Regular',
-      '2': 'General', 
+      '2': 'General',
       '3': 'Flexible',
       'Regular': 'Regular',
       'General': 'General',
       'Flexible': 'Flexible'
     };
-    
+
     return categoryMap[categoryValue] || categoryValue;
   }
 
@@ -781,7 +775,7 @@ export class WorkRulesComponent implements OnInit {
   getValidationErrors(fieldName: string): string[] {
     const field = this.workRuleForm.get(fieldName);
     const errors: string[] = [];
-    
+
     if (field && field.invalid && (field.dirty || field.touched)) {
       if (field.errors?.['required']) {
         errors.push(this.translate.instant('VALIDATION.REQUIRED'));
@@ -796,7 +790,7 @@ export class WorkRulesComponent implements OnInit {
         errors.push(this.translate.instant('VALIDATION.MAX_VALUE', { max: field.errors['max'].max }));
       }
     }
-    
+
     return errors;
   }
 
@@ -951,7 +945,7 @@ export class WorkRulesComponent implements OnInit {
       // Validate work rule form first
       const category = this.workRuleForm.get('category')?.value;
       const type = this.workRuleForm.get('type')?.value;
-      
+
       if (!category || category.trim() === '' || !type) {
         this.dialog.open(NotificationDialogComponent, {
           panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -977,7 +971,7 @@ export class WorkRulesComponent implements OnInit {
 
   private saveWorkRuleAndCreateShift(): void {
     const formData = this.workRuleForm.value;
-    
+
     // Show loading dialog
     this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -1022,14 +1016,14 @@ export class WorkRulesComponent implements OnInit {
           // Update the editing rule
           this.isEditing = true;
           this.editingRule = workRuleResponse.data;
-          
+
           // Update the shift form to include the new work rule ID
           const currentWorkRuleIds = this.shiftForm.get('workRuleIds')?.value || [];
           if (!currentWorkRuleIds.includes(workRuleResponse.data.id)) {
             this.selectedWorkRulesForShift.add(workRuleResponse.data.id);
             this.shiftForm.get('workRuleIds')?.setValue([...currentWorkRuleIds, workRuleResponse.data.id]);
           }
-          
+
           // Now create the shift
           return this.createShiftFromInlineFormObservable();
         } else {
@@ -1117,12 +1111,12 @@ export class WorkRulesComponent implements OnInit {
           this.shiftForm.reset();
           this.selectedWorkRulesForShift.clear();
           this.isShiftFormExpanded = false;
-          
+
           // If we just created the work rule, reload shifts
           if (this.editingRule && this.editingRule.id) {
             this.loadWorkRuleShifts(this.editingRule.id);
           }
-          
+
           // Show success dialog
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -1202,12 +1196,12 @@ export class WorkRulesComponent implements OnInit {
           this.shiftForm.reset();
           this.selectedWorkRulesForShift.clear();
           this.isShiftFormExpanded = false;
-          
+
           // Reload shifts
           if (this.editingRule && this.editingRule.id) {
             this.loadWorkRuleShifts(this.editingRule.id);
           }
-          
+
           // Show success dialog
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -1268,7 +1262,7 @@ export class WorkRulesComponent implements OnInit {
 
   private saveWorkRuleAndOpenCreateShiftDialog(): void {
     const formData = this.workRuleForm.value;
-    
+
     // Show loading dialog
     this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -1327,10 +1321,10 @@ export class WorkRulesComponent implements OnInit {
         // Switch to edit mode
         this.isEditing = true;
         this.editingRule = response.data;
-        
+
         // Load shifts for the newly created work rule
         this.loadWorkRuleShifts(response.data.id);
-        
+
         // Now open the create shift dialog
         const dialogRef = this.dialog.open(CreateShiftDialogComponent, {
           panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -1366,7 +1360,7 @@ export class WorkRulesComponent implements OnInit {
 
   private saveWorkRuleAndOpenAssignShiftDialog(): void {
     const formData = this.workRuleForm.value;
-    
+
     // Show loading dialog
     this.loadingDialogRef = this.dialog.open(NotificationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -1425,10 +1419,10 @@ export class WorkRulesComponent implements OnInit {
         // Switch to edit mode
         this.isEditing = true;
         this.editingRule = response.data;
-        
+
         // Load shifts for the newly created work rule
         this.loadWorkRuleShifts(response.data.id);
-        
+
         // Now open the assign existing shift dialog
         this.openAssignExistingShiftDialog();
       } else {
@@ -1454,7 +1448,7 @@ export class WorkRulesComponent implements OnInit {
         // Validate form first
         const category = this.workRuleForm.get('category')?.value;
         const type = this.workRuleForm.get('type')?.value;
-        
+
         if (!category || category.trim() === '' || !type) {
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -1588,7 +1582,7 @@ export class WorkRulesComponent implements OnInit {
 
         const shift = response.data;
         const currentWorkRuleIds = shift.workRules?.map(wr => wr.workRule.id) || [];
-        
+
         // Check if work rule is already assigned
         if (currentWorkRuleIds.includes(this.editingRule!.id)) {
           this.dialog.open(NotificationDialogComponent, {
@@ -1662,13 +1656,13 @@ export class WorkRulesComponent implements OnInit {
 
             // Extract the actual backend error message from the response body
             let errorMessage: string;
-            
+
             // Check if error.error exists (API response body)
             if (error?.error) {
               // Try to get message from the API response structure: { message: "...", isSuccess: false, ... }
               if (error.error.message) {
                 errorMessage = error.error.message;
-              } 
+              }
               // Check for errors array
               else if (error.error.errors && Array.isArray(error.error.errors) && error.error.errors.length > 0) {
                 errorMessage = error.error.errors.join(', ');
@@ -1681,7 +1675,7 @@ export class WorkRulesComponent implements OnInit {
               else {
                 errorMessage = this.translate.instant('ERROR.FAILED_TO_ASSIGN_SHIFT_TO_WORK_RULE');
               }
-            } 
+            }
             // If no error.error, try error.message
             else if (error?.message) {
               errorMessage = error.message;
@@ -1749,7 +1743,7 @@ export class WorkRulesComponent implements OnInit {
 
         // Check if there are any employees assigned to the work rule at all
         const totalAssignedToWorkRule = workRuleDetails.assignedEmployees?.length || 0;
-        
+
         if (totalAssignedToWorkRule === 0) {
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -2003,11 +1997,11 @@ export class WorkRulesComponent implements OnInit {
   }
 
   unassignEmployeeFromShift(shift: ShiftDto, employee: any): void {
-    const confirmMessage = this.translate.instant('UnassignEmployeeFromShiftConfirm', { 
-      employeeName: employee.name, 
-      shiftName: shift.name 
+    const confirmMessage = this.translate.instant('UnassignEmployeeFromShiftConfirm', {
+      employeeName: employee.name,
+      shiftName: shift.name
     });
-    
+
     const confirmDialogRef = this.dialog.open(ConfirmationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
       backdropClass: 'transparent-backdrop',
@@ -2038,7 +2032,7 @@ export class WorkRulesComponent implements OnInit {
         this.financialService.unassignEmployeeFromShift(shift.id, employee.employeeId).subscribe({
           next: (response) => {
             this.unassigningFromShift.set(key, false);
-            
+
             // Close loading dialog
             if (this.loadingDialogRef) {
               this.loadingDialogRef.close();
@@ -2077,7 +2071,7 @@ export class WorkRulesComponent implements OnInit {
           error: (error) => {
             console.error('Error unassigning employee from shift:', error);
             this.unassigningFromShift.set(key, false);
-            
+
             // Close loading dialog
             if (this.loadingDialogRef) {
               this.loadingDialogRef.close();
@@ -2161,7 +2155,7 @@ export class WorkRulesComponent implements OnInit {
 
   showErrorDialog(message: string): void {
     const localizedMessage = this.localizeErrorMessage(message);
-    
+
     this.dialog.open(NotificationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
       width: '500px',

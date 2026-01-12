@@ -57,7 +57,7 @@ export class Employees implements OnInit, AfterViewInit {
   // Material Data Table
   tableColumns: TableColumn[] = [];
   tableActions: TableAction[] = [];
-  
+
   @ViewChild('checkboxHeaderTemplate') checkboxHeaderTemplate!: TemplateRef<any>;
   @ViewChild('checkboxTemplate') checkboxTemplate!: TemplateRef<any>;
   @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
@@ -89,7 +89,7 @@ export class Employees implements OnInit, AfterViewInit {
           panelClass: 'transparent-dialog',
           data: {
             title: this.translate.instant('Loading'),
-            message: 'Deleting employee...',
+            message: this.translate.instant('DeletingEmployee'),
             isSuccess: true // Use true for loading state to show spinner if implemented
           },
           disableClose: true // Prevent closing by clicking outside
@@ -105,7 +105,7 @@ export class Employees implements OnInit, AfterViewInit {
             panelClass: 'transparent-dialog',
             data: {
               title: this.translate.instant('Success'),
-              message: 'Employee deleted successfully.',
+              message: this.translate.instant('EmployeeDeletedSuccessfully'),
               isSuccess: true
             }
           });
@@ -128,45 +128,45 @@ export class Employees implements OnInit, AfterViewInit {
   private getUserFriendlyErrorMessage(error: any): string {
     // Handle different types of errors
     if (error.status === 0) {
-      return 'Server is not available. Please check your internet connection and try again later.';
+      return this.translate.instant('ERROR.SERVER_NOT_AVAILABLE');
     }
-    
+
     if (error.status === 500) {
-      return 'Server error occurred. Please try again later.';
+      return this.translate.instant('ERROR.SERVER_ERROR');
     }
-    
+
     if (error.status === 404) {
-      return 'WhatsApp service not found. Please contact support.';
+      return this.translate.instant('WhatsAppErrors.ServiceNotFound');
     }
-    
+
     if (error.status === 401 || error.status === 403) {
-      return 'You are not authorized to send WhatsApp messages. Please contact your administrator.';
+      return this.translate.instant('WhatsAppErrors.Unauthorized');
     }
-    
+
     if (error.status >= 400 && error.status < 500) {
-      return 'Invalid request. Please check your message and try again.';
+      return this.translate.instant('WhatsAppErrors.InvalidRequest');
     }
-    
+
     if (error.status >= 500) {
-      return 'Server error occurred. Please try again later.';
+      return this.translate.instant('ERROR.SERVER_ERROR');
     }
-    
+
     // Handle API response errors
     if (error.error && error.error.message) {
       return error.error.message;
     }
-    
+
     if (error.error && error.error.errors && error.error.errors.length > 0) {
       return error.error.errors.join(', ');
     }
-    
+
     // Handle network errors
     if (error.message && error.message.includes('Network')) {
-      return 'Network error. Please check your internet connection and try again.';
+      return this.translate.instant('WhatsAppErrors.NetworkError');
     }
-    
+
     // Default fallback
-    return 'An unexpected error occurred while sending the WhatsApp message. Please try again later.';
+    return this.translate.instant('WhatsAppErrors.UnexpectedError');
   }
 
   ngOnInit(): void {
@@ -210,7 +210,7 @@ export class Employees implements OnInit, AfterViewInit {
       },
       {
         key: 'name',
-        label: 'Name',
+        label: this.translate.instant('Name'),
         sortable: true,
         align: 'left',
         width: '20%',
@@ -218,28 +218,28 @@ export class Employees implements OnInit, AfterViewInit {
       },
       {
         key: 'phone',
-        label: 'Phone',
+        label: this.translate.instant('Phone'),
         sortable: true,
         align: 'center',
         width: '15%'
       },
       {
         key: 'email',
-        label: 'Email',
+        label: this.translate.instant('Email'),
         sortable: true,
         align: 'center',
         width: '20%'
       },
       {
         key: 'department',
-        label: 'Department',
+        label: this.translate.instant('Department'),
         sortable: true,
         align: 'center',
         width: '15%'
       },
       {
         key: 'isActive',
-        label: 'Status',
+        label: this.translate.instant('Status'),
         sortable: true,
         align: 'center',
         width: '10%',
@@ -251,19 +251,19 @@ export class Employees implements OnInit, AfterViewInit {
   private initializeTableActions(): void {
     this.tableActions = [
       {
-        label: 'View',
+        label: this.translate.instant('View'),
         icon: 'visibility',
         color: 'primary',
         action: (row: EmployeeDto) => this.router.navigate(['/employees/view', row.id])
       },
       {
-        label: 'Edit',
+        label: this.translate.instant('Edit'),
         icon: 'edit',
         color: 'primary',
         action: (row: EmployeeDto) => this.router.navigate(['/employees/update', row.id])
       },
       {
-        label: 'Delete',
+        label: this.translate.instant('Delete'),
         icon: 'delete',
         color: 'warn',
         action: (row: EmployeeDto) => this.onDelete(row)
@@ -320,19 +320,19 @@ export class Employees implements OnInit, AfterViewInit {
       if (result) {
         // Set loading state
         this.groupWhatsappLoading = true;
-        
+
         const phoneNumbers = selectedEmployees.map(emp => emp.phone);
         this.whatsAppService.sendGroupWhatsAppMessage(phoneNumbers, result).subscribe({
           next: (response: any) => {
             // Clear loading state
             this.groupWhatsappLoading = false;
-            
+
             if (response.isSuccess) {
               this.dialog.open(NotificationDialogComponent, {
                 width: '400px',
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
-                data: { 
+                data: {
                   title: this.translate.instant('Success'),
                   message: response.message || this.translate.instant('WhatsAppGroupMessageSentSuccessfully'),
                   isSuccess: true
@@ -343,7 +343,7 @@ export class Employees implements OnInit, AfterViewInit {
                 width: '400px',
                 panelClass: 'glass-dialog-panel',
                 backdropClass: 'transparent-backdrop',
-                data: { 
+                data: {
                   title: this.translate.instant('Error'),
                   message: response.message || this.translate.instant('FailedToSendWhatsAppGroupMessage')
                 }
@@ -353,12 +353,12 @@ export class Employees implements OnInit, AfterViewInit {
           error: (err: any) => {
             // Clear loading state
             this.groupWhatsappLoading = false;
-            
+
             this.dialog.open(ErrorDialogComponent, {
               width: '400px',
               panelClass: 'glass-dialog-panel',
               backdropClass: 'transparent-backdrop',
-              data: { 
+              data: {
                 title: this.translate.instant('Error'),
                 message: this.getUserFriendlyErrorMessage(err)
               }
@@ -412,7 +412,7 @@ export class Employees implements OnInit, AfterViewInit {
 
   toggleSelection(employee: EmployeeDto | null) {
     console.log('🔘 Main Component: toggleSelection called with:', employee ? employee.name : 'null (select all)');
-    
+
     if (employee) {
       // Toggle individual employee selection
       employee.selected = !employee.selected;
@@ -421,13 +421,13 @@ export class Employees implements OnInit, AfterViewInit {
       // Toggle all employees selection
       const allSelected = this.store.employees().every(e => e.selected);
       console.log('🔘 Select all - current allSelected:', allSelected);
-      
+
       this.store.employees().forEach(e => {
         e.selected = !allSelected;
         console.log('🔘 Setting', e.name, 'to:', e.selected);
       });
     }
-    
+
     console.log('🔘 Current selected count:', this.selectedCount);
     console.log('🔘 Current selected employees:', this.selectedEmployees.map(e => e.name));
   }

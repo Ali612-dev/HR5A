@@ -3,25 +3,17 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowLeft, faFileInvoice, faDownload, faPrint, faUser, faCalendar, faMoneyBill, faClock, faCheckCircle, faTimesCircle, faInfoCircle, faChartPie, faCoins, faMinusCircle, faPlusCircle, faCode, faStickyNote, faIdCard } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faFileInvoice, faDownload, faPrint, faCheckCircle, faTimesCircle, faExclamationTriangle, faClock, faMoneyBill } from '@fortawesome/free-solid-svg-icons';
 import { FinancialService } from '../../../../core/services/financial.service';
-import { DetailedSalaryReportDto, DeductionDto, CalculationBreakdownDto } from '../../../../core/interfaces/financial.interface';
+import { DetailedSalaryReportDto, DailyDetailDto } from '../../../../core/interfaces/financial.interface';
 
-interface DeductionBreakdownEntry {
-  totalAmount: number;
-  count: number;
-  entries: Array<{
-    id?: number;
-    salaryReportId?: number;
-    amount: number;
-    date: string;
-    isApplied: boolean;
-  }>;
-}
-
-interface LocalizedBreakdownLine {
-  text: string;
-  isFinal?: boolean;
+interface DailyReportRow {
+  date: string;
+  dayName: string;
+  attendanceAt: string;
+  departureAt: string;
+  workHours: string;
+  dailySalary: number;
 }
 
 @Component({
@@ -63,2408 +55,294 @@ interface LocalizedBreakdownLine {
         </div>
       </div>
 
-        <!-- Loading State -->
-        <div *ngIf="isLoading" class="loading-container">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">{{ 'Loading' | translate }}...</span>
-          </div>
-          <p class="mt-3 text-muted">{{ 'LoadingReportDetails' | translate }}...</p>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">{{ 'Loading' | translate }}...</span>
         </div>
+        <p class="mt-3 text-muted">{{ 'LoadingReportDetails' | translate }}...</p>
+      </div>
 
-        <!-- Success State -->
-        <div *ngIf="successMessage && !isLoading" class="success-container">
-          <div class="glass-card success-card">
-            <div class="card-body text-center">
-              <fa-icon [icon]="faCheckCircle" class="display-1 text-success mb-3"></fa-icon>
-              <h4 class="text-white mb-3">{{ 'Success' | translate }}</h4>
-              <p class="text-muted mb-4">{{ successMessage }}</p>
-              <button class="btn btn-success" (click)="clearSuccessMessage()">
-                {{ 'Close' | translate }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Error State -->
-        <div *ngIf="error && !isLoading" class="error-container">
-          <div class="glass-card error-card">
-            <div class="card-body text-center">
-              <fa-icon [icon]="faTimesCircle" class="display-1 text-danger mb-3"></fa-icon>
-              <h4 class="text-white mb-3">{{ 'Error' | translate }}</h4>
-              <p class="text-muted mb-4">{{ getErrorMessage(error) }}</p>
-              <button class="btn btn-primary" (click)="loadReportDetails()">
-                {{ 'Retry' | translate }}
-              </button>
-            </div>
+      <!-- Error State -->
+      <div *ngIf="error && !isLoading" class="error-container">
+        <div class="glass-card error-card">
+          <div class="card-body text-center">
+            <fa-icon [icon]="faTimesCircle" class="display-1 text-danger mb-3"></fa-icon>
+            <h4 class="text-white mb-3">{{ 'Error' | translate }}</h4>
+            <p class="text-muted mb-4">{{ getErrorMessage(error) }}</p>
+            <button class="btn btn-primary" (click)="loadReportDetails()">
+              {{ 'Retry' | translate }}
+            </button>
           </div>
         </div>
+      </div>
 
-        <!-- Quick Summary -->
-        <div class="summary-section" *ngIf="report && !isLoading && !error">
-          <div class="summary-header">
-            <fa-icon [icon]="faChartPie" class="summary-header-icon"></fa-icon>
-            <span>{{ 'QuickSummary' | translate }}</span>
-          </div>
-          <div class="summary-cards">
-            <div class="summary-card primary">
-              <div class="summary-icon primary">
-                <fa-icon [icon]="faCoins"></fa-icon>
-              </div>
-              <div class="summary-content">
-                <span class="summary-label">{{ 'BaseSalary' | translate }}</span>
-                <span class="summary-value">{{ formatCurrency(report.baseSalary) }}</span>
-              </div>
-            </div>
-            <div class="summary-card warning">
-              <div class="summary-icon warning">
-                <fa-icon [icon]="faMinusCircle"></fa-icon>
-              </div>
-              <div class="summary-content">
-                <span class="summary-label">{{ 'TotalDeductions' | translate }}</span>
-                <span class="summary-value">{{ formatCurrency(report.totalDeductions) }}</span>
-              </div>
-            </div>
-            <div class="summary-card success">
-              <div class="summary-icon success">
-                <fa-icon [icon]="faPlusCircle"></fa-icon>
-              </div>
-              <div class="summary-content">
-                <span class="summary-label">{{ 'TotalBonuses' | translate }}</span>
-                <span class="summary-value">{{ formatCurrency(report.totalBonuses) }}</span>
-              </div>
-            </div>
-            <div class="summary-card neutral">
-              <div class="summary-icon neutral">
-                <fa-icon [icon]="faMoneyBill"></fa-icon>
-              </div>
-              <div class="summary-content">
-                <span class="summary-label">{{ 'NetCalculatedSalary' | translate }}</span>
-                <span class="summary-value">{{ formatCurrency(report.netCalculatedSalary) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Report Details -->
-        <div *ngIf="report && !isLoading && !error" class="report-details-content">
-          <!-- Main Content Grid -->
-          <div class="content-grid">
-            <!-- Left Column - Employee & Period Info -->
-            <div class="content-column left-column">
-              <!-- Employee Information Card -->
-              <div class="glass-card info-card">
-                <div class="card-header">
-                  <fa-icon [icon]="faUser" class="me-2"></fa-icon>
-                  {{ 'EmployeeInformation' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="info-grid">
-                    <div class="info-item">
-                      <label class="info-label">{{ 'EmployeeName' | translate }}</label>
-                      <div class="info-value">{{ report.employeeName }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'PhoneNumber' | translate }}</label>
-                      <div class="info-value">{{ report.employeePhoneNumber }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'EmployeeCardNumber' | translate }}</label>
-                      <div class="info-value">{{ report.employeeCardNumber }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'EmployeeId' | translate }}</label>
-                      <div class="info-value">{{ report.employeeId }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Report Period Card -->
-              <div class="glass-card info-card">
-                <div class="card-header">
-                  <fa-icon [icon]="faCalendar" class="me-2"></fa-icon>
-                  {{ 'ReportPeriod' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="info-grid">
-                    <div class="info-item">
-                      <label class="info-label">{{ 'ReportMonth' | translate }}</label>
-                      <div class="info-value">{{ getMonthName(report.reportMonth) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'ReportYear' | translate }}</label>
-                      <div class="info-value">{{ report.reportYear }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'StartDate' | translate }}</label>
-                      <div class="info-value">{{ formatDate(report.startDate) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'EndDate' | translate }}</label>
-                      <div class="info-value">{{ formatDate(report.endDate) }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Work Rule Information Card -->
-              <div class="glass-card info-card" *ngIf="report.workRule">
-                <div class="card-header">
-                  <fa-icon [icon]="faInfoCircle" class="me-2"></fa-icon>
-                  {{ 'WorkRuleInformation' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="info-grid">
-                    <div class="info-item">
-                      <label class="info-label">{{ 'WorkRuleCategory' | translate }}</label>
-                      <div class="info-value">{{ report.workRule.category }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'WorkRuleType' | translate }}</label>
-                      <div class="info-value">{{ getWorkRuleTypeText(report.workRule.type) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'ExpectedStartTime' | translate }}</label>
-                      <div class="info-value">{{ report.workRule.expectStartTime }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'ExpectedEndTime' | translate }}</label>
-                      <div class="info-value">{{ report.workRule.expectEndTime }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'ExpectedHoursPerDay' | translate }}</label>
-                      <div class="info-value">{{ report.workRule.expectedHoursPerDay }} {{ 'Hours' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'ExpectedDaysPerWeek' | translate }}</label>
-                      <div class="info-value">{{ report.workRule.expectedDaysPerWeek }} {{ 'Days' | translate }}</div>
-                    </div>
-                    <div class="info-item" *ngIf="report.workRule.paymentFrequency">
-                      <label class="info-label">{{ 'PaymentFrequency' | translate }}</label>
-                      <div class="info-value">{{ getPaymentFrequencyText(report.workRule.paymentFrequency) }}</div>
-                    </div>
-                    <div class="info-item" *ngIf="report.workRule.description">
-                      <label class="info-label">{{ 'Description' | translate }}</label>
-                      <div class="info-value">{{ report.workRule.description }}</div>
-                    </div>
-                  </div>
-
-                  <div class="work-rule-flags">
-                    <div class="flag-chip" [class.enabled]="report.workRule.allowWorkOnOffDays" [class.disabled]="!report.workRule.allowWorkOnOffDays">
-                      <fa-icon [icon]="report.workRule.allowWorkOnOffDays ? faCheckCircle : faTimesCircle"></fa-icon>
-                      <span>
-                        {{ report.workRule.allowWorkOnOffDays ? ('WorkRuleAllowOffDays' | translate) : ('WorkRuleDisallowOffDays' | translate) }}
-                      </span>
-                    </div>
-                    <div class="flag-chip" *ngIf="report.workRule.allowWorkOnOffDays" [class.enabled]="report.workRule.treatOffDayWorkAsOvertime" [class.disabled]="!report.workRule.treatOffDayWorkAsOvertime">
-                      <fa-icon [icon]="report.workRule.treatOffDayWorkAsOvertime ? faCheckCircle : faTimesCircle"></fa-icon>
-                      <span>
-                        {{ report.workRule.treatOffDayWorkAsOvertime ? ('WorkRuleTreatOffDaysAsOvertime' | translate) : ('WorkRuleTreatOffDaysAsRegular' | translate) }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="info-grid compact" *ngIf="report.workRule.allowWorkOnOffDays">
-                    <div class="info-item" *ngIf="report.workRule.offDayOvertimeMultiplier !== null && report.workRule.offDayOvertimeMultiplier !== undefined">
-                      <label class="info-label">{{ 'WorkRuleOffDayOvertimeMultiplier' | translate }}</label>
-                      <div class="info-value">{{ formatNumber(report.workRule.offDayOvertimeMultiplier) }}</div>
-                    </div>
-                    <div class="info-item" *ngIf="report.workRule.offDayHourlyRate !== null && report.workRule.offDayHourlyRate !== undefined">
-                      <label class="info-label">{{ 'WorkRuleOffDayHourlyRate' | translate }}</label>
-                      <div class="info-value">{{ formatCurrency(report.workRule.offDayHourlyRate) }}</div>
-                    </div>
-                    <div class="info-item" *ngIf="(report.workRule.offDayOvertimeMultiplier === null || report.workRule.offDayOvertimeMultiplier === undefined) && (report.workRule.offDayHourlyRate === null || report.workRule.offDayHourlyRate === undefined)">
-                      <label class="info-label">{{ 'WorkRuleOffDayRates' | translate }}</label>
-                      <div class="info-value muted">{{ 'NotAvailable' | translate }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right Column - Salary & Status Info -->
-            <div class="content-column right-column">
-              <!-- Salary Breakdown Card -->
-              <div class="glass-card info-card">
-                <div class="card-header">
-                  <fa-icon [icon]="faMoneyBill" class="me-2"></fa-icon>
-                  {{ 'SalaryBreakdown' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="info-grid">
-                    <div class="info-item">
-                      <label class="info-label">{{ 'BaseSalary' | translate }}</label>
-                      <div class="info-value amount">{{ formatCurrency(report.baseSalary) }}</div>
-                    </div>
-                    <div class="info-item" *ngIf="report.actualBaseSalary">
-                      <label class="info-label">{{ 'ActualBaseSalary' | translate }}</label>
-                      <div class="info-value amount">{{ formatCurrency(report.actualBaseSalary) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'NetCalculatedSalary' | translate }}</label>
-                      <div class="info-value amount net-salary">{{ formatCurrency(report.netCalculatedSalary) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'TotalExpectedHours' | translate }}</label>
-                      <div class="info-value">{{ report.totalExpectedHours }} {{ 'Hours' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'TotalWorkedHours' | translate }}</label>
-                      <div class="info-value">{{ report.totalWorkedHours }} {{ 'Hours' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'ExpectedWorkingDays' | translate }}</label>
-                      <div class="info-value">{{ report.expectedWorkingDays }} {{ 'Days' | translate }}</div>
-                    </div>
-                    <div class="info-item" *ngIf="report.actualAttendanceDays">
-                      <label class="info-label">{{ 'ActualAttendanceDays' | translate }}</label>
-                      <div class="info-value">{{ report.actualAttendanceDays }} {{ 'Days' | translate }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Overtime and Adjustments Card -->
-              <div class="glass-card info-card">
-                <div class="card-header">
-                  <fa-icon [icon]="faClock" class="me-2"></fa-icon>
-                  {{ 'OvertimeAndAdjustments' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="info-grid">
-                    <div class="info-item">
-                      <label class="info-label">{{ 'TotalOvertimeHours' | translate }}</label>
-                      <div class="info-value">{{ report.totalOvertimeHours }} {{ 'Hours' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'TotalOvertimePay' | translate }}</label>
-                      <div class="info-value amount">{{ formatCurrency(report.totalOvertimePay) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'TotalDeductions' | translate }}</label>
-                      <div class="info-value amount deduction">{{ formatCurrency(report.totalDeductions) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'TotalBonuses' | translate }}</label>
-                      <div class="info-value amount bonus">{{ formatCurrency(report.totalBonuses) }}</div>
-                    </div>
-                    <div class="info-item">
-                      <label class="info-label">{{ 'PaymentStatus' | translate }}</label>
-                      <div class="info-value">
-                        <span class="status-badge" [ngClass]="getStatusBadgeClass(report.isPaid)">
-                          <fa-icon [icon]="report.isPaid ? faCheckCircle : faTimesCircle" class="me-1"></fa-icon>
-                          {{ getStatusText(report.isPaid) | translate }}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="info-item" *ngIf="report.paidDate">
-                      <label class="info-label">{{ 'PaidDate' | translate }}</label>
-                      <div class="info-value">{{ formatDateTime(report.paidDate) }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom Section - Details and Notes -->
-          <div class="bottom-section">
-            <div class="bottom-grid">
-              <!-- Deductions -->
-              <div class="glass-card info-card grid-card" *ngIf="normalizedDeductions.length > 0">
-                <div class="card-header">
-                  <fa-icon [icon]="faMinusCircle" class="me-2"></fa-icon>
-                  {{ 'DeductionsDetails' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="breakdown-chips" *ngIf="deductionBreakdownKeys.length > 0">
-                    <div class="breakdown-chip deduction-chip" *ngFor="let reason of deductionBreakdownKeys">
-                      <div class="chip-title">{{ reason }}</div>
-                      <div class="chip-meta">
-                        <span class="chip-amount">{{ formatCurrency(deductionBreakdown[reason].totalAmount) }}</span>
-                        <span class="chip-count">{{ deductionBreakdown[reason].count }} {{ 'ItemsCountLabel' | translate }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="compact-table">
-                    <div class="table-header">
-                      <span>{{ 'Reason' | translate }}</span>
-                      <span>{{ 'Amount' | translate }}</span>
-                      <span>{{ 'Date' | translate }}</span>
-                    </div>
-                    <div class="table-row" *ngFor="let deduction of normalizedDeductions">
-                      <span class="reason">{{ deduction.reason || 'N/A' }}</span>
-                      <span class="amount deduction">{{ formatCurrency(deduction.amount) }}</span>
-                      <span class="date">{{ formatDate(deduction.date) }}</span>
-                    </div>
-                  </div>
-                  <div class="raw-toggle" *ngIf="deductionBreakdownKeys.length > 0">
-                    <button class="btn btn-ghost btn-sm" type="button" (click)="toggleRawDeductionJson()">
-                      <fa-icon [icon]="faCode" class="me-2"></fa-icon>
-                      <span *ngIf="!showRawDeductionJson">{{ 'ShowRawDetails' | translate }}</span>
-                      <span *ngIf="showRawDeductionJson">{{ 'HideRawDetails' | translate }}</span>
-                    </button>
-                  </div>
-                  <div class="json-preview" *ngIf="showRawDeductionJson">
-                    <pre>{{ deductionBreakdown | json }}</pre>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Bonuses -->
-              <div class="glass-card info-card grid-card" *ngIf="report.bonuses && report.bonuses.length > 0">
-                <div class="card-header">
-                  <fa-icon [icon]="faPlusCircle" class="me-2"></fa-icon>
-                  {{ 'BonusesDetails' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="breakdown-chips bonus" *ngIf="report.bonuses.length > 1">
-                    <div class="breakdown-chip bonus-chip" *ngFor="let bonus of report.bonuses">
-                      <div class="chip-title">{{ bonus.reason || 'N/A' }}</div>
-                      <div class="chip-meta">
-                        <span class="chip-amount">{{ formatCurrency(bonus.amount) }}</span>
-                        <span class="chip-count">{{ formatDate(bonus.date) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="compact-table">
-                    <div class="table-header">
-                      <span>{{ 'Reason' | translate }}</span>
-                      <span>{{ 'Amount' | translate }}</span>
-                      <span>{{ 'Date' | translate }}</span>
-                    </div>
-                    <div class="table-row" *ngFor="let bonus of report.bonuses">
-                      <span class="reason">{{ bonus.reason || 'N/A' }}</span>
-                      <span class="amount bonus">{{ formatCurrency(bonus.amount) }}</span>
-                      <span class="date">{{ formatDate(bonus.date) }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Notes Card -->
-              <div class="glass-card info-card grid-card notes-card" *ngIf="report.notes">
-                <div class="card-header">
-                  <fa-icon [icon]="faStickyNote" class="me-2"></fa-icon>
-                  {{ 'Notes' | translate }}
-                </div>
-                <div class="card-body">
-                  <div class="notes-wrapper">
-                    <div class="notes-icon">
-                      <fa-icon [icon]="faStickyNote"></fa-icon>
-                    </div>
-                    <div class="notes-content">
-                      {{ report.notes }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Report Metadata Card -->
-              <div class="glass-card info-card grid-card metadata-card">
-                <div class="card-header">
-                  <fa-icon [icon]="faIdCard" class="me-2"></fa-icon>
-                  {{ 'ReportMetadata' | translate }}
-                </div>
-                <div class="card-body">
-                  <ul class="metadata-list">
-                    <li class="metadata-item" *ngFor="let meta of getMetadataEntries()">
-                      <span class="metadata-label">{{ meta.label | translate }}</span>
-                      <span class="metadata-value">{{ meta.value }}</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Calculation Breakdown Section -->
-          <div class="content-section" *ngIf="report.calculationBreakdown">
-            <div class="glass-card info-card">
-              <div class="card-header">
-                <fa-icon [icon]="faInfoCircle" class="me-2"></fa-icon>
-                {{ 'CalculationBreakdown' | translate }}
-              </div>
-              <div class="card-body">
-                <div class="breakdown-content">
-                  <div 
-                    class="breakdown-item" 
-                    *ngFor="let line of calculationBreakdownLines" 
-                    [ngClass]="{ 'final-calculation': line.isFinal }">
-                    {{ line.text }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Attendance Analysis Section -->
-          <div class="content-section" *ngIf="report.attendanceAnalysis">
-            <div class="glass-card info-card">
-              <div class="card-header">
-                <fa-icon [icon]="faClock" class="me-2"></fa-icon>
-                {{ 'AttendanceAnalysis' | translate }}
-              </div>
-              <div class="card-body">
-                <div class="attendance-summary">
-                  <div class="summary-item">
-                    <strong>{{ 'TotalWorkingDays' | translate }}:</strong> {{ report.attendanceAnalysis.totalWorkingDays }}
-                  </div>
-                  <div class="summary-item">
-                    <strong>{{ 'DaysWithAttendance' | translate }}:</strong> {{ report.attendanceAnalysis.daysWithAttendance }}
-                  </div>
-                  <div class="summary-item">
-                    <strong>{{ 'DaysWithoutAttendance' | translate }}:</strong> {{ report.attendanceAnalysis.daysWithoutAttendance }}
-                  </div>
-                  <div class="summary-item">
-                    <strong>{{ 'RegularDays' | translate }}:</strong> {{ report.attendanceAnalysis.regularDaysDescription }}
-                  </div>
-                  <div class="summary-item">
-                    <strong>{{ 'IrregularDays' | translate }}:</strong> {{ report.attendanceAnalysis.irregularDaysDescription }}
-                  </div>
-                  <div class="summary-item">
-                    <strong>{{ 'HoursAnalysis' | translate }}:</strong> {{ report.attendanceAnalysis.hoursAnalysisDescription }}
-                  </div>
-                </div>
-
-                <!-- Irregular Attendances Table -->
-                <div class="irregular-attendances" *ngIf="report.attendanceAnalysis.irregularAttendances.length > 0">
-                  <h5 class="section-title">{{ 'IrregularAttendances' | translate }}</h5>
-                  <div class="attendance-table">
-                    <div class="table-header">
-                      <div class="header-cell">{{ 'Date' | translate }}</div>
-                      <div class="header-cell">{{ 'Day' | translate }}</div>
-                      <div class="header-cell">{{ 'ExpectedTime' | translate }}</div>
-                      <div class="header-cell">{{ 'ActualTime' | translate }}</div>
-                      <div class="header-cell">{{ 'Status' | translate }}</div>
-                      <div class="header-cell">{{ 'Severity' | translate }}</div>
-                    </div>
-                    <div class="table-body">
-                      <div class="table-row" *ngFor="let attendance of report.attendanceAnalysis.irregularAttendances">
-                        <div class="table-cell">{{ attendance.formattedDate }}</div>
-                        <div class="table-cell">{{ attendance.dayOfWeek }}</div>
-                        <div class="table-cell">{{ attendance.expectedStartTimeFormatted }} - {{ attendance.expectedEndTimeFormatted }}</div>
-                        <div class="table-cell">
-                          <span *ngIf="attendance.actualTimeInFormatted">{{ attendance.actualTimeInFormatted }} - {{ attendance.actualTimeOutFormatted }}</span>
-                          <span *ngIf="!attendance.actualTimeInFormatted" class="absent-text">{{ 'Absent' | translate }}</span>
-                        </div>
-                        <div class="table-cell">{{ attendance.status }}</div>
-                        <div class="table-cell">
-                          <span class="severity-badge" [ngClass]="'severity-' + attendance.severity.toLowerCase()">
-                            {{ attendance.severity }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <!-- Report Table -->
+      <div *ngIf="report && !isLoading && !error" class="report-content">
+        <!-- New Design: One Card with a Table -->
+        <div class="glass-card table-card">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table report-table mb-0">
+                <thead>
+                  <tr>
+                    <th>{{ 'Date' | translate }}</th>
+                    <th>{{ 'Day' | translate }}</th>
+                    <th>{{ 'AttendanceAt' | translate }}</th>
+                    <th>{{ 'DepartureAt' | translate }}</th>
+                    <th>{{ 'WorkHours' | translate }}</th>
+                    <th class="text-end">{{ 'Salary' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of dailyRows">
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.dayName }}</td>
+                    <td dir="ltr" class="text-start">{{ row.attendanceAt }}</td>
+                    <td dir="ltr" class="text-start">{{ row.departureAt }}</td>
+                    <td dir="ltr" class="text-start">{{ row.workHours }}</td>
+                    <td class="text-end font-weight-bold">{{ formatCurrency(row.dailySalary) }}</td>
+                  </tr>
+                </tbody>
+                <!-- Footer with Totals -->
+                <tfoot>
+                  <tr class="total-row">
+                    <td colspan="4" class="text-end font-weight-bold">{{ 'Total' | translate }}</td>
+                    <td dir="ltr" class="text-start font-weight-bold">{{ report.totalWorkedHours }} {{ 'Hours' | translate }}</td>
+                    <td class="text-end font-weight-bold highlight-value">{{ formatCurrency(report.netCalculatedSalary) }}</td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
         </div>
       </div>
-    <!-- </div> -->
+
+    </div>
   `,
   styles: [`
     .report-details-container {
       min-height: 100vh;
-      background: #f3f4f6 !important;
-      padding: 1.5rem;
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-      overflow-x: auto;
+      background: #f8fafc; /* Lighter background as requested */
+      padding: 2rem;
     }
-    
+
     .page-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 1rem;
+      margin-bottom: 2rem;
     }
 
-    .summary-section {
-      margin-bottom: 1.5rem;
-    }
-
-    .summary-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      color: #1f2937;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .summary-header-icon {
-      color: #f97316;
-    }
-
-    .summary-header-icon {
-      font-size: 1.1rem;
-    }
-
-    .summary-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .summary-card {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.25rem;
-      border-radius: 16px;
-      background: #ffffff;
-      border: 1px solid rgba(209, 213, 219, 0.8);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .summary-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
-    }
-
-    .summary-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
-      color: white;
-    }
-
-    .summary-icon.primary {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
-      color: #3b82f6;
-    }
-
-    .summary-icon.warning {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
-      color: #ef4444;
-    }
-
-    .summary-icon.success {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
-      color: #10b981;
-    }
-
-    .summary-icon.neutral {
-      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.2));
-      color: #f97316;
-    }
-
-    .summary-content {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .summary-label {
-      font-size: 0.85rem;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .summary-value {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #1f2937;
-    }
-
-    /* Main Content Grid Layout */
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .content-column {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .left-column {
-      min-width: 0;
-    }
-
-    .right-column {
-      min-width: 0;
-    }
-
-    /* Info Grid for compact display */
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    .info-grid.compact {
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      margin-top: 1.25rem;
-    }
-
-    .info-value.muted {
-      color: rgba(255, 255, 255, 0.65);
-      font-style: italic;
-    }
-
-    .work-rule-flags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
-    }
-
-    .flag-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.55rem 0.95rem;
-      border-radius: 999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      border: 1px solid rgba(209, 213, 219, 0.8);
-      color: #1f2937;
-      background: #ffffff;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .flag-chip.enabled {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
-      border-color: rgba(16, 185, 129, 0.4);
-      color: #059669;
-    }
-
-    .flag-chip.disabled {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #dc2626;
-    }
-
-    .flag-chip fa-icon {
-      font-size: 0.85rem;
-    }
-
-
-    /* Bottom Section */
-    .bottom-section {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .bottom-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .grid-card {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .grid-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent);
-      pointer-events: none;
-    }
-
-    .grid-card .card-body {
-      position: relative;
-    }
-
-    /* Compact Table for Deductions/Bonuses */
-    .compact-table {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .json-preview {
-      margin-top: 1rem;
-      background: #f9fafb;
-      border-radius: 10px;
-      padding: 1rem;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.85rem;
-      color: #1f2937;
-      max-height: 220px;
-      overflow-y: auto;
-      word-break: break-word;
-      white-space: pre-wrap;
-      border: 1px solid rgba(209, 213, 219, 0.8);
-    }
-
-    .table-header {
-      display: grid;
-      grid-template-columns: 2fr 1.2fr 1fr;
-      gap: 0.75rem;
-      padding: 0.75rem 0;
-      border-bottom: 2px solid rgba(209, 213, 219, 0.8);
-      font-weight: 700;
-      color: #1f2937;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.8px;
-      background: #f9fafb;
-      border-radius: 8px 8px 0 0;
-      margin-bottom: 0.5rem;
-    }
-
-    .table-header span {
-      padding: 0.25rem 0.5rem;
-    }
-
-    .table-header span:first-child {
-      text-align: left;
-      padding-left: 0.25rem;
-    }
-
-    .table-header span:nth-child(2) {
-      text-align: right;
-      padding-right: 0.25rem;
-    }
-
-    .table-header span:last-child {
-      text-align: center;
-    }
-
-    .table-row {
-      display: grid;
-      grid-template-columns: 2fr 1.2fr 1fr;
-      gap: 0.75rem;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
-      align-items: center;
-    }
-
-    .table-row:last-child {
-      border-bottom: none;
-    }
-
-    .table-row .reason {
-      color: #1f2937;
-      font-size: 0.9rem;
-      font-weight: 500;
-      text-align: left;
-      padding-left: 0.25rem;
-    }
-
-    .table-row .amount {
-      font-weight: 700;
-      text-align: right;
-      font-size: 0.95rem;
-      padding-right: 0.25rem;
-    }
-
-    .table-row .amount.deduction {
-      color: #ff6b6b;
-      background: rgba(255, 107, 107, 0.1);
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 107, 107, 0.2);
-    }
-
-    .table-row .amount.bonus {
-      color: #51cf66;
-      background: rgba(81, 207, 102, 0.1);
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-      border: 1px solid rgba(81, 207, 102, 0.2);
-    }
-
-    .breakdown-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .breakdown-chip {
-      padding: 0.75rem 1rem;
-      border-radius: 12px;
-      background: #ffffff;
-      border: 1px solid rgba(209, 213, 219, 0.8);
-      min-width: 180px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .chip-title {
-      font-weight: 600;
-      color: #1f2937;
-    }
-
-    .chip-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .chip-amount {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #ff6b6b;
-    }
-
-    .chip-count {
-      font-size: 0.8rem;
-      color: #6b7280;
-    }
-
-    .bonus .chip-count {
-      color: #6b7280;
-    }
-
-    .bonus-chip .chip-amount {
-      color: #51cf66;
-    }
-
-    .raw-toggle {
-      margin-top: 1rem;
-      margin-bottom: 0.75rem;
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .btn.btn-sm {
-      padding: 0.4rem 0.9rem !important;
-      font-size: 0.85rem;
-      min-height: 34px;
-    }
-
-    .notes-wrapper {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-    }
-
-    .notes-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05));
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #4dc18f;
-      font-size: 1.3rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .notes-content {
-      flex: 1;
-      background: #f9fafb;
-      padding: 1.25rem 1.5rem;
-      border-radius: 12px;
-      border-left: 4px solid rgba(249, 115, 22, 0.6);
-      font-style: italic;
-      line-height: 1.6;
-      color: #1f2937;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
-    }
-
-    .table-row .date {
-      color: #1f2937;
-      font-size: 0.85rem;
-      text-align: center;
-      font-weight: 500;
-      background: #f9fafb;
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-      border: 1px solid rgba(209, 213, 219, 0.8);
-    }
-
-    .metadata-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-
-    .metadata-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-      padding: 0.75rem 0.5rem;
-      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
-    }
-
-    .metadata-item:last-child {
-      border-bottom: none;
-    }
-
-    .metadata-label {
-      font-weight: 600;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-size: 0.8rem;
-    }
-
-    .metadata-value {
-      font-weight: 600;
-      color: #1f2937;
-      font-size: 0.9rem;
-    }
-    
     .header-left {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 1.5rem;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
     }
 
     .header-actions {
       display: flex;
-      align-items: center;
       gap: 1rem;
-    }
-    
-    .page-title {
-      display: flex;
-      align-items: center;
-      color: #1f2937;
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-
-    .page-title fa-icon {
-      color: #f97316;
-    }
-
-    .btn-ghost {
-      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.2)) !important;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(249, 115, 22, 0.4) !important;
-      color: #f97316 !important;
-      transition: all 0.3s ease;
-      padding: 0.75rem 1.5rem !important;
-      border-radius: 10px !important;
-      font-weight: 600;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      -webkit-user-select: none;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    .btn-ghost::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-      transition: left 0.5s ease;
-    }
-    
-    .btn-ghost:hover {
-      background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(234, 88, 12, 0.3)) !important;
-      border-color: rgba(249, 115, 22, 0.6) !important;
-      color: #ea580c !important;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
-    }
-
-    .btn-ghost:hover::before {
-      left: 100%;
-    }
-
-    .btn-pay {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)) !important;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(16, 185, 129, 0.4) !important;
-      color: #10b981 !important;
-      font-weight: 600;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-pay::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-      transition: left 0.5s ease;
-    }
-
-    .btn-pay:hover:not(:disabled) {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.3)) !important;
-      border-color: rgba(16, 185, 129, 0.6) !important;
-      color: #059669 !important;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    }
-
-    .btn-pay:hover:not(:disabled)::before {
-      left: 100%;
-    }
-
-    .btn-pay:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
     }
 
     .glass-card {
       background: #ffffff;
-      border: 1px solid rgba(209, 213, 219, 0.8);
-      border-radius: 15px;
-      color: #1f2937;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
-      margin-bottom: 2rem;
-    }
-
-    .glass-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    }
-
-    .card-header {
-      background: #ffffff;
-      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
-      border: none;
-      color: #1f2937;
-      font-weight: 600;
-      padding: 1.25rem 1.5rem;
-      border-radius: 15px 15px 0 0;
-      font-size: 1.1rem;
-    }
-
-    .card-header fa-icon {
-      color: #f97316;
-    }
-
-    .card-body {
-      padding: 1.5rem;
-      background: #ffffff;
-    }
-
-    .info-item {
-      margin-bottom: 1rem;
-    }
-
-    .info-label {
-      display: block;
-      color: #6b7280;
-      font-weight: 500;
-      font-size: 0.875rem;
-      margin-bottom: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .info-value {
-      color: #1f2937;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .info-value.amount {
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-
-    .info-value.net-salary {
-      color: #4CAF50;
-    }
-
-    .info-value.deduction {
-      color: #F44336;
-    }
-
-    .info-value.bonus {
-      color: #FF9800;
-    }
-
-    .status-badge {
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .status-badge.badge-success {
-      background: linear-gradient(45deg, #4CAF50, #45a049);
-      color: white;
-    }
-
-    .status-badge.badge-warning {
-      background: linear-gradient(45deg, #FF9800, #F57C00);
-      color: white;
-    }
-
-    .table {
-      background: #ffffff;
-      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Softer shadow */
       overflow: hidden;
-      min-width: 100%;
-      border: 1px solid rgba(209, 213, 219, 0.8);
     }
 
     .table-responsive {
-      border-radius: 10px;
       overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
     }
 
-    .table-responsive::-webkit-scrollbar {
-      height: 6px;
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
     }
 
-    .table-responsive::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5);
-    }
-
-    .table th {
-      background: #f9fafb;
-      color: #1f2937;
-      border: none;
-      font-weight: 600;
-      padding: 1rem;
-    }
-
-    .table td {
-      color: #1f2937;
-      border: none;
-      padding: 1rem;
-    }
-
-    .table tbody tr {
-      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
-    }
-
-    .table tbody tr:last-child {
-      border-bottom: none;
-    }
-
-    .loading-container {
-      text-align: center;
-      padding: 4rem 0;
-    }
-
-    .error-container {
-      margin: 2rem 0;
-    }
-
-    .error-card {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .success-container {
-      margin: 2rem 0;
-    }
-
-    .success-card {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .spinner-border {
-      width: 3rem;
-      height: 3rem;
-      border-width: 0.3rem;
-    }
-
-    /* Responsive adjustments */
-    
-    /* Large screens (1200px and up) */
-    @media (min-width: 1200px) {
-      .report-details-container {
-        padding: 48px;
-      }
-      
-      .page-header {
-        margin-bottom: 3rem;
-      }
-      
-      .glass-card {
-        margin-bottom: 2.5rem;
-      }
-    }
-
-    /* Medium screens (992px to 1199px) */
-    @media (max-width: 1199px) and (min-width: 992px) {
-      .report-details-container {
-        padding: 32px;
-      }
-      
-      .page-header {
-        margin-bottom: 2.5rem;
-      }
-    }
-
-    /* Small screens (768px to 991px) */
-    @media (max-width: 991px) {
-      .report-details-container {
-        padding: 24px;
-      }
-
-      .summary-cards {
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      }
-
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-      }
-
-      .bottom-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      }
-
-      .header-left {
-        width: 100%;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-
-      .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-      }
-
-      .btn-ghost {
-        padding: 0.75rem 1.25rem !important;
-        min-height: 42px;
-        font-size: 0.9rem;
-        flex: 1;
-        min-width: 140px;
-      }
-
-      .btn-pay {
-        order: -1;
-        width: 100%;
-        margin-bottom: 0.5rem;
-      }
-
-      .page-title {
-        font-size: 1.25rem;
-      }
-
-      .glass-card {
-        margin-bottom: 1.5rem;
-      }
-
-      .card-header {
-        padding: 1.25rem 1.5rem;
-        font-size: 1.05rem;
-      }
-
-      .card-body {
-        padding: 1.5rem;
-      }
-
-      .info-item {
-        margin-bottom: 1.25rem;
-      }
-
-      .info-value.amount {
-        font-size: 1.15rem;
-      }
-
-      .table th,
-      .table td {
-        padding: 0.875rem;
-        font-size: 0.9rem;
-      }
-    }
-
-    /* Mobile screens (576px to 767px) */
-    @media (max-width: 767px) {
-      .report-details-container {
-        padding: 16px;
-      }
-
-      .bottom-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .info-grid.compact {
-        grid-template-columns: 1fr;
-      }
-
-      .summary-cards {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .page-header {
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .header-actions {
-        gap: 0.5rem;
-      }
-
-      .btn-ghost {
-        padding: 0.6rem 1rem !important;
-        min-height: 40px;
-        font-size: 0.85rem;
-        min-width: 120px;
-      }
-
-      .btn-pay {
-        padding: 0.75rem 1.5rem !important;
-        min-height: 44px;
-        font-size: 0.9rem;
-      }
-
-      .page-title {
-        font-size: 1.1rem;
-      }
-
-      .glass-card {
-        margin-bottom: 1.25rem;
-      }
-
-      .card-header {
-        padding: 1rem 1.25rem;
-        font-size: 1rem;
-      }
-
-      .card-body {
-        padding: 1.25rem;
-      }
-
-      .info-item {
-        margin-bottom: 1rem;
-      }
-
-      .info-label {
-        font-size: 0.8rem;
-      }
-
-      .info-value {
-        font-size: 0.95rem;
-      }
-
-      .info-value.amount {
-        font-size: 1.1rem;
-      }
-
-      .table th,
-      .table td {
-        padding: 0.75rem;
-        font-size: 0.85rem;
-      }
-
-      .status-badge {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
-      }
-
-      .notes-content {
-        padding: 1rem;
-        font-size: 0.9rem;
-      }
-
-      .notes-wrapper {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .notes-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
-      }
-    }
-
-    /* Extra small screens (up to 575px) */
-    @media (max-width: 575px) {
-      .report-details-container {
-        padding: 12px;
-      }
-
-      .bottom-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .info-grid.compact {
-        grid-template-columns: 1fr;
-      }
-
-      .summary-cards {
-        grid-template-columns: 1fr;
-      }
-
-      .page-header {
-        gap: 0.75rem;
-        margin-bottom: 1.25rem;
-      }
-
-      .header-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 0.5rem;
-      }
-
-      .btn-ghost {
-        width: 100% !important;
-        padding: 0.75rem 1rem !important;
-        min-height: 44px;
-        font-size: 0.9rem;
-        justify-content: center;
-      }
-
-      .btn-pay {
-        order: -1;
-        margin-bottom: 0.25rem;
-      }
-
-      .page-title {
-        font-size: 1rem;
-      }
-
-      .glass-card {
-        margin-bottom: 1rem;
-        border-radius: 12px;
-      }
-
-      .card-header {
-        padding: 0.875rem 1rem;
-        font-size: 0.95rem;
-        border-radius: 12px 12px 0 0;
-      }
-
-      .card-body {
-        padding: 1rem;
-      }
-
-      .info-item {
-        margin-bottom: 0.875rem;
-      }
-
-      .info-label {
-        font-size: 0.75rem;
-        margin-bottom: 0.375rem;
-      }
-
-      .info-value {
-        font-size: 0.9rem;
-      }
-
-      .info-value.amount {
-        font-size: 1.05rem;
-      }
-
-      .table-responsive {
-        border-radius: 8px;
-        overflow-x: auto;
-      }
-
-      .table {
-        min-width: 280px;
-        border-radius: 8px;
-      }
-
-      .table th,
-      .table td {
-        padding: 0.625rem;
-        font-size: 0.8rem;
-        white-space: nowrap;
-      }
-
-      .status-badge {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.75rem;
-      }
-
-      .notes-content {
-        padding: 0.875rem;
-        font-size: 0.85rem;
-        line-height: 1.5;
-      }
-
-      .notes-wrapper {
-        gap: 0.75rem;
-      }
-
-      .loading-container {
-        padding: 3rem 0;
-      }
-
-      .spinner-border {
-        width: 2.5rem;
-        height: 2.5rem;
-      }
-
-      .error-card,
-      .success-card {
-        margin: 1rem 0;
-      }
-
-      .error-card .card-body,
-      .success-card .card-body {
-        padding: 1.5rem 1rem;
-      }
-
-      .display-1 {
-        font-size: 3rem;
-      }
-    }
-
-    /* Ultra small screens (up to 375px) */
-    @media (max-width: 375px) {
-      .report-details-container {
-        padding: 8px;
-      }
-
-      .btn-ghost {
-        padding: 0.625rem 0.875rem !important;
-        font-size: 0.85rem;
-      }
-
-      .card-header {
-        padding: 0.75rem 0.875rem;
-        font-size: 0.9rem;
-      }
-
-      .card-body {
-        padding: 0.875rem;
-      }
-
-      .info-value.amount {
-        font-size: 1rem;
-      }
-
-      .table th,
-      .table td {
-        padding: 0.5rem;
-        font-size: 0.75rem;
-      }
-
-      .notes-content {
-        padding: 0.75rem;
-        font-size: 0.8rem;
-      }
-    }
-
-    /* Landscape orientation adjustments for mobile */
-    @media (max-width: 767px) and (orientation: landscape) {
-      .report-details-container {
-        padding: 16px 20px;
-      }
-
-      .page-header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-      }
-
-      .header-left {
-        flex-direction: row;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .header-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        width: auto;
-      }
-
-      .btn-ghost {
-        width: auto !important;
-        min-width: 100px;
-        padding: 0.5rem 0.875rem !important;
-        min-height: 36px;
-        font-size: 0.8rem;
-      }
-
-      .glass-card {
-        margin-bottom: 1rem;
-      }
-
-      .card-body {
-        padding: 1rem;
-      }
-    }
-    /* Grid Layout Responsive Adjustments */
-    @media (max-width: 991px) {
-      /* Switch to single column layout */
-      .content-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .details-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .notes-metadata-row {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .content-grid {
-        gap: 1rem;
-      }
-      
-      .content-column {
-        gap: 1rem;
-      }
-      
-      .bottom-section {
-        gap: 1rem;
-      }
-      
-      .info-grid {
-        gap: 0.75rem;
-      }
-      
-      /* Compact table adjustments */
-      .table-header {
-        font-size: 0.7rem;
-        padding: 0.5rem 0;
-        grid-template-columns: 1.8fr 1fr 0.8fr;
-        gap: 0.5rem;
-      }
-      
-      .table-row {
-        padding: 0.6rem 0;
-        grid-template-columns: 1.8fr 1fr 0.8fr;
-        gap: 0.5rem;
-      }
-      
-      .table-row .reason {
-        font-size: 0.85rem;
-      }
-
-      .table-row .amount {
-        font-size: 0.9rem;
-      }
-
-      .table-row .date {
-        font-size: 0.8rem;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .content-grid {
-        gap: 0.75rem;
-      }
-      
-      .content-column {
-        gap: 0.75rem;
-      }
-      
-      .bottom-section {
-        gap: 0.75rem;
-      }
-      
-      .details-grid {
-        gap: 0.75rem;
-      }
-      
-      .notes-metadata-row {
-        gap: 0.75rem;
-      }
-      
-      .info-grid {
-        gap: 0.5rem;
-      }
-      
-      /* Compact table adjustments */
-      .table-header {
-        font-size: 0.65rem;
-        padding: 0.4rem 0;
-        grid-template-columns: 1.5fr 1fr 0.7fr;
-        gap: 0.4rem;
-      }
-      
-      .table-row {
-        padding: 0.5rem 0;
-        grid-template-columns: 1.5fr 1fr 0.7fr;
-        gap: 0.4rem;
-      }
-      
-      .table-row .reason {
-        font-size: 0.8rem;
-      }
-
-      .table-row .amount {
-        font-size: 0.85rem;
-      }
-
-      .table-row .date {
-        font-size: 0.75rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .content-grid {
-        gap: 0.5rem;
-      }
-      
-      .content-column {
-        gap: 0.5rem;
-      }
-      
-      .bottom-section {
-        gap: 0.5rem;
-      }
-      
-      .details-grid {
-        gap: 0.5rem;
-      }
-      
-      .notes-metadata-row {
-        gap: 0.5rem;
-      }
-      
-      .info-grid {
-        gap: 0.4rem;
-      }
-    }
-
-    @media (max-width: 360px) {
-      .content-grid {
-        gap: 0.4rem;
-      }
-      
-      .content-column {
-        gap: 0.4rem;
-      }
-      
-      .bottom-section {
-        gap: 0.4rem;
-      }
-      
-      .details-grid {
-        gap: 0.4rem;
-      }
-      
-      .notes-metadata-row {
-        gap: 0.4rem;
-      }
-      
-      .info-grid {
-        gap: 0.3rem;
-      }
-    }
-
-    /* Calculation Breakdown Styles */
-    .breakdown-content {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .breakdown-item {
-      padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      border-left: 3px solid #667eea;
-    }
-
-    .breakdown-item.final-calculation {
-      background: rgba(102, 126, 234, 0.1);
-      border-left-color: #4a00e0;
-      font-weight: 600;
-    }
-
-    /* Attendance Analysis Styles */
-    .attendance-summary {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .summary-item {
-      padding: 0.75rem;
-      background: #f9fafb;
-      border-radius: 8px;
-      border-left: 3px solid #f97316;
-      color: #1f2937;
-    }
-
-    .summary-item strong {
-      color: #1f2937;
-    }
-
-    .section-title {
-      color: #1f2937;
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    /* Attendance Table Styles */
-    .attendance-table {
-      background: #ffffff;
-      border: 1px solid rgba(209, 213, 219, 0.8);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-top: 1rem;
-    }
-
-    .attendance-table .table-header {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1.5fr 1.5fr 2fr 1fr;
-      background: #f9fafb;
-      padding: 1rem;
-      font-weight: 600;
-      color: #1f2937;
-    }
-
-    .table-body {
-      max-height: 400px;
-      overflow-y: auto;
-      background: #ffffff;
-    }
-
-    .attendance-table .table-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1.5fr 1.5fr 2fr 1fr;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
-      color: #1f2937;
-      transition: background-color 0.2s ease;
-    }
-
-    .attendance-table .table-row:hover {
-      background: #f9fafb;
-    }
-
-    .table-row:last-child {
-      border-bottom: none;
-    }
-
-    .table-cell {
-      display: flex;
-      align-items: center;
-      padding: 0.25rem;
-      color: #1f2937;
-    }
-
-    .header-cell {
-      display: flex;
-      align-items: center;
-      padding: 0.25rem;
-      color: #1f2937;
-    }
-
-    .absent-text {
-      color: #ef4444;
-      font-style: italic;
-    }
-
-    .severity-badge {
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.8rem;
+    .report-table th {
+      background-color: #f8fafc;
+      color: #64748b;
       font-weight: 600;
       text-transform: uppercase;
+      font-size: 0.85rem;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: inherit; /* Respect RTL/LTR */
     }
 
-    .severity-minor {
-      background: rgba(255, 193, 7, 0.2);
-      color: #ffc107;
-      border: 1px solid rgba(255, 193, 7, 0.3);
+    .report-table td {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      vertical-align: middle;
+      font-size: 0.95rem;
     }
 
-    .severity-moderate {
-      background: rgba(255, 152, 0, 0.2);
-      color: #ff9800;
-      border: 1px solid rgba(255, 152, 0, 0.3);
+    .report-table tr:hover td {
+      background-color: #f8fafc;
+    }
+    
+    .report-table tr:last-child td {
+      border-bottom: none;
     }
 
-    .severity-major {
-      background: rgba(244, 67, 54, 0.2);
-      color: #f44336;
-      border: 1px solid rgba(244, 67, 54, 0.3);
+    .report-table tfoot .total-row td {
+      background-color: #f1f5f9;
+      border-top: 2px solid #e2e8f0;
+      font-size: 1.1rem;
+      color: #0f172a;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .attendance-summary {
-        grid-template-columns: 1fr;
-      }
+    .highlight-value {
+      color: #0d9488; /* Teal color for money */
+    }
 
-      .table-header,
-      .table-row {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-      }
+    /* Buttons */
+    .btn-ghost {
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
 
-      .header-cell,
-      .table-cell {
-        padding: 0.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .header-cell:before,
-      .table-cell:before {
-        content: attr(data-label) ': ';
-        font-weight: 600;
-        margin-right: 0.5rem;
-      }
+    .btn-ghost:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: #1e293b;
+    }
+    
+    .btn-ghost.btn-pay {
+       color: #059669;
+       border-color: #10b981;
+       background-color: rgba(16, 185, 129, 0.05);
+    }
+    
+    .btn-ghost.btn-pay:hover {
+       background-color: rgba(16, 185, 129, 0.1);
+    }
+    
+    .loading-container, .error-container {
+        text-align: center; 
+        padding: 3rem;
     }
   `]
 })
 export class SalaryReportDetailsComponent implements OnInit {
+  // Icons
+  faArrowLeft = faArrowLeft;
+  faFileInvoice = faFileInvoice;
+  faDownload = faDownload;
+  faPrint = faPrint;
+  faCheckCircle = faCheckCircle;
+  faTimesCircle = faTimesCircle;
+  faExclamationTriangle = faExclamationTriangle;
+  faClock = faClock;
+  faMoneyBill = faMoneyBill;
+
+  // Data
+  report: DetailedSalaryReportDto | null = null;
+  dailyRows: DailyReportRow[] = [];
+
+  isLoading = false;
+  isProcessingPayment = false;
+  error: string | null = null;
+  successMessage: string | null = null;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private financialService = inject(FinancialService);
   private translate = inject(TranslateService);
 
-  report: DetailedSalaryReportDto | null = null;
-  isLoading: boolean = false;
-  error: string | null = null;
-  successMessage: string | null = null;
-  isProcessingPayment: boolean = false;
-  normalizedDeductions: DeductionDto[] = [];
-  deductionBreakdown: Record<string, DeductionBreakdownEntry> = {};
-  deductionBreakdownKeys: string[] = [];
-  calculationBreakdownLines: LocalizedBreakdownLine[] = [];
-  showRawDeductionJson: boolean = false;
-
-  // FontAwesome Icons
-  faArrowLeft = faArrowLeft;
-  faFileInvoice = faFileInvoice;
-  faDownload = faDownload;
-  faPrint = faPrint;
-  faUser = faUser;
-  faCalendar = faCalendar;
-  faMoneyBill = faMoneyBill;
-  faClock = faClock;
-  faCheckCircle = faCheckCircle;
-  faTimesCircle = faTimesCircle;
-  faInfoCircle = faInfoCircle;
-  faChartPie = faChartPie;
-  faCoins = faCoins;
-  faMinusCircle = faMinusCircle;
-  faPlusCircle = faPlusCircle;
-  faCode = faCode;
-  faStickyNote = faStickyNote;
-  faIdCard = faIdCard;
+  get reportId(): number {
+    const id = this.route.snapshot.paramMap.get('id');
+    return id ? +id : 0;
+  }
 
   ngOnInit(): void {
-    this.loadReportDetails();
+    if (this.reportId) {
+      this.loadReportDetails();
+    } else {
+      this.goBack();
+    }
   }
 
   loadReportDetails(): void {
-    const reportId = this.route.snapshot.paramMap.get('id');
-    if (reportId) {
-      this.isLoading = true;
-      this.error = null;
+    this.isLoading = true;
+    this.error = null;
 
-      this.financialService.getDetailedSalaryReportById(Number(reportId)).subscribe({
-        next: (response) => {
-          if (response.isSuccess && response.data) {
-            this.report = this.normalizeReportData(response.data);
-          } else {
-            this.error = 'ERROR.FAILED_TO_LOAD_REPORT_DETAILS';
-          }
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error('Error loading report details:', err);
-          this.error = 'ERROR.FETCH_REPORT_DETAILS_ERROR';
-          this.isLoading = false;
+    this.financialService.getDetailedSalaryReportById(this.reportId).subscribe({
+      next: (response) => {
+        if (response.isSuccess && response.data) {
+          this.report = response.data;
+          this.generateDailyRows();
+        } else {
+          this.error = response.message || 'ERROR.FAILED_TO_LOAD_REPORT';
         }
-      });
-    } else {
-      this.error = 'ERROR.INVALID_REPORT_ID';
-    }
-  }
-
-  private normalizeReportData(report: DetailedSalaryReportDto): DetailedSalaryReportDto {
-    const normalizedDeductions = this.mergeDeductions(report);
-    this.normalizedDeductions = normalizedDeductions;
-    this.deductionBreakdown = this.buildDeductionBreakdown(normalizedDeductions);
-    this.deductionBreakdownKeys = Object.keys(this.deductionBreakdown);
-    this.calculationBreakdownLines = this.buildLocalizedCalculationBreakdown(report.calculationBreakdown);
-
-    if (this.deductionBreakdownKeys.length > 0) {
-      console.log('🧮 Deductions breakdown object:', this.deductionBreakdown);
-    }
-
-    return {
-      ...report,
-      deductions: normalizedDeductions
-    };
-  }
-
-  private mergeDeductions(report: DetailedSalaryReportDto): DeductionDto[] {
-    const combined: DeductionDto[] = [
-      ...(report.deductions ?? []),
-      ...(report.deductionDetails ?? [])
-    ];
-
-    const unique = new Map<string, DeductionDto>();
-
-    combined.forEach((deduction) => {
-      if (!deduction) {
-        return;
-      }
-
-      const key = deduction.id
-        ? `id:${deduction.id}`
-        : `hash:${(deduction.reason ?? '').trim()}|${deduction.date ?? ''}|${deduction.amount ?? 0}`;
-
-      if (!unique.has(key)) {
-        unique.set(key, deduction);
-      }
-    });
-
-    const sorted = Array.from(unique.values()).sort((a, b) => {
-      const dateA = a.date ? new Date(a.date).getTime() : 0;
-      const dateB = b.date ? new Date(b.date).getTime() : 0;
-      return dateA - dateB;
-    });
-
-    return sorted;
-  }
-
-  private buildDeductionBreakdown(deductions: DeductionDto[]): Record<string, DeductionBreakdownEntry> {
-    return deductions.reduce((acc, deduction) => {
-      const reasonKey = (deduction.reason?.trim() || 'N/A');
-
-      if (!acc[reasonKey]) {
-        acc[reasonKey] = {
-          totalAmount: 0,
-          count: 0,
-          entries: []
-        };
-      }
-
-      const entry = acc[reasonKey];
-
-      entry.totalAmount += Number(deduction.amount ?? 0);
-      entry.count += 1;
-      entry.entries.push({
-        id: deduction.id,
-        salaryReportId: deduction.salaryReportId,
-        amount: deduction.amount,
-        date: deduction.date,
-        isApplied: deduction.isApplied
-      });
-
-      return acc;
-    }, {} as Record<string, DeductionBreakdownEntry>);
-  }
-
-  getMetadataEntries(): { label: string; value: string }[] {
-    if (!this.report) {
-      return [];
-    }
-
-    const entries: { label: string; value: string }[] = [
-      {
-        label: 'GeneratedDate',
-        value: this.formatDateTime(this.report.generatedDate)
+        this.isLoading = false;
       },
-      {
-        label: 'ReportId',
-        value: this.report.id?.toString() ?? '-'
-      },
-      {
-        label: 'EmployeeId',
-        value: this.report.employeeId?.toString() ?? '-'
-      },
-      {
-        label: 'PaymentStatus',
-        value: this.translate.instant(this.getStatusText(this.report.isPaid))
+      error: (err) => {
+        this.error = 'ERROR.FAILED_TO_LOAD_REPORT';
+        console.error('Error loading report:', err);
+        this.isLoading = false;
       }
-    ];
-
-    if (this.report.paidDate) {
-      entries.push({
-        label: 'PaidDate',
-        value: this.formatDateTime(this.report.paidDate)
-      });
-    }
-
-    if (this.report.workRule?.category) {
-      entries.push({
-        label: 'WorkRuleCategory',
-        value: this.report.workRule.category
-      });
-    }
-
-    return entries;
-  }
-
-  toggleRawDeductionJson(): void {
-    this.showRawDeductionJson = !this.showRawDeductionJson;
-  }
-
-  private buildLocalizedCalculationBreakdown(breakdown?: CalculationBreakdownDto): LocalizedBreakdownLine[] {
-    if (!breakdown) {
-      return [];
-    }
-
-    const formatHours = (value?: number) => {
-      const locale = this.getCurrentLocale();
-      return new Intl.NumberFormat(locale, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(value ?? 0);
-    };
-
-    const lines: LocalizedBreakdownLine[] = [];
-
-    lines.push({
-      text: this.translate.instant('CalculationBreakdown.BaseSalaryLine', {
-        amount: this.formatCurrency(breakdown.baseSalaryAmount ?? 0)
-      })
     });
+  }
 
-    lines.push({
-      text: this.translate.instant('CalculationBreakdown.HoursLine', {
-        expected: formatHours(breakdown.expectedHours),
-        worked: formatHours(breakdown.workedHours),
-        deficit: formatHours(breakdown.hoursDeficit),
-        surplus: formatHours(breakdown.hoursSurplus)
-      })
-    });
+  generateDailyRows(): void {
+    if (!this.report) return;
 
-    if ((breakdown.overtimeHours ?? 0) > 0) {
-      lines.push({
-        text: this.translate.instant('CalculationBreakdown.OvertimeLine', {
-          hours: formatHours(breakdown.overtimeHours),
-          rate: this.formatCurrency(breakdown.overtimeRate ?? 0),
-          payment: this.formatCurrency(breakdown.overtimePayment ?? 0)
-        })
-      });
-    } else {
-      lines.push({
-        text: this.translate.instant('CalculationBreakdown.NoOvertimeLine')
-      });
+    this.dailyRows = [];
+
+    // Use dailyDetails from backend if available
+    if (this.report.dailyDetails && this.report.dailyDetails.length > 0) {
+      this.dailyRows = this.report.dailyDetails.map(detail => ({
+        date: detail.date.split('T')[0], // Extract YYYY-MM-DD from ISO datetime
+        dayName: detail.dayNameAr,
+        attendanceAt: detail.timeIn,
+        departureAt: detail.timeOut,
+        workHours: detail.workedHours.toFixed(2),
+        dailySalary: detail.dailySalary
+      }));
+      return; // Exit early after mapping backend data
     }
 
-    if ((breakdown.totalDeductionsAmount ?? 0) > 0) {
-      lines.push({
-        text: this.translate.instant('CalculationBreakdown.DeductionsLine', {
-          count: breakdown.deductionsCount ?? 0,
-          amount: this.formatCurrency(breakdown.totalDeductionsAmount ?? 0)
-        })
-      });
-    } else {
-      lines.push({
-        text: this.translate.instant('CalculationBreakdown.NoDeductionsLine')
-      });
-    }
-
-    if ((breakdown.totalBonusesAmount ?? 0) > 0) {
-      lines.push({
-        text: this.translate.instant('CalculationBreakdown.BonusesLine', {
-          count: breakdown.bonusesCount ?? 0,
-          amount: this.formatCurrency(breakdown.totalBonusesAmount ?? 0)
-        })
-      });
-    } else {
-      lines.push({
-        text: this.translate.instant('CalculationBreakdown.NoBonusesLine')
-      });
-    }
-
-    lines.push({
-      text: this.translate.instant('CalculationBreakdown.FinalLine', {
-        gross: this.formatCurrency(breakdown.grossSalary ?? 0),
-        deductions: this.formatCurrency(breakdown.totalDeductionsAmount ?? 0),
-        bonuses: this.formatCurrency(breakdown.totalBonusesAmount ?? 0),
-        net: this.formatCurrency(breakdown.netSalary ?? 0)
-      }),
-      isFinal: true
-    });
-
-    return lines;
-  }
-
-  goBack(): void {
-    this.router.navigate(['/admin/financial/salary-reports']);
-  }
-
-  downloadReport(): void {
-    console.log('Download report:', this.report);
-    // TODO: Implement download functionality
-  }
-
-  printReport(): void {
-    window.print();
-  }
-
-  formatCurrency(amount: number | null | undefined): string {
-    const locale = this.getCurrentLocale();
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'EGP'
-    }).format(amount ?? 0);
-  }
-
-  formatDate(dateString: string): string {
-    const locale = this.getCurrentLocale();
-    return new Date(dateString).toLocaleDateString(locale);
-  }
-
-  formatNumber(value?: number | null, fractionDigits: number = 2): string {
-    const locale = this.getCurrentLocale();
-    return new Intl.NumberFormat(locale, {
-      minimumFractionDigits: fractionDigits,
-      maximumFractionDigits: fractionDigits
-    }).format(value ?? 0);
-  }
-
-  formatDateTime(dateString: string): string {
-    const locale = this.getCurrentLocale();
-    return new Date(dateString).toLocaleString(locale);
-  }
-
-  private getCurrentLocale(): string {
-    switch (this.translate.currentLang) {
-      case 'ar':
-        return 'ar-EG';
-      case 'it':
-        return 'it-IT';
-      default:
-        return 'en-US';
-    }
-  }
-
-  getMonthName(month: number): string {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[month - 1] || month.toString();
-  }
-
-  getStatusBadgeClass(isPaid: boolean): string {
-    return isPaid ? 'badge-success' : 'badge-warning';
-  }
-
-  getStatusText(isPaid: boolean): string {
-    return isPaid ? 'Paid' : 'Unpaid';
-  }
-
-  getErrorMessage(errorKey: string): string {
-    return this.translate.instant(errorKey);
-  }
-
-  getWorkRuleTypeText(type: number | string): string {
-    const typeKey = typeof type === 'string' ? type : this.mapNumericWorkRuleType(type);
-    const translationKey = `WorkRuleType.${typeKey}`;
-    const translated = this.translate.instant(translationKey);
-    return translated !== translationKey ? translated : typeKey.toString();
-  }
-
-  private mapNumericWorkRuleType(value: number): string | number {
-    const map: Record<number, string> = {
-      0: 'Daily',
-      1: 'Weekly',
-      2: 'Monthly',
-      3: 'Hourly',
-      4: 'Custom'
-    };
-    return map[value] ?? value;
-  }
-
-  getPaymentFrequencyText(frequency: number): string {
-    const frequencies = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
-    return frequencies[frequency] || frequency.toString();
+    // Fallback: If backend doesn't provide dailyDetails, show warning
+    console.warn('No daily details provided by backend');
   }
 
   markReportAsPaid(): void {
-    if (!this.report || this.isProcessingPayment) {
-      return;
-    }
+    if (!this.report) return;
 
     this.isProcessingPayment = true;
-    this.error = null;
-    this.successMessage = null;
-    
     this.financialService.markSalaryReportAsPaid(this.report.id).subscribe({
       next: (response) => {
-        if (response.isSuccess) {
-          // Show the API success message
-          this.successMessage = response.message || 'Report marked as paid successfully';
-          // Update the report with the new paid status if data is provided
-          if (response.data && this.report) {
-            // Update only the paid status and paid date
-            this.report.isPaid = response.data.isPaid;
-            this.report.paidDate = response.data.paidDate;
-          } else {
-            // If no data returned, just update the isPaid status locally
-            if (this.report) {
-              this.report.isPaid = true;
-              this.report.paidDate = new Date().toISOString();
-            }
-          }
+        if (response.isSuccess && response.data) {
+          this.report = { ...this.report, ...response.data } as DetailedSalaryReportDto; // Update local report data keeping missing detailed fields
+          this.successMessage = 'SUCCESS.REPORT_MARKED_AS_PAID';
+
+          // Auto-hide success message after 5 seconds
+          setTimeout(() => this.successMessage = null, 5000);
         } else {
-          // Show the API error message
-          this.error = response.message || 'ERROR.FAILED_TO_MARK_REPORT_AS_PAID';
+          console.error('Failed to mark as paid');
         }
         this.isProcessingPayment = false;
       },
       error: (err) => {
         console.error('Error marking report as paid:', err);
-        // Show the API error message from the response
-        this.error = err?.error?.message || 'ERROR.FAILED_TO_MARK_REPORT_AS_PAID';
         this.isProcessingPayment = false;
       }
     });
@@ -2472,5 +350,33 @@ export class SalaryReportDetailsComponent implements OnInit {
 
   clearSuccessMessage(): void {
     this.successMessage = null;
+  }
+
+  downloadReport(): void {
+    // Logic for PDF download
+    console.log('Download report');
+  }
+
+  printReport(): void {
+    window.print();
+  }
+
+  goBack(): void {
+    this.router.navigate(['/admin/financial/salary-reports']);
+  }
+
+  getErrorMessage(error: any): string {
+    if (typeof error === 'string') return error;
+    return 'ERROR.UNKNOWN';
+  }
+
+  formatCurrency(amount: number | undefined): string {
+    if (amount === undefined || amount === null) return '0.00';
+    return new Intl.NumberFormat(this.translate.currentLang, { style: 'currency', currency: 'EUR' }).format(amount);
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString(this.translate.currentLang);
   }
 }

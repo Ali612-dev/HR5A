@@ -39,7 +39,8 @@
   font-size: 1.25rem;
   margin: 0;
   line-height: 1.5;
-  direction: ltr; /* Let Angular Material handle RTL through translate */
+  direction: ltr;
+  /* Let Angular Material handle RTL through translate */
 }
 
 [dir="rtl"] .loading-title {
@@ -88,8 +89,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 300px;
+  min-height: 400px;
   padding: 3rem 2rem;
+  margin: 1rem 0;
+  /* Clean design without container background */
 }
 
 .error-content {
@@ -99,14 +102,37 @@
   gap: 1.5rem;
   text-align: center;
   max-width: 500px;
+  padding: 2rem;
+  /* Clean card style */
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .error-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
-  color: #f44336;
-  opacity: 0.8;
+  font-size: 72px;
+  width: 72px;
+  height: 72px;
+  color: #ef4444;
+  margin-bottom: 0.5rem;
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 .error-text {
@@ -116,17 +142,17 @@
 }
 
 .error-title {
-  color: #1f2937;
-  font-weight: 600;
-  font-size: 1.5rem;
+  color: #991b1b;
+  font-weight: 700;
+  font-size: 1.75rem;
   margin: 0;
 }
 
 .error-message {
-  color: #6b7280;
-  font-size: 1rem;
+  color: #7f1d1d;
+  font-size: 1.1rem;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .error-actions {
@@ -265,6 +291,10 @@
   text-align: center !important;
   vertical-align: middle;
   background: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
 }
 
 /* First and last cells rounded corners */
@@ -416,7 +446,7 @@
   .material-table-container {
     display: none;
   }
-  
+
   .mobile-cards-container {
     display: flex;
   }
@@ -440,4 +470,3 @@
 .table-wrapper::-webkit-scrollbar-thumb:hover {
   background: rgba(249, 115, 22, 0.7);
 }
-

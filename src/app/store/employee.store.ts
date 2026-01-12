@@ -46,16 +46,16 @@ export const EmployeeStore = signalStore(
               totalCount: response.data?.totalCount,
               message: response.message
             });
-            
+
             if (response.isSuccess && response.data) {
               // Initialize selected property for each employee
               const employeesWithSelection = response.data.employees.map(emp => ({
                 ...emp,
                 selected: emp.selected || false
               }));
-              
+
               console.log('📥 EmployeeStore: First few employees received:', employeesWithSelection.slice(0, 3).map(e => e.name));
-              
+
               patchState(store, {
                 employees: employeesWithSelection,
                 totalCount: response.data.totalCount,
@@ -68,7 +68,13 @@ export const EmployeeStore = signalStore(
           },
           error: (err) => {
             console.error(err);
-            patchState(store, { error: translate.instant('ERROR.FETCH_EMPLOYEES_ERROR'), isLoading: false });
+            let errorMessage = 'ERROR.FETCH_EMPLOYEES_ERROR';
+
+            if (err.status === 0 || err.status === 503) {
+              errorMessage = 'ERROR.SERVER_NOT_AVAILABLE';
+            }
+
+            patchState(store, { error: errorMessage, isLoading: false });
           },
         })
       ).subscribe();
@@ -80,7 +86,7 @@ export const EmployeeStore = signalStore(
         partialUpdate: request,
         newRequest: newRequest
       });
-      
+
       patchState(store, { request: newRequest });
       this.loadEmployees();
     },

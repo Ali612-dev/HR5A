@@ -73,16 +73,16 @@ export class AddWorkRuleComponent implements OnInit {
       description: [''],
       isPrivate: [false],
       // Late & Early Departure Rules
-      lateArrivalToleranceMinutes: [15, [Validators.min(0)]],
-      earlyDepartureToleranceMinutes: [15, [Validators.min(0)]],
-      lateDeductionMinutesPerHour: [30, [Validators.min(1)]],
-      earlyDepartureDeductionMinutesPerHour: [30, [Validators.min(1)]],
+      lateArrivalToleranceMinutes: [null, [Validators.min(0)]],
+      earlyDepartureToleranceMinutes: [null, [Validators.min(0)]],
+      lateDeductionMinutesPerHour: [null, [Validators.min(1)]],
+      earlyDepartureDeductionMinutesPerHour: [null, [Validators.min(1)]],
       // Overtime Rules
-      overtimeMultiplier: [1.5, [Validators.min(1)]],
-      minimumOvertimeMinutes: [30, [Validators.min(0)]],
+      overtimeMultiplier: [null, [Validators.min(1)]],
+      minimumOvertimeMinutes: [null, [Validators.min(0)]],
       // Absence Rules
-      absenceDeductionMultiplier: [1.0, [Validators.min(0)]],
-      allowedAbsenceDaysPerMonth: [0, [Validators.min(0)]],
+      absenceDeductionMultiplier: [null, [Validators.min(0)]],
+      allowedAbsenceDaysPerMonth: [null, [Validators.min(0)]],
       areOffDaysPaid: [true],
       allowWorkOnOffDays: [false],
       treatOffDayWorkAsOvertime: [false],
@@ -161,28 +161,33 @@ export class AddWorkRuleComponent implements OnInit {
     this.router.navigate(['/admin/financial/work-rules']);
   }
 
+  isHourlyRule(): boolean {
+    const type = this.workRuleForm.get('type')?.value;
+    return type === 'Hourly' || type === WorkRuleType.Hourly || type === 4;
+  }
+
   onSubmit(): void {
     // Check required fields manually
     const category = this.workRuleForm.get('category')?.value;
     const type = this.workRuleForm.get('type')?.value;
-    
+
     // Only validate if fields are actually empty
     if (!category || category.trim() === '' || !type) {
       const categoryControl = this.workRuleForm.get('category');
       const typeControl = this.workRuleForm.get('type');
-      
+
       // Mark invalid fields
       if (!category || category.trim() === '') {
         categoryControl?.setErrors({ required: true });
         categoryControl?.markAsTouched();
         categoryControl?.markAsDirty();
       }
-      
+
       if (!type) {
         typeControl?.markAsTouched();
         typeControl?.markAsDirty();
       }
-      
+
       // Show localized error message  
       const errorMessage = this.translate.instant('ERROR.FILL_ALL_REQUIRED_FIELDS');
       this.showErrorDialog(errorMessage);
@@ -237,7 +242,7 @@ export class AddWorkRuleComponent implements OnInit {
         if (workRuleResponse.isSuccess && workRuleResponse.data) {
           const workRuleId = workRuleResponse.data.id;
           const workRuleType = payload.type; // payload.type is already a number
-          
+
           // If work rule type is Monthly (3), create a default shift
           if (workRuleType === 3 && workRuleResponse.data.expectStartTime && workRuleResponse.data.expectEndTime) {
             const shiftPayload: CreateShiftDto = {
@@ -248,7 +253,7 @@ export class AddWorkRuleComponent implements OnInit {
               isOvernight: false,
               breakMinutes: 0
             };
-            
+
             return this.financialService.createShift(shiftPayload).pipe(
               catchError(shiftErr => {
                 console.error('Error creating shift:', shiftErr);

@@ -17,6 +17,14 @@ export enum WorkRuleType {
   Shifts = 'Shifts'
 }
 
+export enum SalaryType {
+  PerDay = 0,
+  PerWeek = 1,
+  PerMonth = 2,
+  PerHour = 3,
+  Custom = 4
+}
+
 export interface ShiftEmployeeSummaryDto {
   employeeId: number;
   name: string;
@@ -120,12 +128,6 @@ export interface UpdateWorkRuleDto {
 }
 
 // Employee Salaries
-export enum SalaryType {
-  PerDay = 0,
-  PerMonth = 1,
-  PerHour = 2,
-  Custom = 3
-}
 
 export interface EmployeeSalaryDto {
   id: number;
@@ -180,6 +182,7 @@ export interface SalaryReportDto {
   endDate: string; // ISO date
   baseSalary: number;
   actualBaseSalary?: number; // New field
+  hourlyRate?: number; // New field from backend
   totalExpectedHours: number;
   totalWorkedHours: number;
   expectedWorkingDays: number;
@@ -198,8 +201,20 @@ export interface SalaryReportDto {
   workRule?: WorkRuleDto; // New field
 }
 
+// Daily attendance detail from backend
+export interface DailyDetailDto {
+  date: string; // ISO date-time
+  dayNameAr: string;
+  timeIn: string; // Formatted time or "-"
+  timeOut: string; // Formatted time or "-"
+  workedHours: number;
+  dailySalary: number;
+  status: string; // "حضور" or "غائب" etc.
+}
+
 // Detailed Salary Report with calculation breakdown and attendance analysis
 export interface DetailedSalaryReportDto extends SalaryReportDto {
+  dailyDetails?: DailyDetailDto[]; // New field from backend
   deductionDetails: DeductionDto[];
   bonusDetails: BonusDto[];
   calculationBreakdown: CalculationBreakdownDto;
@@ -413,38 +428,38 @@ export interface WorkRuleDetailsDto {
   employeeId?: number;
   employeeCount?: number;
   isShiftBased?: boolean;
-  
+
   // Late & Early Departure Rules
   lateArrivalToleranceMinutes?: number;
   earlyDepartureToleranceMinutes?: number;
   lateDeductionMinutesPerHour?: number;
   earlyDepartureDeductionMinutesPerHour?: number;
-  
+
   // Overtime Rules
   overtimeMultiplier?: number;
   minimumOvertimeMinutes?: number;
-  
+
   // Absence Rules
   absenceDeductionMultiplier?: number;
   allowedAbsenceDaysPerMonth?: number;
   areOffDaysPaid?: boolean;
-  
+
   // Off-Day Rules
   allowWorkOnOffDays?: boolean;
   treatOffDayWorkAsOvertime?: boolean;
   offDayOvertimeMultiplier?: number | null;
   offDayHourlyRate?: number | null;
-  
+
   // Assigned Employees
   assignedEmployees: AssignedEmployeeDto[];
-  
+
   // Off Days
   offDays: WorkRuleOffDayDto[];
-  
+
   // Associated Shifts (many-to-many)
   shifts?: ShiftDto[];
   validationWarnings?: string[];
-  
+
   // Statistics
   totalAssignedEmployees: number;
   activeEmployees: number;

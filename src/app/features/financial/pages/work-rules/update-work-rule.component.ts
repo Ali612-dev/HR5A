@@ -91,16 +91,16 @@ export class UpdateWorkRuleComponent implements OnInit {
       description: [''],
       isPrivate: [false],
       // Late & Early Departure Rules
-      lateArrivalToleranceMinutes: [15, [Validators.min(0)]],
-      earlyDepartureToleranceMinutes: [15, [Validators.min(0)]],
-      lateDeductionMinutesPerHour: [30, [Validators.min(1)]],
-      earlyDepartureDeductionMinutesPerHour: [30, [Validators.min(1)]],
+      lateArrivalToleranceMinutes: [null, [Validators.min(0)]],
+      earlyDepartureToleranceMinutes: [null, [Validators.min(0)]],
+      lateDeductionMinutesPerHour: [null, [Validators.min(1)]],
+      earlyDepartureDeductionMinutesPerHour: [null, [Validators.min(1)]],
       // Overtime Rules
-      overtimeMultiplier: [1.5, [Validators.min(1)]],
-      minimumOvertimeMinutes: [30, [Validators.min(0)]],
+      overtimeMultiplier: [null, [Validators.min(1)]],
+      minimumOvertimeMinutes: [null, [Validators.min(0)]],
       // Absence Rules
-      absenceDeductionMultiplier: [1.0, [Validators.min(0)]],
-      allowedAbsenceDaysPerMonth: [0, [Validators.min(0)]],
+      absenceDeductionMultiplier: [null, [Validators.min(0)]],
+      allowedAbsenceDaysPerMonth: [null, [Validators.min(0)]],
       areOffDaysPaid: [true],
       allowWorkOnOffDays: [false],
       treatOffDayWorkAsOvertime: [false],
@@ -140,7 +140,7 @@ export class UpdateWorkRuleComponent implements OnInit {
           const rule = response.data.find(r => r.id === this.workRuleId);
           if (rule) {
             const typeValue = this.convertWorkRuleTypeToString(rule.type);
-            
+
             this.workRuleForm.patchValue({
               category: rule.category,
               type: typeValue,
@@ -151,14 +151,14 @@ export class UpdateWorkRuleComponent implements OnInit {
               paymentFrequency: rule.paymentFrequency || 0,
               description: rule.description || '',
               isPrivate: rule.isPrivate,
-              lateArrivalToleranceMinutes: rule.lateArrivalToleranceMinutes ?? 15,
-              earlyDepartureToleranceMinutes: rule.earlyDepartureToleranceMinutes ?? 15,
-              lateDeductionMinutesPerHour: rule.lateDeductionMinutesPerHour ?? 30,
-              earlyDepartureDeductionMinutesPerHour: rule.earlyDepartureDeductionMinutesPerHour ?? 30,
-              overtimeMultiplier: rule.overtimeMultiplier ?? 1.5,
-              minimumOvertimeMinutes: rule.minimumOvertimeMinutes ?? 30,
-              absenceDeductionMultiplier: rule.absenceDeductionMultiplier ?? 1.0,
-              allowedAbsenceDaysPerMonth: rule.allowedAbsenceDaysPerMonth ?? 0,
+              lateArrivalToleranceMinutes: rule.lateArrivalToleranceMinutes,
+              earlyDepartureToleranceMinutes: rule.earlyDepartureToleranceMinutes,
+              lateDeductionMinutesPerHour: rule.lateDeductionMinutesPerHour,
+              earlyDepartureDeductionMinutesPerHour: rule.earlyDepartureDeductionMinutesPerHour,
+              overtimeMultiplier: rule.overtimeMultiplier,
+              minimumOvertimeMinutes: rule.minimumOvertimeMinutes,
+              absenceDeductionMultiplier: rule.absenceDeductionMultiplier,
+              allowedAbsenceDaysPerMonth: rule.allowedAbsenceDaysPerMonth,
               areOffDaysPaid: rule.areOffDaysPaid ?? true,
               allowWorkOnOffDays: rule.allowWorkOnOffDays ?? false,
               treatOffDayWorkAsOvertime: rule.treatOffDayWorkAsOvertime ?? false,
@@ -212,6 +212,11 @@ export class UpdateWorkRuleComponent implements OnInit {
     return type === WorkRuleType.Shifts || type === 'Shifts' || type === 6;
   }
 
+  isHourlyRule(): boolean {
+    const type = this.workRuleForm.get('type')?.value;
+    return type === 'Hourly' || type === WorkRuleType.Hourly || type === 4;
+  }
+
   loadWorkRuleShifts(workRuleId: number): void {
     this.isLoadingShifts = true;
     this.financialService.getWorkRuleDetails(workRuleId).subscribe({
@@ -254,24 +259,24 @@ export class UpdateWorkRuleComponent implements OnInit {
     // Check required fields manually
     const category = this.workRuleForm.get('category')?.value;
     const type = this.workRuleForm.get('type')?.value;
-    
+
     // Only validate if fields are actually empty
     if (!category || category.trim() === '' || !type) {
       const categoryControl = this.workRuleForm.get('category');
       const typeControl = this.workRuleForm.get('type');
-      
+
       // Mark invalid fields
       if (!category || category.trim() === '') {
         categoryControl?.setErrors({ required: true });
         categoryControl?.markAsTouched();
         categoryControl?.markAsDirty();
       }
-      
+
       if (!type) {
         typeControl?.markAsTouched();
         typeControl?.markAsDirty();
       }
-      
+
       // Show localized error message  
       const errorMessage = this.translate.instant('ERROR.FILL_ALL_REQUIRED_FIELDS');
       this.showErrorDialog(errorMessage);

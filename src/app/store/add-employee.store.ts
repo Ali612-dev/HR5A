@@ -268,7 +268,7 @@ export const AddEmployeeStore = signalStore(
                 const errorMessage = buildErrorMessage(
                   userResponse.message,
                   userResponse.errors,
-                  'ERROR.UPDATE_EMPLOYEE_FAILED'
+                  'ERROR.UPDATE_USER_CREDENTIALS_FAILED'
                 );
 
                 console.error('Error updating user:', userResponse);
@@ -292,11 +292,46 @@ export const AddEmployeeStore = signalStore(
             },
             error: (err) => {
               console.error('Error updating employee:', err);
-              const errorMessage = buildErrorMessage(
-                err?.error?.message || err?.message,
-                err?.error?.errors,
-                'ERROR.UPDATE_EMPLOYEE_ERROR'
-              );
+
+              // Extract user-friendly error message
+              let errorMessage: string;
+
+              // Check if it's an HTTP error with status code
+              if (err?.status) {
+                switch (err.status) {
+                  case 400:
+                    errorMessage = translate.instant('ERROR.INVALID_DATA');
+                    break;
+                  case 401:
+                    errorMessage = translate.instant('ERROR.UNAUTHORIZED');
+                    break;
+                  case 403:
+                    errorMessage = translate.instant('ERROR.FORBIDDEN');
+                    break;
+                  case 404:
+                    errorMessage = translate.instant('ERROR.USER_NOT_FOUND');
+                    break;
+                  case 409:
+                    errorMessage = translate.instant('ERROR.DUPLICATE_USERNAME_OR_EMAIL');
+                    break;
+                  case 500:
+                    errorMessage = translate.instant('ERROR.SERVER_ERROR');
+                    break;
+                  default:
+                    errorMessage = buildErrorMessage(
+                      err?.error?.message || err?.message,
+                      err?.error?.errors,
+                      'ERROR.UPDATE_EMPLOYEE_ERROR'
+                    );
+                }
+              } else {
+                errorMessage = buildErrorMessage(
+                  err?.error?.message || err?.message,
+                  err?.error?.errors,
+                  'ERROR.UPDATE_EMPLOYEE_ERROR'
+                );
+              }
+
               patchState(store, { error: errorMessage, isLoading: false, isSuccess: false });
             },
           })

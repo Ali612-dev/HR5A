@@ -35,7 +35,7 @@ import { MatDialog } from '@angular/material/dialog';
             (selectedEmployeesChange)="onSelectedEmployees($event)">
           </app-employee-selector>
         </div>
-
+ 
         <!-- Report Details Form -->
         <div class="form-section">
           <div class="row mb-3">
@@ -45,7 +45,7 @@ import { MatDialog } from '@angular/material/dialog';
               </label>
               <select class="form-control" [(ngModel)]="reportMonth" [disabled]="isCreating">
                 <option *ngFor="let month of monthOptions" [value]="month.value">
-                  {{ month.label }}
+                  {{ month.label | translate }}
                 </option>
               </select>
             </div>
@@ -60,7 +60,7 @@ import { MatDialog } from '@angular/material/dialog';
               </select>
             </div>
           </div>
-
+ 
           <div class="mb-3">
             <label class="form-label">
               <strong>{{ 'ReportNotes' | translate }}</strong>
@@ -232,25 +232,25 @@ export class CreateSalaryReportDialogComponent implements OnInit {
   isCreating: boolean = false;
 
   monthOptions = [
-    { value: 1, label: 'January' },
-    { value: 2, label: 'February' },
-    { value: 3, label: 'March' },
-    { value: 4, label: 'April' },
-    { value: 5, label: 'May' },
-    { value: 6, label: 'June' },
-    { value: 7, label: 'July' },
-    { value: 8, label: 'August' },
-    { value: 9, label: 'September' },
-    { value: 10, label: 'October' },
-    { value: 11, label: 'November' },
-    { value: 12, label: 'December' }
+    { value: 1, label: 'MONTHS.JANUARY' },
+    { value: 2, label: 'MONTHS.FEBRUARY' },
+    { value: 3, label: 'MONTHS.MARCH' },
+    { value: 4, label: 'MONTHS.APRIL' },
+    { value: 5, label: 'MONTHS.MAY' },
+    { value: 6, label: 'MONTHS.JUNE' },
+    { value: 7, label: 'MONTHS.JULY' },
+    { value: 8, label: 'MONTHS.AUGUST' },
+    { value: 9, label: 'MONTHS.SEPTEMBER' },
+    { value: 10, label: 'MONTHS.OCTOBER' },
+    { value: 11, label: 'MONTHS.NOVEMBER' },
+    { value: 12, label: 'MONTHS.DECEMBER' }
   ];
 
   yearOptions: number[] = [];
 
   constructor(
     private ref: MatDialogRef<CreateSalaryReportDialogComponent>
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initializeYearOptions();
@@ -276,12 +276,12 @@ export class CreateSalaryReportDialogComponent implements OnInit {
   }
 
   canCreate(): boolean {
-    return this.selectedEmployee !== null && 
-           this.selectedEmployee.id !== null && 
-           this.reportMonth >= 1 && 
-           this.reportMonth <= 12 && 
-           this.reportYear >= 2020 && 
-           this.reportYear <= 2030;
+    return this.selectedEmployee !== null &&
+      this.selectedEmployee.id !== null &&
+      this.reportMonth >= 1 &&
+      this.reportMonth <= 12 &&
+      this.reportYear >= 2020 &&
+      this.reportYear <= 2030;
   }
 
   close(): void {
@@ -322,7 +322,7 @@ export class CreateSalaryReportDialogComponent implements OnInit {
           // Show success message
           const employeeName = this.selectedEmployee.name || this.selectedEmployee.fullName || `Employee #${this.selectedEmployee.id}`;
           const successMessage = this.translate.instant('ReportCreatedSuccessfully', { employeeName });
-          
+
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
             width: '500px',
@@ -344,7 +344,7 @@ export class CreateSalaryReportDialogComponent implements OnInit {
           // Handle error response (status 200 but isSuccess: false)
           const employeeName = this.selectedEmployee?.name || this.selectedEmployee?.fullName || `Employee #${this.selectedEmployee?.id}`;
           let errorMessage = this.translate.instant('ReportCreationFailed', { employeeName });
-          
+
           // If server returned an error message, use it
           if (response.message) {
             // Try to translate the error message if it's a known key
@@ -354,7 +354,7 @@ export class CreateSalaryReportDialogComponent implements OnInit {
             // Use errors array if message is not available
             errorMessage = response.errors.join(', ');
           }
-          
+
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
             width: '500px',
@@ -372,10 +372,10 @@ export class CreateSalaryReportDialogComponent implements OnInit {
         this.isCreating = false;
 
         console.error('Error creating salary report:', error);
-        
+
         const employeeName = this.selectedEmployee?.name || this.selectedEmployee?.fullName || `Employee #${this.selectedEmployee?.id}`;
         let errorMessage = this.translate.instant('ReportCreationFailed', { employeeName });
-        
+
         // Only show server error message if status is 400 or 200
         if (error.status === 400 || error.status === 200) {
           if (error.error?.message) {

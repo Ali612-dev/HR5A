@@ -153,23 +153,23 @@ import { catchError, forkJoin, map, of } from 'rxjs';
                           {{ getWorkRuleTypeLabel(workRuleDetails.type) }}
                         </span>
                       </div>
-                      <div class="info-item" *ngIf="workRuleDetails.expectStartTime">
+                      <div class="info-item" *ngIf="!isHourlyRule() && workRuleDetails.expectStartTime">
                         <span class="label">{{ 'StartTime' | translate }}:</span>
                         <span class="value">{{ workRuleDetails.expectStartTime }}</span>
                       </div>
-                      <div class="info-item" *ngIf="workRuleDetails.expectEndTime">
+                      <div class="info-item" *ngIf="!isHourlyRule() && workRuleDetails.expectEndTime">
                         <span class="label">{{ 'EndTime' | translate }}:</span>
                         <span class="value">{{ workRuleDetails.expectEndTime }}</span>
                       </div>
-                      <div class="info-item" *ngIf="workRuleDetails.expectedHoursPerDay">
+                      <div class="info-item" *ngIf="!isHourlyRule() && workRuleDetails.expectedHoursPerDay">
                         <span class="label">{{ 'HoursPerDay' | translate }}:</span>
                         <span class="value">{{ workRuleDetails.expectedHoursPerDay }}</span>
                       </div>
-                      <div class="info-item" *ngIf="workRuleDetails.expectedDaysPerWeek">
+                      <div class="info-item" *ngIf="!isHourlyRule() && workRuleDetails.expectedDaysPerWeek">
                         <span class="label">{{ 'DaysPerWeek' | translate }}:</span>
                         <span class="value">{{ workRuleDetails.expectedDaysPerWeek }}</span>
                       </div>
-                      <div class="info-item" *ngIf="workRuleDetails.paymentFrequency !== undefined && workRuleDetails.paymentFrequency !== null">
+                      <div class="info-item" *ngIf="!isHourlyRule() && workRuleDetails.paymentFrequency !== undefined && workRuleDetails.paymentFrequency !== null">
                         <span class="label">{{ 'PaymentFrequency' | translate }}:</span>
                         <span class="value">{{ workRuleDetails.paymentFrequency }}</span>
                       </div>
@@ -181,7 +181,7 @@ import { catchError, forkJoin, map, of } from 'rxjs';
                   </div>
 
                   <!-- Late & Early Departure Rules -->
-                  <div class="info-card">
+                  <div class="info-card" *ngIf="!isHourlyRule()">
                     <h4 class="card-title">
                       <fa-icon [icon]="faExclamationTriangle" class="me-2"></fa-icon>
                       {{ 'LateEarlyDepartureRules' | translate }}
@@ -207,7 +207,7 @@ import { catchError, forkJoin, map, of } from 'rxjs';
                   </div>
 
                   <!-- Overtime Rules -->
-                  <div class="info-card">
+                  <div class="info-card" *ngIf="!isHourlyRule()">
                     <h4 class="card-title">
                       <fa-icon [icon]="faMoneyBill" class="me-2"></fa-icon>
                       {{ 'OvertimeRules' | translate }}
@@ -225,7 +225,7 @@ import { catchError, forkJoin, map, of } from 'rxjs';
                   </div>
 
                   <!-- Absence Rules -->
-                  <div class="info-card">
+                  <div class="info-card" *ngIf="!isHourlyRule()">
                     <h4 class="card-title">
                       <fa-icon [icon]="faBan" class="me-2"></fa-icon>
                       {{ 'AbsenceRules' | translate }}
@@ -251,7 +251,7 @@ import { catchError, forkJoin, map, of } from 'rxjs';
                   </div>
 
                   <!-- Off-Day Rules -->
-                  <div class="info-card">
+                  <div class="info-card" *ngIf="!isHourlyRule()">
                     <h4 class="card-title">
                       <fa-icon [icon]="faCalendarAlt" class="me-2"></fa-icon>
                       {{ 'OffDayRules' | translate }}
@@ -326,7 +326,7 @@ import { catchError, forkJoin, map, of } from 'rxjs';
                   </div>
                 </div>
 
-                <div class="shifts-section" *ngIf="workRuleDetails">
+                <div class="shifts-section" *ngIf="workRuleDetails && !isHourlyRule()">
                   <div class="section-header shifts-header">
                     <h4 class="section-title">{{ 'ShiftAssignments' | translate }}</h4>
                     <button class="btn btn-outline-light btn-sm" type="button" (click)="openCreateShiftDialog()">
@@ -448,9 +448,9 @@ import { catchError, forkJoin, map, of } from 'rxjs';
                 </div>
 
                 <!-- Description -->
-                <div class="description-section" *ngIf="workRuleDetails.description">
+                <div class="description-section">
                   <h4 class="section-title">{{ 'Description' | translate }}</h4>
-                  <p class="description-text">{{ workRuleDetails.description }}</p>
+                  <p class="description-text">{{ (workRuleDetails.description && workRuleDetails.description !== 'string') ? workRuleDetails.description : '-' }}</p>
                 </div>
 
                 <!-- Assigned Employees -->
@@ -580,7 +580,8 @@ import { catchError, forkJoin, map, of } from 'rxjs';
 
     .header-title {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
       justify-content: center;
       padding: 0 2rem;
     }
@@ -590,6 +591,10 @@ import { catchError, forkJoin, map, of } from 'rxjs';
       font-weight: 700;
       margin: 0 0 0.5rem 0;
       color: #1f2937 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
     }
 
     .header-title h2 fa-icon {
@@ -601,6 +606,10 @@ import { catchError, forkJoin, map, of } from 'rxjs';
       opacity: 0.9;
       margin: 0;
       color: #6b7280 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
     }
 
     .work-rule-type-text {
@@ -716,19 +725,13 @@ import { catchError, forkJoin, map, of } from 'rxjs';
       margin-bottom: 2rem;
     }
 
-    @media (max-width: 1400px) {
-      .details-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media (max-width: 1200px) {
+    @media (max-width: 1600px) {
       .details-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       .details-grid {
         grid-template-columns: 1fr;
       }
@@ -768,11 +771,11 @@ import { catchError, forkJoin, map, of } from 'rxjs';
     .info-item {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       padding: 0.75rem 0;
       border-bottom: 1px solid rgba(209, 213, 219, 0.8);
       gap: 1rem;
-      min-width: 0; /* Allow flex items to shrink */
+      min-width: 0;
     }
 
     .info-item:last-child {
@@ -783,8 +786,9 @@ import { catchError, forkJoin, map, of } from 'rxjs';
       color: #6b7280;
       font-weight: 500;
       font-size: 0.9rem;
-      flex-shrink: 0;
-      min-width: fit-content;
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
     }
 
     .info-item .value {
@@ -792,9 +796,9 @@ import { catchError, forkJoin, map, of } from 'rxjs';
       font-weight: 600;
       font-size: 1rem;
       text-align: right;
-      flex: 1;
-      min-width: 0;
-      word-break: break-word;
+      flex-shrink: 0;
+      max-width: 60%;
+      white-space: nowrap;
     }
 
     .type-badge {
@@ -1177,11 +1181,18 @@ import { catchError, forkJoin, map, of } from 'rxjs';
       font-weight: 600;
       font-size: 1rem;
       margin-bottom: 0.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 15rem;
     }
 
     .employee-id {
       color: #6b7280 !important;
       font-size: 0.8rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .col-phone, .col-department, .col-shift, .col-salary, .col-actions {
@@ -1493,6 +1504,12 @@ export class WorkRuleDetailsComponent implements OnInit {
     return id ? +id : 0;
   }
 
+  isHourlyRule(): boolean {
+    if (!this.workRuleDetails) return false;
+    const type = this.workRuleDetails.type;
+    return type === 'Hourly' || type === 4;
+  }
+
   ngOnInit(): void {
     this.loadWorkRuleDetails();
   }
@@ -1527,10 +1544,10 @@ export class WorkRuleDetailsComponent implements OnInit {
   getWorkRuleTypeLabel(type: string | number): string {
     // Handle both string and number types
     const typeValue = typeof type === 'number' ? type.toString() : type;
-    
+
     const typeMap: { [key: string]: string } = {
       '1': 'Daily',
-      '2': 'Weekly', 
+      '2': 'Weekly',
       '3': 'Monthly',
       '4': 'Hourly',
       '5': 'Custom',
@@ -1543,10 +1560,10 @@ export class WorkRuleDetailsComponent implements OnInit {
       'Shifts': 'Shifts',
       'Shift': 'Shifts'
     };
-    
+
     const mappedType = typeMap[typeValue] || 'Custom'; // Default to Custom for unknown types
     const translatedValue = this.translate.instant(`WorkRuleType.${mappedType}`);
-    
+
     // If translation doesn't exist, return the mapped type directly
     return translatedValue !== `WorkRuleType.${mappedType}` ? translatedValue : mappedType;
   }
@@ -1554,10 +1571,10 @@ export class WorkRuleDetailsComponent implements OnInit {
   getWorkRuleTypeLabelArabic(type: string | number): string {
     // Handle both string and number types
     const typeValue = typeof type === 'number' ? type.toString() : type;
-    
+
     const typeMap: { [key: string]: string } = {
       '1': 'يومي',
-      '2': 'أسبوعي', 
+      '2': 'أسبوعي',
       '3': 'شهري',
       '4': 'بالساعة',
       '5': 'مخصص',
@@ -1570,17 +1587,17 @@ export class WorkRuleDetailsComponent implements OnInit {
       'Shifts': 'شيفتات',
       'Shift': 'شيفتات'
     };
-    
+
     return typeMap[typeValue] || typeValue;
   }
 
   getWorkRuleTypeClass(type: string | number): string {
     // Handle both string and number types for CSS classes
     const typeValue = typeof type === 'number' ? type.toString() : type;
-    
+
     const typeMap: { [key: string]: string } = {
       '1': 'regular',
-      '2': 'flexible', 
+      '2': 'flexible',
       '3': 'monthly',
       '4': 'hourly',
       '5': 'custom',
@@ -1593,7 +1610,7 @@ export class WorkRuleDetailsComponent implements OnInit {
       'Shifts': 'shift',
       'Shift': 'shift'
     };
-    
+
     return typeMap[typeValue] || typeValue.toLowerCase();
   }
 
@@ -1725,7 +1742,7 @@ export class WorkRuleDetailsComponent implements OnInit {
         },
         error: error => {
           console.error('Error creating shift:', error);
-          
+
           // Close loading dialog
           if (this.loadingDialogRef) {
             this.loadingDialogRef.close();
@@ -1754,11 +1771,11 @@ export class WorkRuleDetailsComponent implements OnInit {
   }
 
   unassignEmployeeFromShift(shift: ShiftDto, employee: any): void {
-    const confirmMessage = this.translate.instant('UnassignEmployeeFromShiftConfirm', { 
-      employeeName: employee.name, 
-      shiftName: shift.name 
+    const confirmMessage = this.translate.instant('UnassignEmployeeFromShiftConfirm', {
+      employeeName: employee.name,
+      shiftName: shift.name
     });
-    
+
     const confirmDialogRef = this.dialog.open(ConfirmationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
       backdropClass: 'transparent-backdrop',
@@ -1789,7 +1806,7 @@ export class WorkRuleDetailsComponent implements OnInit {
         this.financialService.unassignEmployeeFromShift(shift.id, employee.employeeId).subscribe({
           next: (response) => {
             this.unassigningFromShift.set(key, false);
-            
+
             // Close loading dialog
             if (this.loadingDialogRef) {
               this.loadingDialogRef.close();
@@ -1826,7 +1843,7 @@ export class WorkRuleDetailsComponent implements OnInit {
           error: (error) => {
             console.error('Error unassigning employee from shift:', error);
             this.unassigningFromShift.set(key, false);
-            
+
             // Close loading dialog
             if (this.loadingDialogRef) {
               this.loadingDialogRef.close();
@@ -1927,7 +1944,7 @@ export class WorkRuleDetailsComponent implements OnInit {
   unassignEmployee(employee: AssignedEmployeeDto): void {
     const confirmMessage = this.translate.instant('UnassignEmployeeConfirm');
     const employeeName = employee.name;
-    
+
     const confirmDialogRef = this.dialog.open(ConfirmationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
       backdropClass: 'transparent-backdrop',
@@ -1991,7 +2008,7 @@ export class WorkRuleDetailsComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error unassigning employee:', error);
-            
+
             // Close loading dialog
             if (this.loadingDialogRef) {
               this.loadingDialogRef.close();
@@ -2049,8 +2066,8 @@ export class WorkRuleDetailsComponent implements OnInit {
     }
 
     // If message contains "EmployeeAlreadyAssignedAnotherShift", use the translation
-    if (normalizedMessage.includes('EmployeeAlreadyAssignedAnotherShift') || 
-        normalizedMessage.toLowerCase().includes('employee already assigned')) {
+    if (normalizedMessage.includes('EmployeeAlreadyAssignedAnotherShift') ||
+      normalizedMessage.toLowerCase().includes('employee already assigned')) {
       return this.translate.instant('ERROR.EMPLOYEE_ALREADY_ASSIGNED_ANOTHER_SHIFT');
     }
 
@@ -2067,14 +2084,14 @@ export class WorkRuleDetailsComponent implements OnInit {
       // Check if the warning matches the pattern "Employees missing shift assignment: name1, name2, ..."
       const missingShiftPattern = /^Employees missing shift assignment:\s*(.+)$/i;
       const match = warning.match(missingShiftPattern);
-      
+
       if (match) {
         // Extract the employee names
         const names = match[1].trim();
         // Use the translation key with the names as parameter
         return this.translate.instant('ERROR.EMPLOYEES_MISSING_SHIFT', { names });
       }
-      
+
       // If no pattern matches, return the warning as-is (it might already be localized or in a different format)
       return warning;
     });

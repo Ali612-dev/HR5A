@@ -22,6 +22,9 @@
   color: #1f2937 !important;
   margin: 0;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-left {
@@ -39,7 +42,8 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  padding: 0 2rem;
+  padding: 0 1rem;
+  max-width: 40%;
 }
 
 .header-icon {
@@ -218,7 +222,8 @@
   color: #1f2937;
 }
 
-.form-control, .form-select {
+.form-control,
+.form-select {
   background-color: #ffffff;
   border: 1px solid rgba(209, 213, 219, 0.8);
   color: #1f2937;
@@ -226,7 +231,8 @@
   padding: 1rem 1.25rem;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
   background-color: #ffffff;
   border-color: #f97316;
   color: #1f2937;
@@ -450,7 +456,7 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
-  box-shadow: 
+  box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -465,7 +471,7 @@
   background: linear-gradient(145deg, #ffffff, #f0f0f0);
   border-radius: 50%;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
+  box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.2),
     0 1px 3px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -475,7 +481,7 @@
 .form-switch .form-check-input:focus {
   border-color: #f97316;
   outline: none;
-  box-shadow: 
+  box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.1),
     0 0 0 3px rgba(249, 115, 22, 0.2);
@@ -484,7 +490,7 @@
 .form-switch .form-check-input:checked {
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   border-color: #f97316;
-  box-shadow: 
+  box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.1),
     0 2px 12px rgba(249, 115, 22, 0.3);
 }
@@ -492,7 +498,7 @@
 .form-switch .form-check-input:checked::before {
   transform: translateX(1.75rem);
   background: linear-gradient(145deg, #ffffff, #f8f9fa);
-  box-shadow: 
+  box-shadow:
     0 3px 8px rgba(0, 0, 0, 0.25),
     0 1px 4px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -500,14 +506,14 @@
 
 .form-switch .form-check-input:hover {
   border-color: #9ca3af;
-  box-shadow: 
+  box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.1),
     0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .form-switch .form-check-input:checked:hover {
   background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-  box-shadow: 
+  box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.1),
     0 2px 16px rgba(249, 115, 22, 0.4);
 }
@@ -522,15 +528,31 @@
 
 /* Animation for state change */
 @keyframes switchOn {
-  0% { transform: translateX(0) scale(1); }
-  50% { transform: translateX(0.875rem) scale(1.1); }
-  100% { transform: translateX(1.75rem) scale(1); }
+  0% {
+    transform: translateX(0) scale(1);
+  }
+
+  50% {
+    transform: translateX(0.875rem) scale(1.1);
+  }
+
+  100% {
+    transform: translateX(1.75rem) scale(1);
+  }
 }
 
 @keyframes switchOff {
-  0% { transform: translateX(1.75rem) scale(1); }
-  50% { transform: translateX(0.875rem) scale(1.1); }
-  100% { transform: translateX(0) scale(1); }
+  0% {
+    transform: translateX(1.75rem) scale(1);
+  }
+
+  50% {
+    transform: translateX(0.875rem) scale(1.1);
+  }
+
+  100% {
+    transform: translateX(0) scale(1);
+  }
 }
 
 .form-switch .form-check-input:checked::before {

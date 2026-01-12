@@ -37,14 +37,14 @@ import {
 export class FinancialService {
   private http = inject(HttpClient);
   private translate = inject(TranslateService);
-  
+
   private readonly baseUrl = API_BASE_URL;
 
   private getHeaders(): HttpHeaders {
     const currentLang = this.translate.currentLang || 'en';
     const token = localStorage.getItem('authToken');
     let localeCode = 'en-US';
-    
+
     switch (currentLang) {
       case 'en': localeCode = 'en-US'; break;
       case 'ar': localeCode = 'ar-SA'; break;
@@ -67,7 +67,7 @@ export class FinancialService {
   private getHeadersWithoutAuth(): HttpHeaders {
     const currentLang = this.translate.currentLang || 'en';
     let localeCode = 'en-US';
-    
+
     switch (currentLang) {
       case 'en': localeCode = 'en-US'; break;
       case 'ar': localeCode = 'ar-SA'; break;
@@ -83,7 +83,7 @@ export class FinancialService {
 
   private buildParams(request?: FinancialRequest): HttpParams {
     let params = new HttpParams();
-    
+
     if (request) {
       if (request.pageNumber) params = params.set('pageNumber', request.pageNumber.toString());
       if (request.pageSize) params = params.set('pageSize', request.pageSize.toString());
@@ -97,7 +97,7 @@ export class FinancialService {
       if (request.startDate) params = params.set('startDate', request.startDate);
       if (request.endDate) params = params.set('endDate', request.endDate);
     }
-    
+
     return params;
   }
 
@@ -249,13 +249,13 @@ export class FinancialService {
   calculateSalary(report: CreateSalaryReportDto): Observable<ApiResponse<SalaryReportDto>> {
     const url = `${this.baseUrl}/api/SalaryReport/calculate`;
     const headers = this.getHeaders();
-    
+
     console.log('🔄 FinancialService: calculateSalary called with:', {
       url,
       report,
       headers: headers.keys()
     });
-    
+
     return this.http.post<ApiResponse<SalaryReportDto>>(url, report, {
       headers
     });
@@ -386,8 +386,9 @@ export class FinancialService {
 
   getWorkRuleTypeOptions(): { value: string; label: string }[] {
     return [
-      { value: 'Custom', label: this.translate.instant('WorkRuleType.Custom') },
-      { value: 'Shifts', label: this.translate.instant('WorkRuleType.Shifts') }
+      { value: 'Hourly', label: this.translate.instant('WorkRuleType.Hourly') },
+      { value: 'Shifts', label: this.translate.instant('WorkRuleType.Shifts') },
+      { value: 'Custom', label: this.translate.instant('WorkRuleType.Custom') }
     ];
   }
 
@@ -425,11 +426,11 @@ export class FinancialService {
   getShifts(workRuleId?: number): Observable<ApiResponse<ShiftDto[]>> {
     let url = `${this.baseUrl}/api/shifts`;
     let params = new HttpParams();
-    
+
     if (workRuleId) {
       params = params.set('workRuleId', workRuleId.toString());
     }
-    
+
     return this.http.get<ApiResponse<ShiftDto[]>>(url, {
       headers: this.getHeaders(),
       params: params

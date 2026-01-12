@@ -114,7 +114,7 @@ import { CreateSalaryReportDialogComponent } from './create-salary-report-dialog
                 <select class="filter-select" formControlName="month">
                   <option value="">{{ 'AllMonths' | translate }}</option>
                   <option *ngFor="let month of monthOptions" [value]="month.value">
-                    {{ month.label }}
+                    {{ month.label | translate }}
                   </option>
                 </select>
               </div>
@@ -908,18 +908,18 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
 
   // Options for dropdowns
   monthOptions = [
-    { value: 1, label: 'January' },
-    { value: 2, label: 'February' },
-    { value: 3, label: 'March' },
-    { value: 4, label: 'April' },
-    { value: 5, label: 'May' },
-    { value: 6, label: 'June' },
-    { value: 7, label: 'July' },
-    { value: 8, label: 'August' },
-    { value: 9, label: 'September' },
-    { value: 10, label: 'October' },
-    { value: 11, label: 'November' },
-    { value: 12, label: 'December' }
+    { value: 1, label: 'MONTHS.JANUARY' },
+    { value: 2, label: 'MONTHS.FEBRUARY' },
+    { value: 3, label: 'MONTHS.MARCH' },
+    { value: 4, label: 'MONTHS.APRIL' },
+    { value: 5, label: 'MONTHS.MAY' },
+    { value: 6, label: 'MONTHS.JUNE' },
+    { value: 7, label: 'MONTHS.JULY' },
+    { value: 8, label: 'MONTHS.AUGUST' },
+    { value: 9, label: 'MONTHS.SEPTEMBER' },
+    { value: 10, label: 'MONTHS.OCTOBER' },
+    { value: 11, label: 'MONTHS.NOVEMBER' },
+    { value: 12, label: 'MONTHS.DECEMBER' }
   ];
 
   yearOptions: number[] = [];
@@ -954,7 +954,7 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
       )
       .subscribe(searchTerm => {
         console.log('🔍 Debounced search term:', searchTerm);
-        
+
         // Only search if user has typed at least 3 characters or cleared the field
         if (!searchTerm || searchTerm.length >= 3) {
           console.log('✅ Search term meets criteria, applying search-only filters...');
@@ -986,9 +986,9 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
 
   private applyFilters(): void {
     const formValue = this.filterForm.value;
-    
+
     console.log('🔍 Applying filters with form value:', formValue);
-    
+
     const request = {
       searchTerm: formValue.searchTerm || undefined,
       startDate: formValue.startDate || undefined,
@@ -998,19 +998,19 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
       isPaid: formValue.isPaid !== '' ? formValue.isPaid === 'true' : undefined,
       pageNumber: 1 // Reset to first page when filtering
     };
-    
+
     console.log('📤 Updating store request with:', request);
     console.log('🎯 About to call loadSalaryReports() - this should trigger API call');
-    
+
     this.store.updateRequest(request);
     this.loadSalaryReports();
-    
+
     console.log('✅ loadSalaryReports() called - check network tab for API call');
   }
 
   private applySearchOnly(searchTerm: string): void {
     console.log('🔍 Applying search-only filter for term:', searchTerm);
-    
+
     const currentFormValue = this.filterForm.value;
     const request = {
       searchTerm: searchTerm || undefined,
@@ -1021,13 +1021,13 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
       isPaid: currentFormValue.isPaid !== '' ? currentFormValue.isPaid === 'true' : undefined,
       pageNumber: 1
     };
-    
+
     console.log('📤 Updating store with search-only request:', request);
     console.log('🎯 About to call loadSalaryReports() for search...');
-    
+
     this.store.updateRequest(request);
     this.loadSalaryReports();
-    
+
     console.log('✅ Search-only loadSalaryReports() called - check network tab for API call');
   }
 
@@ -1078,7 +1078,7 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
   onDeleteReport(report: SalaryReportDto): void {
     const dialogData: ConfirmationDialogData = {
       title: this.translate.instant('DeleteSalaryReport'),
-      message: this.translate.instant('DeleteSalaryReportConfirmation', { 
+      message: this.translate.instant('DeleteSalaryReportConfirmation', {
         employeeName: report.employeeName,
         month: report.reportMonth,
         year: report.reportYear
@@ -1126,7 +1126,7 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('❌ Error deleting salary report:', error);
           let errorMessage = this.translate.instant('FailedToDeleteSalaryReport');
-          
+
           // Extract error message from server response and translate it
           if (error.error?.message) {
             // Translate common server error messages
@@ -1148,7 +1148,7 @@ export class SalaryReportsComponent implements OnInit, OnDestroy {
           } else if (error.status === 403) {
             errorMessage = this.translate.instant('AccessDenied');
           }
-          
+
           this.showNotification(
             this.translate.instant('Error'),
             errorMessage,

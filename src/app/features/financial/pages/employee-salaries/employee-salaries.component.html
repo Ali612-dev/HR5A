@@ -58,7 +58,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ totalAmount | number:'1.0-0' }}</div>
-          <div class="stat-label">{{ 'TotalBaseSalaries' | translate }} (EGP)</div>
+          <div class="stat-label">{{ 'TotalBaseSalaries' | translate }} (€)</div>
         </div>
       </div>
     </div>
@@ -69,22 +69,18 @@
       <div class="filters-section">
         <div class="search-box">
           <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
-          <input 
-            type="text" 
-            class="search-input" 
-            [(ngModel)]="searchTerm"
-            (ngModelChange)="onSearchChange()"
-            [placeholder]="'SearchByEmployeeName' | translate"
-          />
+          <input type="text" class="search-input" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
+            [placeholder]="'SearchByEmployeeName' | translate" />
         </div>
 
         <div class="filter-group">
           <select class="filter-select" [(ngModel)]="filterSalaryType" (ngModelChange)="onFilterChange()">
             <option [ngValue]="null">{{ 'AllSalaryTypes' | translate }}</option>
-            <option value="PerMonth">{{ 'PerMonth' | translate }}</option>
-            <option value="PerDay">{{ 'PerDay' | translate }}</option>
-            <option value="PerHour">{{ 'PerHour' | translate }}</option>
-            <option value="Custom">{{ 'Custom' | translate }}</option>
+            <option [value]="2">{{ 'PerMonth' | translate }}</option>
+            <option [value]="1">{{ 'PerWeek' | translate }}</option>
+            <option [value]="0">{{ 'PerDay' | translate }}</option>
+            <option [value]="3">{{ 'PerHour' | translate }}</option>
+            <option [value]="4">{{ 'Custom' | translate }}</option>
           </select>
 
           <select class="filter-select" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
@@ -125,7 +121,8 @@
               </div>
             </div>
             <div class="salary-actions">
-              <button class="btn-icon btn-create-report" (click)="openCreateReportDialog(salary)" [title]="'CreateSalaryReport' | translate">
+              <button class="btn-icon btn-create-report" (click)="openCreateReportDialog(salary)"
+                [title]="'CreateSalaryReport' | translate">
                 <fa-icon [icon]="faCalculator"></fa-icon>
               </button>
               <button class="btn-icon btn-edit" (click)="openUpdateDialog(salary)" [title]="'Edit' | translate">
@@ -141,17 +138,17 @@
             <div class="salary-info-grid">
               <div class="info-item">
                 <span class="info-label">{{ 'Amount' | translate }}</span>
-                <span class="info-value amount-value">{{ salary.amount | number:'1.2-2' }} EGP</span>
+                <span class="info-value amount-value">{{ salary.amount | number:'1.2-2' }} €</span>
               </div>
 
               <div class="info-item" *ngIf="salary.hourlyRate">
                 <span class="info-label">{{ 'HourlyRate' | translate }}</span>
-                <span class="info-value">{{ salary.hourlyRate | number:'1.2-2' }} EGP</span>
+                <span class="info-value">{{ salary.hourlyRate | number:'1.2-2' }} €</span>
               </div>
 
               <div class="info-item" *ngIf="salary.overtimeRate">
                 <span class="info-label">{{ 'OvertimeRate' | translate }}</span>
-                <span class="info-value">{{ salary.overtimeRate | number:'1.2-2' }} EGP</span>
+                <span class="info-value">{{ salary.overtimeRate | number:'1.2-2' }} €</span>
               </div>
 
               <div class="info-item full-width" *ngIf="salary.notes">
@@ -164,23 +161,17 @@
 
         <!-- Pagination -->
         <div class="pagination" *ngIf="totalPages > 1">
-          <button 
-            class="pagination-btn" 
-            [disabled]="currentPage === 1"
-            (click)="goToPage(currentPage - 1)">
+          <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
             <fa-icon [icon]="faChevronLeft"></fa-icon>
           </button>
-          
+
           <div class="pagination-info">
             <span class="current-page">{{ currentPage }}</span>
             <span class="separator">/</span>
             <span class="total-pages">{{ totalPages }}</span>
           </div>
-          
-          <button 
-            class="pagination-btn" 
-            [disabled]="currentPage === totalPages"
-            (click)="goToPage(currentPage + 1)">
+
+          <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
             <fa-icon [icon]="faChevronRight"></fa-icon>
           </button>
         </div>
@@ -236,75 +227,81 @@
         <div class="form-group">
           <label class="form-label required">{{ 'SalaryType' | translate }}</label>
           <div class="salary-type-options">
-            <label class="salary-type-option" [class.active]="form.salaryType === 1">
-              <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="1" (ngModelChange)="onSalaryTypeChange()" />
-              <div class="option-content">
-                <fa-icon [icon]="faCalendarAlt"></fa-icon>
-                <span>{{ 'PerMonth' | translate }}</span>
-              </div>
-            </label>
+            <div class="salary-options-grid">
+              <label class="salary-type-option" [class.active]="form.salaryType === 2">
+                <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="2"
+                  (ngModelChange)="onSalaryTypeChange()" />
+                <div class="option-content">
+                  <fa-icon [icon]="faCalendarAlt"></fa-icon>
+                  <span>{{ 'PerMonth' | translate }}</span>
+                </div>
+              </label>
 
-            <label class="salary-type-option" [class.active]="form.salaryType === 0">
-              <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="0" (ngModelChange)="onSalaryTypeChange()" />
-              <div class="option-content">
-                <fa-icon [icon]="faCalendarAlt"></fa-icon>
-                <span>{{ 'PerDay' | translate }}</span>
-              </div>
-            </label>
+              <label class="salary-type-option" [class.active]="form.salaryType === 1">
+                <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="1"
+                  (ngModelChange)="onSalaryTypeChange()" />
+                <div class="option-content">
+                  <fa-icon [icon]="faCalendarAlt"></fa-icon>
+                  <span>{{ 'PerWeek' | translate }}</span>
+                </div>
+              </label>
 
-            <label class="salary-type-option" [class.active]="form.salaryType === 2">
-              <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="2" (ngModelChange)="onSalaryTypeChange()" />
-              <div class="option-content">
-                <fa-icon [icon]="faClock"></fa-icon>
-                <span>{{ 'PerHour' | translate }}</span>
-              </div>
-            </label>
+              <label class="salary-type-option" [class.active]="form.salaryType === 0">
+                <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="0"
+                  (ngModelChange)="onSalaryTypeChange()" />
+                <div class="option-content">
+                  <fa-icon [icon]="faCalendarAlt"></fa-icon>
+                  <span>{{ 'PerDay' | translate }}</span>
+                </div>
+              </label>
 
-            <label class="salary-type-option" [class.active]="form.salaryType === 3">
-              <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="3" (ngModelChange)="onSalaryTypeChange()" />
-              <div class="option-content">
-                <fa-icon [icon]="faCog"></fa-icon>
-                <span>{{ 'Custom' | translate }}</span>
-              </div>
-            </label>
+              <label class="salary-type-option" [class.active]="form.salaryType === 3">
+                <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="3"
+                  (ngModelChange)="onSalaryTypeChange()" />
+                <div class="option-content">
+                  <fa-icon [icon]="faClock"></fa-icon>
+                  <span>{{ 'PerHour' | translate }}</span>
+                </div>
+              </label>
+
+              <label class="salary-type-option" [class.active]="form.salaryType === 4">
+                <input type="radio" [(ngModel)]="form.salaryType" name="salaryType" [value]="4"
+                  (ngModelChange)="onSalaryTypeChange()" />
+                <div class="option-content">
+                  <fa-icon [icon]="faCog"></fa-icon>
+                  <span>{{ 'Custom' | translate }}</span>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 
         <!-- Amount (Base Salary) -->
         <div class="form-group">
-          <label class="form-label" [class.required]="!isEditMode">{{ 'BaseSalaryAmount' | translate }} (EGP)</label>
+          <label class="form-label" [class.required]="!isEditMode && form.salaryType !== 3">{{ 'BaseSalaryAmount' |
+            translate }} (€)</label>
           <div class="input-with-icon">
             <fa-icon [icon]="faDollarSign" class="input-icon"></fa-icon>
-            <input 
-              type="number" 
-              class="form-control" 
-              [(ngModel)]="form.amount" 
-              name="amount"
-              min="0"
-              step="0.01"
-              [required]="!isEditMode"
-              [placeholder]="'EnterBaseSalaryAmount' | translate"
-            />
+            <input type="number" class="form-control" [(ngModel)]="form.amount" name="amount" min="0" step="0.01"
+              [required]="!isEditMode && form.salaryType !== 3" [disabled]="form.salaryType === 3"
+              [class.disabled-input]="form.salaryType === 3" [placeholder]="'EnterBaseSalaryAmount' | translate" />
           </div>
-          <small class="form-text">{{ 'AmountConstraint' | translate }}</small>
+          <small class="form-text" *ngIf="form.salaryType === 3">
+            {{ 'BaseSalaryDisabledForHourly' | translate }}
+          </small>
+          <small class="form-text" *ngIf="form.salaryType !== 3">
+            {{ 'AmountConstraint' | translate }}
+          </small>
         </div>
 
         <!-- Hourly Rate - Editable only for PerHour and Custom -->
         <div class="form-group">
-          <label class="form-label">{{ 'HourlyRate' | translate }} (EGP)</label>
+          <label class="form-label">{{ 'HourlyRate' | translate }} (€)</label>
           <div class="input-with-icon">
             <fa-icon [icon]="faClock" class="input-icon"></fa-icon>
-            <input 
-              type="number" 
-              class="form-control" 
-              [(ngModel)]="form.hourlyRate" 
-              name="hourlyRate"
-              min="0"
-              step="1"
-              [placeholder]="'EnterHourlyRate' | translate"
-              [readonly]="form.salaryType === 1 || form.salaryType === 0"
-              [class.readonly-field]="form.salaryType === 1 || form.salaryType === 0"
-            />
+            <input type="number" class="form-control" [(ngModel)]="form.hourlyRate" name="hourlyRate" min="0" step="1"
+              [placeholder]="'EnterHourlyRate' | translate" [readonly]="form.salaryType === 1 || form.salaryType === 0"
+              [class.readonly-field]="form.salaryType === 1 || form.salaryType === 0" />
           </div>
           <small class="form-text" *ngIf="form.salaryType === 1 || form.salaryType === 0">
             {{ 'AutoCalculatedFromBaseSalary' | translate }}
@@ -316,18 +313,11 @@
 
         <!-- Overtime Rate - Always editable -->
         <div class="form-group">
-          <label class="form-label">{{ 'OvertimeRate' | translate }} (EGP)</label>
+          <label class="form-label">{{ 'OvertimeRate' | translate }} (€)</label>
           <div class="input-with-icon">
             <fa-icon [icon]="faClock" class="input-icon"></fa-icon>
-            <input 
-              type="number" 
-              class="form-control" 
-              [(ngModel)]="form.overtimeRate" 
-              name="overtimeRate"
-              min="0"
-              step="1"
-              [placeholder]="'EnterOvertimeRate' | translate"
-            />
+            <input type="number" class="form-control" [(ngModel)]="form.overtimeRate" name="overtimeRate" min="0"
+              step="1" [placeholder]="'EnterOvertimeRate' | translate" />
           </div>
           <small class="form-text">{{ 'OvertimeRateConstraint' | translate }}</small>
         </div>
@@ -335,14 +325,8 @@
         <!-- Notes -->
         <div class="form-group">
           <label class="form-label">{{ 'Notes' | translate }}</label>
-          <textarea 
-            class="form-control" 
-            [(ngModel)]="form.notes" 
-            name="notes"
-            rows="3"
-            maxlength="300"
-            [placeholder]="'EnterNotes' | translate"
-          ></textarea>
+          <textarea class="form-control" [(ngModel)]="form.notes" name="notes" rows="3" maxlength="300"
+            [placeholder]="'EnterNotes' | translate"></textarea>
           <small class="form-text text-muted">{{ form.notes.length || 0 }}/300 {{ 'CharactersMax' | translate }}</small>
         </div>
       </form>
@@ -352,10 +336,7 @@
       <button class="btn-secondary" (click)="closeDialog()">
         {{ 'Cancel' | translate }}
       </button>
-      <button 
-        class="btn-primary-action" 
-        (click)="saveSalary()"
-        [disabled]="!isFormValid() || saving">
+      <button class="btn-primary-action" (click)="saveSalary()" [disabled]="!isFormValid() || saving">
         <span *ngIf="saving" class="spinner-sm me-2"></span>
         {{ (isEditMode ? 'Update' : 'Create') | translate }}
       </button>
@@ -398,39 +379,30 @@
     <div class="modal-header">
       <h2>
         <fa-icon [icon]="faCalculator" class="me-2"></fa-icon>
-        {{ 'CreateReportFor' | translate: {name: selectedEmployee?.employeeName || 'Employee #' + selectedEmployee?.employeeId} }}
+        {{ 'CreateReportFor' | translate: {name: selectedEmployee?.employeeName || 'Employee #' +
+        selectedEmployee?.employeeId} }}
       </h2>
       <button class="btn-close" (click)="closeCreateReportDialog()">
         <fa-icon [icon]="faTimes"></fa-icon>
       </button>
     </div>
-    
+
     <div class="modal-body">
       <form (ngSubmit)="createSalaryReport()" #reportForm="ngForm">
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">{{ 'ReportMonth' | translate }}</label>
-            <select 
-              class="form-select" 
-              [(ngModel)]="createReportForm.reportMonth" 
-              name="reportMonth"
-              required
-            >
+            <select class="form-select" [(ngModel)]="createReportForm.reportMonth" name="reportMonth" required>
               <option value="">{{ 'SelectReportMonth' | translate }}</option>
               <option *ngFor="let month of monthOptions" [value]="month.value">
                 {{ month.label | translate }}
               </option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">{{ 'ReportYear' | translate }}</label>
-            <select 
-              class="form-select" 
-              [(ngModel)]="createReportForm.reportYear" 
-              name="reportYear"
-              required
-            >
+            <select class="form-select" [(ngModel)]="createReportForm.reportYear" name="reportYear" required>
               <option value="">{{ 'SelectReportYear' | translate }}</option>
               <option *ngFor="let year of yearOptions" [value]="year">
                 {{ year }}
@@ -438,29 +410,20 @@
             </select>
           </div>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">{{ 'ReportNotes' | translate }}</label>
-          <textarea 
-            class="form-control" 
-            [(ngModel)]="createReportForm.notes" 
-            name="notes"
-            rows="3"
-            maxlength="500"
-            [placeholder]="'EnterReportNotes' | translate"
-          ></textarea>
-          <small class="form-text text-muted">{{ (createReportForm.notes || '').length }}/500 {{ 'CharactersMax' | translate }}</small>
+          <textarea class="form-control" [(ngModel)]="createReportForm.notes" name="notes" rows="3" maxlength="500"
+            [placeholder]="'EnterReportNotes' | translate"></textarea>
+          <small class="form-text text-muted">{{ (createReportForm.notes || '').length }}/500 {{ 'CharactersMax' |
+            translate }}</small>
         </div>
-        
+
         <div class="modal-footer">
           <button type="button" class="btn-secondary" (click)="closeCreateReportDialog()">
             {{ 'Cancel' | translate }}
           </button>
-          <button 
-            type="submit" 
-            class="btn-primary-action"
-            [disabled]="!reportForm.form.valid || creatingReport"
-          >
+          <button type="submit" class="btn-primary-action" [disabled]="!reportForm.form.valid || creatingReport">
             <span *ngIf="creatingReport" class="spinner-sm me-2"></span>
             <fa-icon *ngIf="!creatingReport" [icon]="faCalculator" class="me-2"></fa-icon>
             {{ creatingReport ? ('CreatingReport' | translate) : ('GenerateReport' | translate) }}

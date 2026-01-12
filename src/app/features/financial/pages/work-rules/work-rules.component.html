@@ -64,48 +64,38 @@
                   <div class="rule-title">
                     <h6 class="mb-1">{{ rule.category }}</h6>
                     <div class="d-flex align-items-center gap-2 mb-2">
-                      <span class="badge bg-primary work-rule-category-badge">{{ getWorkRuleCategoryLabelArabic(rule.category) }}</span>
-                      <span class="badge bg-light-purple work-rule-type-badge">{{ getWorkRuleTypeLabelArabic(rule.type) }}</span>
+                      <span class="badge bg-primary work-rule-category-badge">{{
+                        getWorkRuleCategoryLabelArabic(rule.category) }}</span>
+                      <span class="badge bg-light-purple work-rule-type-badge">{{ getWorkRuleTypeLabelArabic(rule.type)
+                        }}</span>
                     </div>
                   </div>
                   <div class="rule-actions">
                     <div class="dropdown" #actionMenu>
-                      <button 
-                        class="btn btn-menu-toggle" 
-                        type="button" 
-                        (mousedown)="toggleActionMenu($event, rule.id)"
-                        (click)="$event.stopPropagation()"
-                        title="{{ 'Actions' | translate }}">
+                      <button class="btn btn-menu-toggle" type="button" (mousedown)="toggleActionMenu($event, rule.id)"
+                        (click)="$event.stopPropagation()" title="{{ 'Actions' | translate }}">
                         <fa-icon [icon]="faEllipsisVertical"></fa-icon>
                       </button>
-                      <div class="dropdown-menu" [class.show]="activeMenuId === rule.id" (click)="$event.stopPropagation()">
-                        <button 
-                          class="dropdown-item" 
+                      <div class="dropdown-menu" [class.show]="activeMenuId === rule.id"
+                        (click)="$event.stopPropagation()">
+                        <button class="dropdown-item"
                           [routerLink]="['/admin/financial/work-rules', rule.id, 'details']">
                           <fa-icon [icon]="faEye" class="me-2"></fa-icon>
                           {{ 'ViewDetails' | translate }}
                         </button>
-                        <button 
-                          class="dropdown-item" 
-                          (click)="openAssignDialog(rule)">
+                        <button class="dropdown-item" (click)="openAssignDialog(rule)">
                           <fa-icon [icon]="faUserTie" class="me-2"></fa-icon>
                           {{ 'Assign' | translate }}
                         </button>
-                        <button 
-                          class="dropdown-item" 
-                          (click)="showEditForm(rule)">
+                        <button class="dropdown-item" (click)="showEditForm(rule)">
                           <fa-icon [icon]="faEdit" class="me-2"></fa-icon>
                           {{ 'Edit' | translate }}
                         </button>
                         <div class="dropdown-divider"></div>
-                        <button 
-                          class="dropdown-item text-danger" 
-                          [disabled]="isDeletingRule(rule.id)"
+                        <button class="dropdown-item text-danger" [disabled]="isDeletingRule(rule.id)"
                           (click)="deleteWorkRule(rule)">
-                          <fa-icon 
-                            [icon]="isDeletingRule(rule.id) ? faSpinner : faTrash" 
-                            [class.fa-spin]="isDeletingRule(rule.id)"
-                            class="me-2"></fa-icon>
+                          <fa-icon [icon]="isDeletingRule(rule.id) ? faSpinner : faTrash"
+                            [class.fa-spin]="isDeletingRule(rule.id)" class="me-2"></fa-icon>
                           {{ isDeletingRule(rule.id) ? ('Deleting' | translate) : ('Delete' | translate) }}
                         </button>
                       </div>
@@ -113,7 +103,7 @@
                   </div>
                 </div>
                 <div class="rule-description">
-                  <p class="mb-2">{{ rule.description || ('NoDescription' | translate) }}</p>
+                  <p class="mb-2">{{ (rule.description && rule.description !== 'string') ? rule.description : '-' }}</p>
                   <div class="rule-details">
                     <div class="row g-2">
                       <div class="col-6" *ngIf="rule.expectStartTime">

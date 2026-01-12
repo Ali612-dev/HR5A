@@ -1,0 +1,20 @@
+  generateDailyRows(): void {
+    if (!this.report) return;
+
+    this.dailyRows = [];
+
+    // Use dailyDetails from backend if available
+    if (this.report.dailyDetails && this.report.dailyDetails.length > 0) {
+      this.dailyRows = this.report.dailyDetails.map(detail => ({
+        date: new Date(detail.date).toLocaleDateString(this.translate.currentLang),
+        dayName: detail.dayNameAr,
+        attendanceAt: detail.timeIn,
+        departureAt: detail.timeOut,
+        workHours: detail.workedHours.toFixed(2),
+        dailySalary: detail.dailySalary
+      }));
+    } else {
+      // Fallback: If backend doesn't provide dailyDetails, show empty message
+      console.warn('No daily details provided by backend');
+    }
+  }

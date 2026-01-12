@@ -14,7 +14,7 @@
   margin-right: -0.5rem;
 }
 
-.work-rule-form .form-section .row > [class^="col-"] {
+.work-rule-form .form-section .row>[class^="col-"] {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   margin-bottom: 1rem;
@@ -55,6 +55,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -120,7 +121,8 @@
   background: #f3f4f6 !important;
   padding: 32px;
   color: #1f2937 !important;
-  overflow: visible !important; /* Allow dropdown menus to overflow */
+  overflow: visible !important;
+  /* Allow dropdown menus to overflow */
   position: relative;
 }
 
@@ -185,6 +187,10 @@
   font-weight: 600;
   display: flex;
   align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .glass-card {
@@ -193,7 +199,8 @@
   border-radius: 15px;
   color: #1f2937;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  overflow: visible !important; /* Allow dropdown menus to show outside */
+  overflow: visible !important;
+  /* Allow dropdown menus to show outside */
   transition: all 0.3s ease;
   position: relative;
 }
@@ -206,13 +213,14 @@
 
 .glass-body {
   padding: 1.5rem;
-  overflow: visible !important; /* Allow dropdown menus to show outside */
+  overflow: visible !important;
+  /* Allow dropdown menus to show outside */
   position: relative;
   max-width: 100%;
   box-sizing: border-box;
 }
 
-.form-card .glass-body > div.d-flex {
+.form-card .glass-body>div.d-flex {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 2px solid rgba(209, 213, 219, 0.8);
@@ -238,7 +246,7 @@
 }
 
 /* Better form layout spacing */
-.form-card .row.g-3 > [class^="col-"] {
+.form-card .row.g-3>[class^="col-"] {
   margin-bottom: 1rem;
 }
 
@@ -352,16 +360,20 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
-  overflow: visible !important; /* Allow dropdown menus to overflow */
+  overflow: visible !important;
+  /* Allow dropdown menus to overflow */
   position: relative;
-  padding-bottom: 250px; /* Add extra space at bottom for dropdowns */
-  margin-bottom: 100px; /* Extra margin for dropdown space */
+  padding-bottom: 250px;
+  /* Add extra space at bottom for dropdowns */
+  margin-bottom: 100px;
+  /* Extra margin for dropdown space */
   max-width: 100%;
 }
 
 .rule-card {
   max-width: 100%;
-  min-width: 0; /* Prevent grid item from overflowing */
+  min-width: 0;
+  /* Prevent grid item from overflowing */
 }
 
 .rule-card {
@@ -371,11 +383,14 @@
   padding: 1.5rem;
   transition: all 0.3s ease;
   position: relative;
-  overflow: visible !important; /* Allow dropdown menu to show outside card completely */
+  overflow: visible !important;
+  /* Allow dropdown menu to show outside card completely */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   max-width: 100%;
-  min-width: 0; /* Prevent grid item from overflowing */
-  box-sizing: border-box; /* Include padding in width calculation */
+  min-width: 0;
+  /* Prevent grid item from overflowing */
+  box-sizing: border-box;
+  /* Include padding in width calculation */
 }
 
 .rule-card:hover {
@@ -391,7 +406,8 @@
   margin-bottom: 1rem;
   gap: 1rem;
   min-height: 60px;
-  overflow: visible !important; /* Allow dropdown to overflow */
+  overflow: visible !important;
+  /* Allow dropdown to overflow */
   position: relative;
   z-index: 1;
 }
@@ -422,7 +438,8 @@
   align-items: center;
   justify-content: flex-end;
   position: relative;
-  z-index: 1000; /* Higher z-index for active dropdown */
+  z-index: 1000;
+  /* Higher z-index for active dropdown */
   flex-shrink: 0;
   margin-right: 0;
   pointer-events: auto;
@@ -502,7 +519,8 @@
 
 /* Dropdown Menu Styles */
 .dropdown {
-  position: relative; /* Relative positioning for absolute dropdown menu */
+  position: relative;
+  /* Relative positioning for absolute dropdown menu */
   display: inline-block;
   z-index: 100;
 }
@@ -536,11 +554,13 @@
 .btn-menu-toggle fa-icon {
   color: inherit !important;
   font-size: 1.1rem;
-  pointer-events: none; /* Prevent icon from intercepting clicks */
+  pointer-events: none;
+  /* Prevent icon from intercepting clicks */
 }
 
 .dropdown-menu {
-  position: absolute; /* Absolute positioning relative to dropdown container */
+  position: absolute;
+  /* Absolute positioning relative to dropdown container */
   top: calc(100% + 0.5rem);
   right: 0;
   left: auto;
@@ -551,7 +571,8 @@
   border-radius: 12px;
   padding: 0.5rem 0;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  z-index: 9999 !important; /* Very high z-index to ensure it's above everything */
+  z-index: 9999 !important;
+  /* Very high z-index to ensure it's above everything */
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -619,8 +640,13 @@
 }
 
 @keyframes fa-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .rule-description {
@@ -637,9 +663,10 @@
 .rule-detail-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(209, 213, 219, 0.5);
+  gap: 1rem;
 }
 
 .rule-detail-item:last-child {
@@ -650,12 +677,19 @@
   font-weight: 600;
   color: #6b7280;
   font-size: 0.875rem;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .rule-detail-value {
   color: #1f2937;
   font-weight: 500;
   font-size: 0.875rem;
+  flex-shrink: 0;
+  max-width: 60%;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .rule-footer {
@@ -736,20 +770,21 @@
 /* Responsive Design */
 @media (min-width: 1400px) {
   .work-rules-container .container-fluid {
-    max-width: 1920px; /* Limit container width on very large screens */
+    max-width: 1920px;
+    /* Limit container width on very large screens */
     margin: 0 auto;
   }
-  
+
   .glass-card {
     max-width: 100%;
   }
-  
-.rules-grid {
+
+  .rules-grid {
     grid-template-columns: repeat(auto-fill, minmax(380px, 420px));
     max-width: 100%;
     justify-content: flex-start;
   }
-  
+
   .rule-card {
     max-width: 420px;
   }
@@ -759,7 +794,7 @@
   .rules-grid {
     grid-template-columns: repeat(auto-fill, minmax(400px, 450px));
   }
-  
+
   .rule-card {
     max-width: 450px;
   }
@@ -770,7 +805,7 @@
     grid-template-columns: repeat(auto-fill, minmax(420px, 480px));
     justify-content: center;
   }
-  
+
   .rule-card {
     max-width: 480px;
   }
@@ -786,17 +821,17 @@
   .work-rules-container {
     padding: 16px;
   }
-  
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .header-left {
     width: 100%;
   }
-  
+
   .header-center {
     position: static;
     transform: none;
@@ -804,23 +839,23 @@
     width: 100%;
     justify-content: flex-start;
   }
-  
+
   .header-right {
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .rules-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .rule-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .rule-actions {
     align-self: flex-end;
     width: 100%;
@@ -828,12 +863,12 @@
     flex-wrap: nowrap;
     margin-top: 0.5rem;
   }
-  
+
   .dropdown-menu {
     right: 0;
     left: auto;
   }
-  
+
   .rule-actions .btn {
     flex: 0 0 auto;
   }
@@ -841,7 +876,7 @@
   .glass-body {
     padding: 1rem;
   }
-  
+
   .rule-card {
     padding: 1rem;
   }
@@ -851,17 +886,18 @@
   .work-rules-container {
     padding: 12px;
   }
-  
+
   .glass-body {
     padding: 1rem;
   }
-  
+
   .rule-card {
     padding: 1rem;
   }
-  
+
   .rules-grid {
-    padding-bottom: 300px; /* More space on mobile for dropdowns */
+    padding-bottom: 300px;
+    /* More space on mobile for dropdowns */
   }
 }
 
@@ -874,6 +910,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -950,4 +987,3 @@
   align-items: center !important;
   gap: 0.5rem !important;
 }
-

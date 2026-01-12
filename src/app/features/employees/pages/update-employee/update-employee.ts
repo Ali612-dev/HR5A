@@ -179,10 +179,10 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       email: ['', [Validators.required, Validators.email]],
       cardNumber: ['', Validators.required],
       isActive: [true],
-      workRuleId: [null, Validators.required],
-      shiftId: [null, Validators.required],
-      salaryType: [SalaryType.PerMonth, Validators.required],
-      salaryAmount: [null, [Validators.required, Validators.min(0)]],
+      workRuleId: [null], // Removed required validator
+      shiftId: [null], // Removed required validator
+      salaryType: [SalaryType.PerMonth], // Removed required validator
+      salaryAmount: [null, Validators.min(0)], // Removed required validator, kept min
       hourlyRate: [null],
       overtimeRate: [null, Validators.min(0)],
       salaryNotes: ['', Validators.maxLength(300)]
@@ -262,8 +262,7 @@ export class UpdateEmployeeComponent implements OnInit, OnDestroy {
       email: formValue.email ? formValue.email.trim() : null,
       cardNumber: formValue.cardNumber.trim(),
       isActive: formValue.isActive,
-      joinedDate: this.originalEmployee?.joinedDate || new Date().toISOString(),
-      userId: this.userId ?? undefined
+      joinedDate: this.originalEmployee?.joinedDate || new Date().toISOString()
     };
 
     let userUpdate: { userId: number; credentials: UpdateUserCredentialsRequest } | undefined;
