@@ -108,7 +108,7 @@ interface DailyReportRow {
                 <tfoot>
                   <tr class="total-row">
                     <td colspan="4" class="text-end font-weight-bold">{{ 'Total' | translate }}</td>
-                    <td dir="ltr" class="text-start font-weight-bold">{{ report.totalWorkedHours }} {{ 'Hours' | translate }}</td>
+                    <td dir="ltr" class="text-start font-weight-bold">{{ formatHoursToTime(report.totalWorkedHours) }}</td>
                     <td class="text-end font-weight-bold highlight-value">{{ formatCurrency(report.netCalculatedSalary) }}</td>
                   </tr>
                 </tfoot>
@@ -314,7 +314,7 @@ export class SalaryReportDetailsComponent implements OnInit {
         dayName: detail.dayNameAr,
         attendanceAt: detail.timeIn,
         departureAt: detail.timeOut,
-        workHours: detail.workedHours.toFixed(2),
+        workHours: this.formatHoursToTime(detail.workedHours),
         dailySalary: detail.dailySalary
       }));
       return; // Exit early after mapping backend data
@@ -378,5 +378,12 @@ export class SalaryReportDetailsComponent implements OnInit {
   formatDate(dateStr: string): string {
     if (!dateStr) return '-';
     return new Date(dateStr).toLocaleDateString(this.translate.currentLang);
+  }
+
+  formatHoursToTime(hours: number): string {
+    if (hours === undefined || hours === null || hours === 0) return '0:00';
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return `${wholeHours}:${minutes.toString().padStart(2, '0')}`;
   }
 }

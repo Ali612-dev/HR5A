@@ -49,23 +49,28 @@
         <tr>
           <th (click)="onSort('employeeName')">
             {{ 'EmployeeName' | translate }}
-            <fa-icon [icon]="request.sortField === 'employeeName' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+            <fa-icon
+              [icon]="request.sortField === 'employeeName' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
           </th>
           <th (click)="onSort('date')">
             {{ 'Date' | translate }}
-            <fa-icon [icon]="request.sortField === 'date' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+            <fa-icon
+              [icon]="request.sortField === 'date' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
           </th>
           <th (click)="onSort('timeIn')">
             {{ 'TimeIn' | translate }}
-            <fa-icon [icon]="request.sortField === 'timeIn' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+            <fa-icon
+              [icon]="request.sortField === 'timeIn' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
           </th>
           <th (click)="onSort('timeOut')">
             {{ 'TimeOut' | translate }}
-            <fa-icon [icon]="request.sortField === 'timeOut' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+            <fa-icon
+              [icon]="request.sortField === 'timeOut' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
           </th>
           <th (click)="onSort('status')">
             {{ 'Status' | translate }}
-            <fa-icon [icon]="request.sortField === 'status' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
+            <fa-icon
+              [icon]="request.sortField === 'status' ? (request.sortOrder === 'asc' ? faSortUp : faSortDown) : faSort"></fa-icon>
           </th>
           <th>{{ 'Actions' | translate }}</th>
         </tr>
@@ -73,21 +78,27 @@
       <tbody>
         <tr *ngFor="let attendance of attendances">
           <td>{{ attendance.employeeName }}</td>
-          <td>{{ attendance.date | date: 'shortDate' }}</td>
+          <td>{{ attendance.date | date: 'dd/MM/yyyy' }}</td>
           <td>{{ attendance.timeIn | date: 'shortTime' }}</td>
           <td>{{ attendance.timeOut | date: 'shortTime' }}</td>
           <td>{{ attendance.status }}</td>
           <td class="action-cell">
-            <button class="btn btn-sm btn-info me-1" [routerLink]="['/attendance/view', attendance.id]" appCustomTooltip [appCustomTooltipText]="'ViewAttendance' | translate">
+            <button class="btn btn-sm btn-info me-1" [routerLink]="['/attendance/view', attendance.id]" appCustomTooltip
+              [appCustomTooltipText]="'ViewAttendance' | translate">
               <fa-icon [icon]="faEye"></fa-icon>
             </button>
-            <button class="btn btn-sm btn-primary me-1" [routerLink]="['/attendance/update', attendance.id]" (click)="onUpdate(attendance)" appCustomTooltip [appCustomTooltipText]="'EditAttendance' | translate">
+            <button class="btn btn-sm btn-primary me-1" [routerLink]="['/attendance/update', attendance.id]"
+              (click)="onUpdate(attendance)" appCustomTooltip [appCustomTooltipText]="'EditAttendance' | translate">
               <fa-icon [icon]="faEdit"></fa-icon>
             </button>
-            <button *ngIf="attendance.latitude && attendance.longitude" class="btn btn-sm btn-success me-1" [routerLink]="['/attendance/map']" [queryParams]="{ employeeId: attendance.employeeId, date: attendance.date }" appCustomTooltip [appCustomTooltipText]="'ViewOnMap' | translate">
+            <button *ngIf="attendance.latitude && attendance.longitude" class="btn btn-sm btn-success me-1"
+              [routerLink]="['/attendance/map']"
+              [queryParams]="{ employeeId: attendance.employeeId, date: attendance.date }" appCustomTooltip
+              [appCustomTooltipText]="'ViewOnMap' | translate">
               <fa-icon [icon]="faMapMarkerAlt"></fa-icon>
             </button>
-            <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip [appCustomTooltipText]="'DeleteAttendance' | translate">
+            <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip
+              [appCustomTooltipText]="'DeleteAttendance' | translate">
               <fa-icon [icon]="faTrash"></fa-icon>
             </button>
           </td>
@@ -106,21 +117,28 @@
         </span>
       </div>
       <div class="card-body">
-        <p><fa-icon [icon]="faCalendarAlt"></fa-icon> {{ attendance.date | date: 'shortDate' }}</p>
-        <p><fa-icon [icon]="faClock"></fa-icon> {{ attendance.timeIn | date: 'shortTime' }} - {{ attendance.timeOut | date: 'shortTime' }}</p>
+        <p><fa-icon [icon]="faCalendarAlt"></fa-icon> {{ attendance.date | date: 'dd/MM/yyyy' }}</p>
+        <p><fa-icon [icon]="faClock"></fa-icon> {{ attendance.timeIn | date: 'shortTime' }} - {{ attendance.timeOut |
+          date: 'shortTime' }}</p>
         <p *ngIf="attendance.locationName"><fa-icon [icon]="faLocationDot"></fa-icon> {{ attendance.locationName }}</p>
       </div>
       <div class="card-actions">
-        <button class="btn btn-sm btn-info" [routerLink]="['/attendance/view', attendance.id]" appCustomTooltip [appCustomTooltipText]="'ViewAttendance' | translate">
+        <button class="btn btn-sm btn-info" [routerLink]="['/attendance/view', attendance.id]" appCustomTooltip
+          [appCustomTooltipText]="'ViewAttendance' | translate">
           <fa-icon [icon]="faEye"></fa-icon> {{ 'View' | translate }}
         </button>
-        <button class="btn btn-sm btn-primary" [routerLink]="['/attendance/update', attendance.id]" appCustomTooltip [appCustomTooltipText]="'EditAttendance' | translate">
+        <button class="btn btn-sm btn-primary" [routerLink]="['/attendance/update', attendance.id]" appCustomTooltip
+          [appCustomTooltipText]="'EditAttendance' | translate">
           <fa-icon [icon]="faEdit"></fa-icon> {{ 'Edit' | translate }}
         </button>
-        <button *ngIf="attendance.latitude && attendance.longitude" class="btn btn-sm btn-success" [routerLink]="['/attendance/map']" [queryParams]="{ employeeId: attendance.employeeId, date: attendance.date }" appCustomTooltip [appCustomTooltipText]="'ViewOnMap' | translate">
+        <button *ngIf="attendance.latitude && attendance.longitude" class="btn btn-sm btn-success"
+          [routerLink]="['/attendance/map']"
+          [queryParams]="{ employeeId: attendance.employeeId, date: attendance.date }" appCustomTooltip
+          [appCustomTooltipText]="'ViewOnMap' | translate">
           <fa-icon [icon]="faMapMarkerAlt"></fa-icon> {{ 'Map' | translate }}
         </button>
-        <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip [appCustomTooltipText]="'DeleteAttendance' | translate">
+        <button class="btn btn-sm btn-danger" (click)="onDelete(attendance)" appCustomTooltip
+          [appCustomTooltipText]="'DeleteAttendance' | translate">
           <fa-icon [icon]="faTrash"></fa-icon> {{ 'Delete' | translate }}
         </button>
       </div>

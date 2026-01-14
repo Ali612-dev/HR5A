@@ -14,7 +14,7 @@
       </div>
       <div class="header-actions">
         <button class="btn btn-secondary" routerLink="/attendance/add">
-          <fa-icon [icon]="faPlus" class="me-1"></fa-icon> 
+          <fa-icon [icon]="faPlus" class="me-1"></fa-icon>
           <span class="desktop-text">{{ 'AddAttendance' | translate }}</span>
           <span class="mobile-text">{{ 'AddAttendance' | translate }}</span>
         </button>
@@ -22,7 +22,7 @@
           <fa-icon [icon]="faFilter" class="me-1"></fa-icon> {{ 'Filter' | translate }}
         </button>
         <button class="btn btn-secondary" (click)="onViewAllOnMap()">
-          <fa-icon [icon]="faMapMarkerAlt" class="me-1"></fa-icon> 
+          <fa-icon [icon]="faMapMarkerAlt" class="me-1"></fa-icon>
           <span class="desktop-text">{{ 'ViewAllOnMap' | translate }}</span>
           <span class="mobile-text">{{ 'ViewAllOnMap' | translate }}</span>
         </button>
@@ -34,7 +34,8 @@
       <h5 class="mb-2">{{ 'Filters' | translate }}</h5>
       <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="filters-container">
         <input type="date" class="form-control" formControlName="date" [placeholder]="'Date' | translate">
-        <input type="text" class="form-control" formControlName="employeeName" [placeholder]="'EmployeeName' | translate">
+        <input type="text" class="form-control" formControlName="employeeName"
+          [placeholder]="'EmployeeName' | translate">
         <div class="filter-buttons">
           <button type="submit" class="btn btn-primary">{{ 'Filters' | translate }}</button>
           <button type="button" class="btn btn-secondary" (click)="onResetFilters()">{{ 'Reset' | translate }}</button>
@@ -43,20 +44,12 @@
     </div>
 
     <!-- Attendance Table -->
-    <app-material-data-table
-      [data]="filteredAttendances()"
-      [columns]="tableColumns"
-      [actions]="tableActions"
-      [isLoading]="store.isLoading()"
-      [error]="store.error()"
-      [sortField]="store.request().sortField || ''"
-      [sortOrder]="store.request().sortOrder || 'asc'"
-      [emptyMessage]="'NoAttendanceRecords'"
-      [emptyDescription]="'NoAttendanceRecordsDescription'"
-      [loadingMessage]="'LoadingAttendance'"
-      (sortChange)="onSort($event)"
-      (retry)="onRetryLoadAttendances()">
-      
+    <app-material-data-table [data]="filteredAttendances()" [columns]="tableColumns" [actions]="tableActions"
+      [isLoading]="store.isLoading()" [error]="store.error()" [sortField]="store.request().sortField || ''"
+      [sortOrder]="store.request().sortOrder || 'asc'" [emptyMessage]="'NoAttendanceRecords'"
+      [emptyDescription]="'NoAttendanceRecordsDescription'" [loadingMessage]="'LoadingAttendance'"
+      (sortChange)="onSort($event)" (retry)="onRetryLoadAttendances()">
+
       <!-- Templates for custom cell rendering -->
       <ng-template #employeeNameTemplate let-row>
         <div class="d-flex align-items-center justify-content-center">
@@ -66,7 +59,7 @@
 
       <ng-template #dateTemplate let-row>
         <div class="d-flex align-items-center justify-content-center">
-          <span>{{ row.date | date: 'shortDate' }}</span>
+          <span>{{ row.date | date: 'dd/MM/yyyy' }}</span>
         </div>
       </ng-template>
 
@@ -92,11 +85,8 @@
     </app-material-data-table>
 
     <!-- Pagination -->
-    <app-pagination
-      *ngIf="!store.isLoading() && !store.error() && filteredAttendances().length > 0"
-      [totalCount]="store.totalCount()"
-      [request]="store.request()"
-      (pageChange)="onPageChange($event)">
+    <app-pagination *ngIf="!store.isLoading() && !store.error() && filteredAttendances().length > 0"
+      [totalCount]="store.totalCount()" [request]="store.request()" (pageChange)="onPageChange($event)">
     </app-pagination>
   </div>
 
@@ -104,12 +94,12 @@
   <div *ngIf="isMobile" class="mobile-bottom-sheet" [class.open]="!isFilterCollapsed">
     <!-- Backdrop -->
     <div class="bottom-sheet-backdrop" (click)="closeMobileFilter()"></div>
-    
+
     <!-- Bottom Sheet Content -->
     <div class="bottom-sheet-content">
       <!-- Handle Bar -->
       <div class="bottom-sheet-handle" (click)="toggleFilter()"></div>
-      
+
       <!-- Filter Header -->
       <div class="bottom-sheet-header">
         <h5>{{ 'Filters' | translate }}</h5>
@@ -117,7 +107,7 @@
           <fa-icon [icon]="faFilter"></fa-icon>
         </button>
       </div>
-      
+
       <!-- Filter Form -->
       <div class="bottom-sheet-body">
         <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="mobile-filters-form">
@@ -125,12 +115,13 @@
             <label>{{ 'Date' | translate }}</label>
             <input type="date" class="form-control" formControlName="date" [placeholder]="'Date' | translate">
           </div>
-          
+
           <div class="form-group">
             <label>{{ 'EmployeeName' | translate }}</label>
-            <input type="text" class="form-control" formControlName="employeeName" [placeholder]="'EmployeeName' | translate">
+            <input type="text" class="form-control" formControlName="employeeName"
+              [placeholder]="'EmployeeName' | translate">
           </div>
-          
+
           <div class="mobile-filter-buttons">
             <button type="submit" class="btn btn-primary btn-full">
               {{ 'ApplyFilters' | translate }}

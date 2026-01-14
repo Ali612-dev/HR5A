@@ -5,6 +5,6 @@
 export const environment = {
   production: false,
   // API URL must be empty to use local proxy (which forwards to http://3.76.5.172:6400)
-  apiBaseUrl: 'http://172.20.10.4:6365'
+  apiBaseUrl: 'http://192.168.1.8:6365'
 };
 
