@@ -208,6 +208,7 @@ export interface DailyDetailDto {
   timeIn: string; // Formatted time or "-"
   timeOut: string; // Formatted time or "-"
   workedHours: number;
+  hourlyRate: number;
   dailySalary: number;
   status: string; // "حضور" or "غائب" etc.
 }

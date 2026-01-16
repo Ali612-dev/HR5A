@@ -78,7 +78,16 @@
       <tbody>
         <tr *ngFor="let attendance of attendances">
           <td>{{ attendance.employeeName }}</td>
-          <td>{{ attendance.date | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <span *ngIf="!isMultipleDates(attendance)">
+              {{ attendance.date | date: 'dd/MM/yyyy' }}
+            </span>
+            <span *ngIf="isMultipleDates(attendance)" appCustomTooltip
+              [appCustomTooltipText]="'Check-in: ' + (attendance.timeIn | date: 'dd/MM/yyyy HH:mm') + '\nCheck-out: ' + (attendance.timeOut | date: 'dd/MM/yyyy HH:mm')"
+              style="cursor: help; border-bottom: 1px dotted currentColor;">
+              {{ getDateRangeDisplay(attendance) }}
+            </span>
+          </td>
           <td>{{ attendance.timeIn | date: 'shortTime' }}</td>
           <td>{{ attendance.timeOut | date: 'shortTime' }}</td>
           <td>{{ attendance.status }}</td>
@@ -117,7 +126,17 @@
         </span>
       </div>
       <div class="card-body">
-        <p><fa-icon [icon]="faCalendarAlt"></fa-icon> {{ attendance.date | date: 'dd/MM/yyyy' }}</p>
+        <p>
+          <fa-icon [icon]="faCalendarAlt"></fa-icon>
+          <span *ngIf="!isMultipleDates(attendance)">
+            {{ attendance.date | date: 'dd/MM/yyyy' }}
+          </span>
+          <span *ngIf="isMultipleDates(attendance)" appCustomTooltip
+            [appCustomTooltipText]="'Check-in: ' + (attendance.timeIn | date: 'dd/MM/yyyy HH:mm') + '\nCheck-out: ' + (attendance.timeOut | date: 'dd/MM/yyyy HH:mm')"
+            style="cursor: help; border-bottom: 1px dotted currentColor;">
+            {{ getDateRangeDisplay(attendance) }}
+          </span>
+        </p>
         <p><fa-icon [icon]="faClock"></fa-icon> {{ attendance.timeIn | date: 'shortTime' }} - {{ attendance.timeOut |
           date: 'shortTime' }}</p>
         <p *ngIf="attendance.locationName"><fa-icon [icon]="faLocationDot"></fa-icon> {{ attendance.locationName }}</p>

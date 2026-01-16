@@ -59,7 +59,19 @@
 
       <ng-template #dateTemplate let-row>
         <div class="d-flex align-items-center justify-content-center">
-          <span>{{ row.date | date: 'dd/MM/yyyy' }}</span>
+          <span *ngIf="!isMultipleDates(row)">
+            {{ row.date | date: 'dd/MM/yyyy' }}
+          </span>
+          <div *ngIf="isMultipleDates(row)" style="text-align: center; line-height: 1.5;">
+            <div style="font-size: 0.9em; margin-bottom: 4px; white-space: nowrap;">
+              <span style="color: #666; font-weight: 500;">{{ 'Attendance' | translate }}:</span> {{ getCheckInDate(row)
+              }}
+            </div>
+            <div style="font-size: 0.9em; white-space: nowrap;">
+              <span style="color: #666; font-weight: 500;">{{ 'Departure' | translate }}:</span> {{ getCheckOutDate(row)
+              }}
+            </div>
+          </div>
         </div>
       </ng-template>
 

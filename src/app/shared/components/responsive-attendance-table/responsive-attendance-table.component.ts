@@ -21,7 +21,7 @@ import { AttendanceDataService } from '../../../core/attendance-data.service';
     TranslateModule,
     FontAwesomeModule,
     RouterLink,
-    
+
     CustomTooltipDirective,
     ErrorComponent
   ],
@@ -112,9 +112,9 @@ export class ResponsiveAttendanceTableComponent implements OnInit, OnDestroy {
     if (!this.error) return false;
     // Check if the error message indicates empty data rather than an actual error
     const emptyDataMessages = [
-      'NoDailyAttendanceFound', 
-      'NoEmployeeAttendanceHistoryFound', 
-      'No daily attendance found', 
+      'NoDailyAttendanceFound',
+      'NoEmployeeAttendanceHistoryFound',
+      'No daily attendance found',
       'No daily attendance found.',
       'No employee attendance history found',
       'No employee attendance history found.',
@@ -122,5 +122,34 @@ export class ResponsiveAttendanceTableComponent implements OnInit, OnDestroy {
       'لم يتم العثور على تاريخ حضور الموظف'
     ];
     return emptyDataMessages.some(msg => this.error?.includes(msg));
+  }
+
+  isMultipleDates(attendance: AttendanceViewModel): boolean {
+    if (!attendance.timeIn || !attendance.timeOut) return false;
+
+    const timeInDate = new Date(attendance.timeIn);
+    const timeOutDate = new Date(attendance.timeOut);
+
+    // Compare dates ignoring time
+    return timeInDate.toDateString() !== timeOutDate.toDateString();
+  }
+
+  getDateRangeDisplay(attendance: AttendanceViewModel): string {
+    if (!this.isMultipleDates(attendance)) {
+      return '';
+    }
+
+    const timeInDate = new Date(attendance.timeIn!);
+    const timeOutDate = new Date(attendance.timeOut!);
+
+    // Format both dates
+    const formatDate = (date: Date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+
+    return `${formatDate(timeInDate)} - ${formatDate(timeOutDate)}`;
   }
 }

@@ -716,7 +716,7 @@
     padding: 0.5rem 0.875rem;
     font-size: 0.9rem;
   }
-  
+
   .header-actions .btn .desktop-text {
     display: inline;
   }
@@ -726,8 +726,28 @@
   .header-actions {
     gap: 0.5rem;
   }
-  
+
   .header-actions .btn {
     padding: 0.5rem 0.75rem;
   }
+}
+
+/* Fix date column cropping */
+::ng-deep app-material-data-table .mat-column-date {
+  min-width: 180px !important;
+  width: 180px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+::ng-deep app-material-data-table td {
+  white-space: normal !important;
+  overflow: visible !important;
+  vertical-align: middle !important;
+}
+
+::ng-deep app-material-data-table .table td {
+  padding: 12px 8px !important;
+  min-height: 60px !important;
 }

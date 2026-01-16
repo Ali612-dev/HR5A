@@ -13,7 +13,11 @@ interface DailyReportRow {
   attendanceAt: string;
   departureAt: string;
   workHours: string;
+  hourlyRate: number;
   dailySalary: number;
+  timeInDate?: string;
+  timeOutDate?: string;
+  isMultipleDates?: boolean;
 }
 
 @Component({
@@ -91,23 +95,37 @@ interface DailyReportRow {
                     <th>{{ 'AttendanceAt' | translate }}</th>
                     <th>{{ 'DepartureAt' | translate }}</th>
                     <th>{{ 'WorkHours' | translate }}</th>
+                    <th>{{ 'HourlyRate' | translate }}</th>
                     <th class="text-end">{{ 'Salary' | translate }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let row of dailyRows">
-                    <td>{{ row.date }}</td>
+                    <td>
+                      <div *ngIf="!isMultipleDates(row.attendanceAt, row.departureAt)">
+                        {{ row.date }}
+                      </div>
+                      <div *ngIf="isMultipleDates(row.attendanceAt, row.departureAt)" style="line-height: 1.5;">
+                        <div style="font-size: 0.9em; margin-bottom: 4px; white-space: nowrap;">
+                          <span style="color: #666; font-weight: 500;">{{ 'Attendance' | translate }}:</span> {{ formatDateOnly(row.attendanceAt) }}
+                        </div>
+                        <div style="font-size: 0.9em; white-space: nowrap;">
+                          <span style="color: #666; font-weight: 500;">{{ 'Departure' | translate }}:</span> {{ formatDateOnly(row.departureAt) }}
+                        </div>
+                      </div>
+                    </td>
                     <td>{{ row.dayName }}</td>
-                    <td dir="ltr" class="text-start">{{ row.attendanceAt }}</td>
-                    <td dir="ltr" class="text-start">{{ row.departureAt }}</td>
+                    <td dir="ltr" class="text-start">{{ formatTimeOnly(row.attendanceAt) }}</td>
+                    <td dir="ltr" class="text-start">{{ formatTimeOnly(row.departureAt) }}</td>
                     <td dir="ltr" class="text-start">{{ row.workHours }}</td>
+                    <td class="text-end">{{ row.hourlyRate ? formatCurrency(row.hourlyRate) : '-' }}</td>
                     <td class="text-end font-weight-bold">{{ formatCurrency(row.dailySalary) }}</td>
                   </tr>
                 </tbody>
                 <!-- Footer with Totals -->
                 <tfoot>
                   <tr class="total-row">
-                    <td colspan="4" class="text-end font-weight-bold">{{ 'Total' | translate }}</td>
+                    <td colspan="5" class="text-end font-weight-bold">{{ 'Total' | translate }}</td>
                     <td dir="ltr" class="text-start font-weight-bold">{{ formatHoursToTime(report.totalWorkedHours) }}</td>
                     <td class="text-end font-weight-bold highlight-value">{{ formatCurrency(report.netCalculatedSalary) }}</td>
                   </tr>
@@ -239,6 +257,18 @@ interface DailyReportRow {
         text-align: center; 
         padding: 3rem;
     }
+
+    /* Fix date column cropping for multi-day attendance */
+    .report-table td:first-child {
+      min-width: 160px;
+      white-space: normal;
+      overflow: visible;
+      vertical-align: middle;
+    }
+
+    .report-table tr {
+      min-height: 60px;
+    }
   `]
 })
 export class SalaryReportDetailsComponent implements OnInit {
@@ -315,6 +345,7 @@ export class SalaryReportDetailsComponent implements OnInit {
         attendanceAt: detail.timeIn,
         departureAt: detail.timeOut,
         workHours: this.formatHoursToTime(detail.workedHours),
+        hourlyRate: detail.hourlyRate,
         dailySalary: detail.dailySalary
       }));
       return; // Exit early after mapping backend data
@@ -385,5 +416,33 @@ export class SalaryReportDetailsComponent implements OnInit {
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
     return `${wholeHours}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  isMultipleDates(timeIn: string, timeOut: string): boolean {
+    if (!timeIn || !timeOut) return false;
+    const timeInDate = new Date(timeIn);
+    const timeOutDate = new Date(timeOut);
+    return timeInDate.toDateString() !== timeOutDate.toDateString();
+  }
+
+  formatDateOnly(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  formatTimeOnly(dateTimeStr: string): string {
+    if (!dateTimeStr) return '-';
+    const date = new Date(dateTimeStr);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    const hoursStr = hours.toString().padStart(2, '0');
+    return `${hoursStr}:${minutes} ${ampm}`;
   }
 }

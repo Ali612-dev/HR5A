@@ -469,14 +469,22 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
 
       return true;
     } else {
-      // For create mode, employee and amount are required
+      // For create mode:
+      // - Employee is always required
+      // - For PerHour/Custom types: hourly rate is required, amount is not
+      // - For other types: amount is required, hourly rate is not
+
+      const isPerHourOrCustom = this.form.salaryType === SalaryType.PerHour || this.form.salaryType === SalaryType.Custom;
+
       return (
         this.form.employeeId !== null &&
-        this.form.amount !== null &&
-        this.form.amount >= 0 &&
+        // If PerHour/Custom: validate hourly rate, otherwise validate amount
+        (isPerHourOrCustom
+          ? (this.form.hourlyRate !== null && this.form.hourlyRate >= 0)
+          : (this.form.amount !== null && this.form.amount >= 0)
+        ) &&
         // Additional constraints for creation
         (!this.form.notes || this.form.notes.length <= 300) &&
-        (this.form.hourlyRate === null || this.form.hourlyRate >= 0) &&
         (this.form.overtimeRate === null || this.form.overtimeRate >= 0)
       );
     }
@@ -558,11 +566,14 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      // Create - All fields required for creation
+      // Create - Handle different salary types
+      const isPerHourOrCustom = this.form.salaryType === SalaryType.PerHour || this.form.salaryType === SalaryType.Custom;
+
       const createDto: CreateEmployeeSalaryDto = {
         employeeId: this.form.employeeId!,
         salaryType: this.convertSalaryTypeToNumber(this.form.salaryType),
-        amount: this.form.amount!,
+        // For PerHour/Custom: set amount to 0, otherwise use the form amount
+        amount: isPerHourOrCustom ? 0 : this.form.amount!,
         notes: this.form.notes || undefined
       };
 

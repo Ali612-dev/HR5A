@@ -66,7 +66,7 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
   // Material Data Table
   tableColumns: TableColumn[] = [];
   tableActions: TableAction[] = [];
-  
+
   @ViewChild('employeeNameTemplate') employeeNameTemplate!: TemplateRef<any>;
   @ViewChild('dateTemplate') dateTemplate!: TemplateRef<any>;
   @ViewChild('timeInTemplate') timeInTemplate!: TemplateRef<any>;
@@ -137,39 +137,39 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
     // Detect mobile device
     this.isMobile = window.innerWidth <= 768;
     console.log('📱 Mobile detection:', this.isMobile, 'Screen width:', window.innerWidth);
-    
+
     // Listen for window resize to update mobile state
     window.addEventListener('resize', this.resizeHandler);
 
     // Try to restore state from memory service (only during navigation, not from localStorage)
     const savedState = this.attendanceStateService.getState();
-    
+
     // Get current date as default
     const currentDate = new Date().toISOString().split('T')[0];
     console.log('📅 Attendance: Current date set to:', currentDate);
-    
+
     // Use saved state if available (from navigation), otherwise use current date
     let defaultDate = savedState?.date || currentDate;
     let defaultEmployeeName = savedState?.employeeName || '';
     let defaultIsFilterCollapsed = savedState?.isFilterCollapsed !== undefined ? savedState.isFilterCollapsed : true;
-    
+
     if (savedState) {
       console.log('📂 Restoring state from memory:', savedState);
-      
+
       // Restore pagination and sorting if available
       if (savedState.pageNumber) {
         this.store.updateRequest({ pageNumber: savedState.pageNumber });
       }
       if (savedState.sortField && savedState.sortOrder) {
-        this.store.updateRequest({ 
-          sortField: savedState.sortField, 
-          sortOrder: savedState.sortOrder 
+        this.store.updateRequest({
+          sortField: savedState.sortField,
+          sortOrder: savedState.sortOrder
         });
       }
     } else {
       console.log('📂 No saved state found, using defaults');
     }
-    
+
     this.filterForm = this.fb.group({
       date: [defaultDate],
       employeeName: [defaultEmployeeName]
@@ -294,10 +294,10 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     // Save state before component is destroyed (so it persists during navigation)
     this.saveAttendanceState();
-    
+
     this.destroy$.next();
     this.destroy$.complete();
-    
+
     // Remove resize event listener
     window.removeEventListener('resize', this.resizeHandler);
   }
@@ -350,7 +350,7 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
       sortOrder: sortData.order,
       currentRequest: this.store.request()
     });
-    
+
     this.store.updateRequest({ sortField: sortData.field, sortOrder: sortData.order });
     this.saveAttendanceState(); // Save sorting state to memory
   }
@@ -397,7 +397,7 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onViewAllOnMap(): void {
     const currentAttendances = this.filteredAttendances();
-    
+
     if (!currentAttendances || currentAttendances.length === 0) {
       // Show localized toast message for no records
       this.showNoRecordsToast();
@@ -413,7 +413,7 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private showNoRecordsToast(): void {
     const message = this.translate.instant('NoRecordsToShowOnMap');
-    
+
     // Show notification dialog following exact shared dialog pattern
     const dialogRef = this.dialog.open(NotificationDialogComponent, {
       width: '400px',
@@ -436,5 +436,52 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
     // Clear state when navigating away from attendance feature entirely
     this.attendanceStateService.clearState();
     this.router.navigate(['/admin-dashboard']);
+  }
+
+  isMultipleDates(attendance: AttendanceViewModel): boolean {
+    if (!attendance.timeIn || !attendance.timeOut) return false;
+
+    const timeInDate = new Date(attendance.timeIn);
+    const timeOutDate = new Date(attendance.timeOut);
+
+    // Compare dates ignoring time
+    return timeInDate.toDateString() !== timeOutDate.toDateString();
+  }
+
+  getDateRangeDisplay(attendance: AttendanceViewModel): string {
+    if (!this.isMultipleDates(attendance)) {
+      return '';
+    }
+
+    const timeInDate = new Date(attendance.timeIn!);
+    const timeOutDate = new Date(attendance.timeOut!);
+
+    // Format both dates
+    const formatDate = (date: Date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+
+    return `${formatDate(timeInDate)} - ${formatDate(timeOutDate)}`;
+  }
+
+  getCheckInDate(attendance: AttendanceViewModel): string {
+    if (!attendance.timeIn) return '';
+    const timeInDate = new Date(attendance.timeIn);
+    const day = timeInDate.getDate().toString().padStart(2, '0');
+    const month = (timeInDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = timeInDate.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  getCheckOutDate(attendance: AttendanceViewModel): string {
+    if (!attendance.timeOut) return '';
+    const timeOutDate = new Date(attendance.timeOut);
+    const day = timeOutDate.getDate().toString().padStart(2, '0');
+    const month = (timeOutDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = timeOutDate.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 }
