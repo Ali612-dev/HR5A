@@ -44,7 +44,7 @@
 .header-left {
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
+  flex: 1 1 0%;
   min-width: 0;
 }
 
@@ -63,12 +63,11 @@
 
 @media (min-width: 992px) {
   .header-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    position: static;
+    transform: none;
     padding: 0 2rem;
-    flex: 0 1 auto;
-    order: 0;
+    flex: 0 0 auto;
+    order: 2;
   }
 }
 
@@ -78,7 +77,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.75rem;
+  border-radius: 50%;
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   color: #ffffff;
   font-size: 1.25rem;
@@ -107,8 +106,8 @@
 @media (min-width: 992px) {
   .header-actions {
     gap: 0.75rem;
-    flex: 1;
-    order: 0;
+    flex: 1 1 0%;
+    order: 3;
     flex-wrap: nowrap;
   }
 }
@@ -748,6 +747,303 @@
 }
 
 ::ng-deep app-material-data-table .table td {
+
   padding: 12px 8px !important;
   min-height: 60px !important;
+}
+
+/* Sessions Badge and Button */
+.sessions-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 20px !important;
+  padding: 4px 12px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.sessions-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+  filter: brightness(1.1);
+}
+
+.session-count-single {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Sessions Dialog Styles */
+.sessions-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  color: #1f2937;
+}
+
+.dialog-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.dialog-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.dialog-header h3 mat-icon {
+  color: #10b981;
+}
+
+.dialog-header .subtitle {
+  margin: 0.25rem 0 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.dialog-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.session-num {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.session-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-group label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.info-group span {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.location-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  background: #f9fafb;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+}
+
+.location-info mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 1px;
+}
+
+.session-actions {
+  flex-shrink: 0;
+}
+
+.total-summary {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2rem;
+  padding: 1rem;
+  background: #f3f4f6;
+  border-radius: 12px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-item label {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.summary-item span {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #10b981;
+}
+
+.dialog-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 576px) {
+  .info-row {
+    gap: 0.75rem;
+  }
+
+  .info-group span {
+    font-size: 0.85rem;
+  }
+
+  .total-summary {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
+
+/* Monthly Worked Hours Dialog */
+.monthly-hours-dialog {
+  display: flex;
+  flex-direction: column;
+  color: #1f2937;
+  text-align: center;
+}
+
+/* Member Name Cell & Calc Button */
+.employee-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.employee-name-cell span {
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.btn-calc-hours {
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1.5px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  cursor: pointer;
+}
+
+.btn-calc-hours:hover {
+  background: #6366f1;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  border-color: #6366f1;
+}
+
+.btn-calc-hours:active {
+  transform: translateY(0);
+}
+
+.state-container {
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hours-display {
+  padding: 2rem;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  width: 100%;
+  border-radius: 20px;
+  margin-top: 1rem;
+}
+
+.hours-value {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.hours-label {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.error-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: #ef4444;
+}
+
+.error-msg {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.success-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
 }

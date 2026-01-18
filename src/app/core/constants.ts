@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   UPDATE_REQUEST_STATUS: isUsingVercelProxy ? '?path=/api/Request/update-status' : '/api/Request/update-status',
   EMPLOYEE: isUsingVercelProxy ? '?path=/api/Employee' : '/api/Employee',
   AllEmployeesAttendances: isUsingVercelProxy ? '?path=/api/Attendance/daily' : '/api/Attendance/daily',
+  DailyGroupedAttendances: isUsingVercelProxy ? '?path=/api/Attendance/daily-grouped' : '/api/Attendance/daily-grouped',
   EmployeeAttendanceHistory: isUsingVercelProxy ? '?path=/api/Attendance/history' : '/api/Attendance/history',
   AddEmployeeAttendance: isUsingVercelProxy ? '?path=/api/Attendance' : '/api/Attendance',
   UpdateEmployeeAttendance: isUsingVercelProxy ? '?path=/api/Attendance' : '/api/Attendance',

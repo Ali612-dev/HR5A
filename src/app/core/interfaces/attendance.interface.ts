@@ -54,9 +54,36 @@ export interface GetEmployeeAttendanceHistoryDto {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface AttendanceSession {
+  id: number;
+  timeIn: string; // ISO datetime string
+  timeOut?: string; // ISO datetime string
+  hours: number;
+  latitude: number;
+  longitude: number;
+  outLatitude?: number;
+  outLongitude?: number;
+  locationName?: string;
+}
+
+export interface GroupedAttendanceViewModel {
+  employeeId: number;
+  employeeName: string;
+  date: string; // ISO date string
+  firstCheckIn: string; // ISO datetime string
+  lastCheckOut?: string; // ISO datetime string
+  totalWorkedHours: number;
+  sessionsCount: number;
+  hasUnclosedSession: boolean;
+  isOvernightShift: boolean;
+  sessions: AttendanceSession[];
+  status: string;
+}
+
 export interface PaginatedAttendanceResponseDto {
-  attendances: AttendanceViewModel[];
+  attendances: GroupedAttendanceViewModel[];
   totalCount: number;
+  totalItemCount?: number;
 }
 
 export interface PaginatedEmployeeAttendanceHistoryResponseDto {
@@ -65,3 +92,10 @@ export interface PaginatedEmployeeAttendanceHistoryResponseDto {
 }
 
 export type UpdateAttendanceDto = Partial<AddAttendanceDto> & { id: number };
+
+export interface MonthlyWorkedHoursResponse {
+  employeeId: number;
+  totalWorkedHours: number;
+  month: number;
+  year: number;
+}

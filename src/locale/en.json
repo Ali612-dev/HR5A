@@ -580,7 +580,9 @@
     "UNKNOWN_ERROR_FETCHING_DASHBOARD_STATISTICS": "Unknown error fetching dashboard statistics.",
     "FAILED_TO_LOAD_APPROVED_REQUESTS": "Failed to load approved requests.",
     "UNKNOWN_ERROR_FETCHING_APPROVED_REQUESTS": "Unknown error fetching approved requests.",
-    "REQUEST_PROCESSING_ERROR": "An error occurred during request processing."
+    "REQUEST_PROCESSING_ERROR": "An error occurred during request processing.",
+    "FETCH_MONTHLY_HOURS_FAILED": "Failed to fetch monthly worked hours.",
+    "FETCH_MONTHLY_HOURS_ERROR": "An error occurred while fetching monthly worked hours."
   },
   "RejectConfirmation_pre": "Are you sure you want to reject the request for",
   "RejectConfirmation_post": "?",
@@ -627,8 +629,9 @@
   "Save": "Save",
   "Cancel": "Cancel",
   "Close": "Close",
-  "Select": "Select",
-  "Delete": "Delete",
+  "Create": "Create",
+  "EmployeeAlreadyHasSalary": "This employee already has a salary assigned.",
+  "CalculateMonthlyHours": "Calculate Monthly Hours",
   "Deleting": "Deleting...",
   "Edit": "Edit",
   "View": "View",
@@ -870,5 +873,10 @@
   "Night": "Night",
   "CurrentSelection": "Current Selection",
   "Saving": "Saving",
-  "Updating": "Updating"
+  "Updating": "Updating",
+  "AttendanceSessions": "Attendance Sessions",
+  "Session": "Session",
+  "Sessions": "Sessions",
+  "TotalSessions": "Total Sessions",
+  "TotalHours": "Total Hours"
 }

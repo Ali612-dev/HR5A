@@ -1,12 +1,12 @@
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
-import { AttendanceViewModel, GetEmployeeAttendanceHistoryDto, PaginatedEmployeeAttendanceHistoryResponseDto } from '../core/interfaces/attendance.interface';
+import { GroupedAttendanceViewModel, GetEmployeeAttendanceHistoryDto } from '../core/interfaces/attendance.interface';
 import { AttendanceService } from '../core/attendance.service';
 import { inject } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface EmployeeAttendanceHistoryState {
-  attendances: AttendanceViewModel[];
+  attendances: GroupedAttendanceViewModel[];
   totalCount: number;
   isLoading: boolean;
   error: string | null;
@@ -42,11 +42,48 @@ export const EmployeeAttendanceHistoryStore = signalStore(
           tap({
             next: (response) => {
               if (response.isSuccess && response.data) {
+                const data = response.data as any;
+                const rawAttendances = Array.isArray(data.attendances) ? data.attendances : (data.items || []);
+
+                // Safeguard: Manually group/merge records by date to ensure one row per day
+                const mergedAttendances = rawAttendances.reduce((acc: any[], current: any) => {
+                  if (!current) return acc;
+
+                  const dateKey = current.date?.split('T')[0] || 'no-date';
+                  const key = dateKey; // Simple key for history as it's for one employee
+
+                  const existingIndex = acc.findIndex(a => (a.date?.split('T')[0] || 'no-date') === key);
+
+                  if (existingIndex > -1) {
+                    const existing = acc[existingIndex];
+                    const allSessions = [...(existing.sessions || []), ...(current.sessions || [])];
+                    existing.sessions = Array.from(new Map(allSessions.map(s => [s.id, s])).values());
+                    existing.sessionsCount = existing.sessions.length;
+
+                    if (current.firstCheckIn && (!existing.firstCheckIn || new Date(current.firstCheckIn) < new Date(existing.firstCheckIn))) {
+                      existing.firstCheckIn = current.firstCheckIn;
+                    }
+                    if (current.lastCheckOut && (!existing.lastCheckOut || new Date(current.lastCheckOut) > new Date(existing.lastCheckOut))) {
+                      existing.lastCheckOut = current.lastCheckOut;
+                    }
+                    if (current.status === 'Present' || existing.status === 'Present') {
+                      existing.status = 'Present';
+                    }
+                    existing.totalWorkedHours = existing.sessions.reduce((sum: number, s: any) => sum + (s.hours || 0), 0);
+                    acc[existingIndex] = existing;
+                  } else {
+                    acc.push({ ...current });
+                  }
+                  return acc;
+                }, []);
+
                 patchState(store, {
-                  attendances: response.data.attendances,
-                  totalCount: response.data.totalCount,
+                  attendances: mergedAttendances as GroupedAttendanceViewModel[],
+                  totalCount: data.totalCount || data.totalItemCount || mergedAttendances.length,
                   isLoading: false,
                 });
+              } else if (response.isSuccess && !response.data) {
+                patchState(store, { attendances: [], totalCount: 0, isLoading: false });
               } else {
                 patchState(store, { error: response.message || translate.instant('ERROR.FAILED_TO_LOAD_EMPLOYEE_HISTORY'), isLoading: false });
               }

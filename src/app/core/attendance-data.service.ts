@@ -5,13 +5,13 @@ import { AttendanceViewModel } from './interfaces/attendance.interface';
   providedIn: 'root'
 })
 export class AttendanceDataService {
-  private attendanceData: AttendanceViewModel | null = null;
+  private attendanceData: any | null = null;
 
-  setAttendanceData(data: AttendanceViewModel) {
+  setAttendanceData(data: any) {
     this.attendanceData = data;
   }
 
-  getAttendanceData(): AttendanceViewModel | null {
+  getAttendanceData(): any | null {
     const data = this.attendanceData;
     this.attendanceData = null; // Clear the data after it has been retrieved
     return data;

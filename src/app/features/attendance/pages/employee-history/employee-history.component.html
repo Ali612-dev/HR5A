@@ -31,14 +31,134 @@
     </div>
 
     <!-- Attendance Table -->
-    <app-responsive-attendance-table
-      [attendances]="store.attendances()"
-      [totalCount]="store.totalCount()"
-      [request]="store.request()"
-      [isLoading]="store.isLoading()"
-      [error]="store.error()"
-      (pageChange)="onPageChange($event)"
-      (sort)="onSort($event)">
-    </app-responsive-attendance-table>
+    <app-material-data-table [data]="store.attendances()" [columns]="tableColumns" [actions]="tableActions"
+      [isLoading]="store.isLoading()" [error]="store.error()" [sortField]="store.request().sortField || ''"
+      [sortOrder]="store.request().sortOrder || 'asc'" [emptyMessage]="'NoAttendanceRecords'"
+      [emptyDescription]="'NoAttendanceRecordsDescription'" [loadingMessage]="'LoadingAttendance'"
+      (sortChange)="onSort($event)" (retry)="store.loadEmployeeAttendanceHistory()">
+
+      <!-- Templates for custom cell rendering -->
+      <ng-template #dateTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span *ngIf="!isMultipleDates(row)">
+            {{ row.date | date: 'dd/MM/yyyy' }}
+          </span>
+          <div *ngIf="isMultipleDates(row)" style="text-align: center; line-height: 1.5;">
+            <div style="font-size: 0.9em; margin-bottom: 4px; white-space: nowrap;">
+              <span style="color: #666; font-weight: 500;">{{ 'Attendance' | translate }}:</span> {{ getCheckInDate(row)
+              }}
+            </div>
+            <div style="font-size: 0.9em; white-space: nowrap;">
+              <span style="color: #666; font-weight: 500;">{{ 'Departure' | translate }}:</span> {{ getCheckOutDate(row)
+              }}
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #timeInTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span>{{ row.firstCheckIn | date: 'shortTime' }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #timeOutTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span>{{ row.lastCheckOut | date: 'shortTime' }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #statusTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <span [class]="row.status === 'Present' ? 'badge badge-success' : 'badge badge-danger'">
+            {{ row.status }}
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template #sessionsTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <button *ngIf="row.sessionsCount > 1" class="btn btn-sm btn-info sessions-badge"
+            (click)="viewSessions(row, $event)">
+            {{ row.sessionsCount }} {{ 'Sessions' | translate }}
+          </button>
+          <span *ngIf="row.sessionsCount === 1" class="session-count-single">
+            1 {{ 'Session' | translate }}
+          </span>
+          <span *ngIf="row.sessionsCount === 0" class="text-muted">-</span>
+        </div>
+      </ng-template>
+    </app-material-data-table>
+
+    <!-- Sessions Detail Dialog Template -->
+    <ng-template #sessionsDialogTemplate let-data>
+      <div class="sessions-dialog">
+        <div class="dialog-header">
+          <h3>
+            <mat-icon>history</mat-icon>
+            {{ 'AttendanceSessions' | translate }} - {{ data.employeeName }}
+          </h3>
+          <p class="subtitle">{{ data.date | date: 'fullDate':undefined:translate.currentLang }}</p>
+        </div>
+
+        <div class="dialog-content">
+          <div class="sessions-list">
+            <div *ngFor="let session of data.sessions; let i = index" class="session-item glass-card">
+              <div class="session-num">#{{ i + 1 }}</div>
+              <div class="session-info">
+                <div class="info-row">
+                  <div class="info-group">
+                    <label>{{ 'TimeIn' | translate }}</label>
+                    <span>{{ session.timeIn | date: 'hh:mm:ss a':undefined:translate.currentLang }}</span>
+                  </div>
+                  <div class="info-group">
+                    <label>{{ 'TimeOut' | translate }}</label>
+                    <span>{{ (session.timeOut | date: 'hh:mm:ss a':undefined:translate.currentLang) || '-' }}</span>
+                  </div>
+                  <div class="info-group">
+                    <label>{{ 'Hours' | translate }}</label>
+                    <span>{{ session.hours | number: '1.2-2' }}</span>
+                  </div>
+                </div>
+                <div class="location-info" *ngIf="session.locationName">
+                  <mat-icon>location_on</mat-icon>
+                  <span>{{ session.locationName }}</span>
+                </div>
+              </div>
+              <div class="session-actions">
+                <button mat-icon-button color="primary" (click)="onEditSession(session, data)"
+                  [title]="'Edit' | translate">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="onDeleteSession(session, data)"
+                  [title]="'Delete' | translate">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="total-summary glass-card mt-3">
+            <div class="summary-item">
+              <label>{{ 'TotalSessions' | translate }}:</label>
+              <span>{{ data.sessionsCount }}</span>
+            </div>
+            <div class="summary-item">
+              <label>{{ 'TotalHours' | translate }}:</label>
+              <span>{{ data.totalWorkedHours | number: '1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-footer">
+          <button mat-button mat-dialog-close class="btn btn-secondary">{{ 'Close' | translate }}</button>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Pagination -->
+    <app-pagination *ngIf="!store.isLoading() && !store.error() && store.attendances().length > 0"
+      [totalCount]="store.totalCount()" [request]="store.request()" (pageChange)="onPageChange($event)">
+    </app-pagination>
   </div>
 </div>

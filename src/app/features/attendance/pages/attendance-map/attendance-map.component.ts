@@ -7,7 +7,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faMapMarkerAlt, faUsers, faBuilding, faCalendar, faSearch, faEye, faChevronDown, faChevronUp, faFilter } from '@fortawesome/free-solid-svg-icons';
 import { AttendanceService } from '../../../../core/attendance.service';
-import { GetDailyAttendanceDto, AttendanceViewModel, PaginatedAttendanceResponseDto, GetEmployeeAttendanceHistoryDto, PaginatedEmployeeAttendanceHistoryResponseDto } from '../../../../core/interfaces/attendance.interface';
+import { GetDailyAttendanceDto, AttendanceViewModel, GroupedAttendanceViewModel, AttendanceSession, PaginatedAttendanceResponseDto, GetEmployeeAttendanceHistoryDto, PaginatedEmployeeAttendanceHistoryResponseDto } from '../../../../core/interfaces/attendance.interface';
 import { ApiResponse } from '../../../../core/interfaces/dashboard.interface';
 
 interface DepartmentStat {
@@ -45,14 +45,14 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
   faChevronUp = faChevronUp;
   faFilter = faFilter;
 
-  attendancePoints: AttendanceViewModel[] = [];
+  attendancePoints: any[] = [];
   totalEmployees: number = 0;
   presentCount: number = 0;
   absentCount: number = 0;
   attendancePercent: number = 0;
   departmentStats: DepartmentStat[] = [];
   departments: string[] = [];
-  allEmployees: AttendanceViewModel[] = [];
+  allEmployees: any[] = [];
   isMobile: boolean = false;
   isPanelExpanded: boolean = false;
   isFilterExpanded: boolean = false;
@@ -62,13 +62,13 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.isMobile = window.innerWidth < 992;
-    
+
     this.filterForm = this.fb.group({
       date: [''],
       department: [''],
       employeeId: ['']
     });
-    
+
     // Add window resize listener for map compatibility
     window.addEventListener('resize', () => {
       this.isMobile = window.innerWidth < 992;
@@ -79,7 +79,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         }, 100);
       }
     });
-    
+
     // Don't load data yet - wait for map to be ready
   }
 
@@ -87,40 +87,40 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     // Check if we're on Vercel
     const isVercel = window.location.hostname.includes('vercel.app');
     console.log('🌐 Environment check - Vercel:', isVercel, 'Hostname:', window.location.hostname);
-    
+
     // Add a small delay to ensure DOM is fully ready (important for Vercel)
     setTimeout(() => {
       this.initializeMap().then(() => {
-      console.log('🗺️ Map initialization promise resolved');
-      // After map is initialized, load the attendance data
-      this.route.queryParams.subscribe(params => {
-        console.log('Query params received:', params);
-        const employeeId = params['employeeId'];
-        const date = params['date'];
-        
-        if (date) {
-          console.log('Loading data for date:', date, 'employeeId:', employeeId);
-          this.getAttendanceData(employeeId, date);
+        console.log('🗺️ Map initialization promise resolved');
+        // After map is initialized, load the attendance data
+        this.route.queryParams.subscribe(params => {
+          console.log('Query params received:', params);
+          const employeeId = params['employeeId'];
+          const date = params['date'];
+
+          if (date) {
+            console.log('Loading data for date:', date, 'employeeId:', employeeId);
+            this.getAttendanceData(employeeId, date);
+          } else {
+            // Fallback: load today's data if no date parameter
+            const today = new Date().toISOString().split('T')[0];
+            console.log('No date parameter, loading today\'s data:', today);
+            this.getAttendanceData(undefined, today);
+          }
+        });
+
+        // Also check snapshot for immediate loading
+        const snapshotParams = this.route.snapshot.queryParams;
+        console.log('Snapshot params:', snapshotParams);
+        if (snapshotParams['date']) {
+          console.log('Loading from snapshot - date:', snapshotParams['date']);
+          this.getAttendanceData(snapshotParams['employeeId'], snapshotParams['date']);
         } else {
-          // Fallback: load today's data if no date parameter
+          // Fallback: load today's data if no parameters at all
           const today = new Date().toISOString().split('T')[0];
-          console.log('No date parameter, loading today\'s data:', today);
+          console.log('No snapshot params, loading today\'s data:', today);
           this.getAttendanceData(undefined, today);
         }
-      });
-      
-      // Also check snapshot for immediate loading
-      const snapshotParams = this.route.snapshot.queryParams;
-      console.log('Snapshot params:', snapshotParams);
-      if (snapshotParams['date']) {
-        console.log('Loading from snapshot - date:', snapshotParams['date']);
-        this.getAttendanceData(snapshotParams['employeeId'], snapshotParams['date']);
-      } else {
-        // Fallback: load today's data if no parameters at all
-        const today = new Date().toISOString().split('T')[0];
-        console.log('No snapshot params, loading today\'s data:', today);
-        this.getAttendanceData(undefined, today);
-      }
       }).catch((error) => {
         console.error('❌ Map initialization failed:', error);
         this.showMapError('Failed to initialize map. Please check your internet connection and refresh the page.');
@@ -131,10 +131,10 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
   private async initializeMap(): Promise<void> {
     try {
       console.log('🗺️ Starting map initialization...');
-      
+
       // Ensure Leaflet CSS is loaded (critical for Vercel)
       this.ensureLeafletCSS();
-      
+
       // Import Leaflet and marker cluster dynamically (Vercel-safe approach)
       let L: any;
       try {
@@ -143,7 +143,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         console.log('✅ Leaflet imported successfully:', L);
         console.log('Leaflet type:', typeof L);
         console.log('Leaflet has map method:', typeof L.map);
-        
+
         // Validate that L has the required methods
         if (!L || typeof L.map !== 'function') {
           throw new Error('Leaflet import is invalid - missing map method');
@@ -151,13 +151,13 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       } catch (leafletError) {
         console.error('❌ Failed to import Leaflet from module:', leafletError);
         console.log('🔄 Falling back to CDN loading...');
-        
+
         // Try loading from CDN as fallback
         try {
           L = await this.loadLeafletFromCDN();
           console.log('✅ Leaflet loaded from CDN:', L);
           console.log('Leaflet has map method:', typeof L.map);
-          
+
           if (!L || typeof L.map !== 'function') {
             throw new Error('Leaflet from CDN is invalid - missing map method');
           }
@@ -166,7 +166,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
           throw new Error('Leaflet library could not be loaded from any source');
         }
       }
-      
+
       // Import marker cluster with error handling
       try {
         await import('leaflet.markercluster');
@@ -175,13 +175,13 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         console.warn('⚠️ Leaflet marker cluster import failed:', clusterError);
         // Continue without clustering
       }
-      
+
       // Wait a bit for the plugin to be fully loaded
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
       // Store markerClusterGroup reference without modifying L object (Vercel compatibility)
       let MarkerClusterGroup: any = null;
-      
+
       try {
         // Try to get markerClusterGroup from the imported module
         const markerClusterModule = await import('leaflet.markercluster');
@@ -189,18 +189,18 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         console.log('✅ MarkerClusterGroup imported from module:', MarkerClusterGroup);
       } catch (moduleError) {
         console.warn('⚠️ Failed to import markerClusterGroup from module:', moduleError);
-        
+
         // Try alternative methods without modifying L object
         try {
-          MarkerClusterGroup = (window as any).L?.markerClusterGroup || 
-                              (window as any).L?.MarkerClusterGroup ||
-                              (L as any).markerClusterGroup;
+          MarkerClusterGroup = (window as any).L?.markerClusterGroup ||
+            (window as any).L?.MarkerClusterGroup ||
+            (L as any).markerClusterGroup;
           console.log('✅ MarkerClusterGroup found from window/L:', MarkerClusterGroup);
         } catch (windowError) {
           console.warn('⚠️ MarkerClusterGroup not available anywhere, continuing without clustering');
         }
       }
-    
+
       // Fix default marker icons with fallback URLs (Vercel-safe approach)
       try {
         // Try to delete the problematic method if it exists
@@ -211,7 +211,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
             console.warn('⚠️ Could not delete _getIconUrl (object may be frozen):', deleteError);
           }
         }
-        
+
         // Configure marker icons
         L.Icon.Default.mergeOptions({
           iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -223,7 +223,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         console.warn('⚠️ Failed to configure Leaflet marker icons:', iconError);
         // Continue without custom icons - Leaflet will use defaults
       }
-      
+
       // Clear any existing map
       if (this.map) {
         this.map.remove();
@@ -233,7 +233,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       const savedState = this.getSavedMapState();
       // Use much closer zoom levels for better initial view
       const defaultZoom = this.isMobile ? 18 : 15;
-      
+
       // Ensure minimum zoom level even if saved state exists
       let initialZoom = defaultZoom;
       if (savedState) {
@@ -241,11 +241,11 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         initialZoom = savedState[2] >= 12 ? savedState[2] : defaultZoom;
         console.log(`Using zoom level: ${initialZoom} (saved: ${savedState[2]}, default: ${defaultZoom})`);
       }
-      
+
       const initialView = savedState ? [savedState[0], savedState[1], initialZoom] : [31.7683, 35.2137, defaultZoom];
-      
+
       console.log('🗺️ Initializing map with view:', initialView);
-      
+
       // Ensure map container has proper dimensions
       const container = this.mapContainer.nativeElement;
       console.log('📐 Map container dimensions:', {
@@ -254,7 +254,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         clientWidth: container.clientWidth,
         clientHeight: container.clientHeight
       });
-      
+
       // Force container to have dimensions if they're 0 (Vercel issue)
       if (container.offsetWidth === 0 || container.offsetHeight === 0) {
         console.log('⚠️ Map container has zero dimensions, setting fallback dimensions');
@@ -262,7 +262,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
         container.style.height = '100%';
         container.style.minHeight = '400px';
       }
-      
+
       // Always start with default view - we'll fit bounds to markers after data loads
       this.map = L.map(container).setView([initialView[0], initialView[1]], initialView[2]);
       console.log('🗺️ Map initialized with default view. Will fit bounds to markers when data loads.');
@@ -292,7 +292,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       try {
         console.log('🔧 Creating marker cluster group');
         console.log('MarkerClusterGroup available:', !!MarkerClusterGroup);
-        
+
         if (MarkerClusterGroup) {
           this.markers = new MarkerClusterGroup({
             maxClusterRadius: 80, // Increase radius for better clustering
@@ -337,7 +337,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
 
       // Map is now ready for markers
       console.log('🎉 Map initialization completed successfully');
-      
+
     } catch (error) {
       console.error('❌ Critical error during map initialization:', error);
       // Show user-friendly error message
@@ -365,13 +365,13 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     leafletCSS.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
     leafletCSS.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
     leafletCSS.crossOrigin = 'anonymous';
-    
+
     // Also load marker cluster CSS
     const clusterCSS = document.createElement('link');
     clusterCSS.rel = 'stylesheet';
     clusterCSS.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
     clusterCSS.crossOrigin = 'anonymous';
-    
+
     const clusterDefaultCSS = document.createElement('link');
     clusterDefaultCSS.rel = 'stylesheet';
     clusterDefaultCSS.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
@@ -380,7 +380,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     document.head.appendChild(leafletCSS);
     document.head.appendChild(clusterCSS);
     document.head.appendChild(clusterDefaultCSS);
-    
+
     console.log('✅ Leaflet CSS files loaded dynamically for Vercel compatibility');
   }
 
@@ -398,32 +398,32 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
       script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
       script.crossOrigin = 'anonymous';
-      
+
       script.onload = () => {
         console.log('✅ Leaflet loaded from CDN');
         // Load marker cluster plugin
         const clusterScript = document.createElement('script');
         clusterScript.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
         clusterScript.crossOrigin = 'anonymous';
-        
+
         clusterScript.onload = () => {
           console.log('✅ Leaflet marker cluster loaded from CDN');
           resolve((window as any).L);
         };
-        
+
         clusterScript.onerror = () => {
           console.warn('⚠️ Failed to load marker cluster from CDN, continuing without clustering');
           resolve((window as any).L);
         };
-        
+
         document.head.appendChild(clusterScript);
       };
-      
+
       script.onerror = () => {
         console.error('❌ Failed to load Leaflet from CDN');
         reject(new Error('Failed to load Leaflet from CDN'));
       };
-      
+
       document.head.appendChild(script);
     });
   }
@@ -445,14 +445,14 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     try {
       const leafletModule = await import('leaflet');
       L = leafletModule.default || leafletModule;
-      
+
       // Check if essential Leaflet functions are available (Vercel compatibility)
       if (!L.marker || typeof L.marker !== 'function') {
         console.error('❌ L.marker is not available, cannot create markers');
         console.log('Available L methods:', Object.keys(L).filter(key => typeof L[key] === 'function'));
         return;
       }
-      
+
       console.log('✅ L.marker is available for marker creation');
     } catch (importError) {
       console.error('❌ Failed to import Leaflet for markers:', importError);
@@ -472,13 +472,13 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     let checkInIcon: any;
     let checkOutIcon: any;
     let mixedAttendanceIcon: any;
-    
+
     if (!L.icon || typeof L.icon !== 'function' || !L.Icon || !L.Icon.Default) {
       console.error('❌ L.icon or L.Icon.Default is not available, using fallback markers');
       console.log('L.icon available:', !!L.icon);
       console.log('L.Icon available:', !!L.Icon);
       console.log('L.Icon.Default available:', !!(L.Icon && L.Icon.Default));
-      
+
       // Create simple fallback markers using basic Leaflet functionality
       try {
         // Try to create basic markers without custom icons
@@ -495,7 +495,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       }
     } else {
       console.log('✅ L.icon is available, creating custom icons');
-      
+
       try {
         // Create custom icons for check-in (green) and check-out (red)
         checkInIcon = L.icon({
@@ -531,7 +531,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
           iconAnchor: [12, 41],
           popupAnchor: this.isMobile ? [0, -20] : [1, -34]
         });
-        
+
         console.log('✅ Custom icons created successfully');
       } catch (iconError) {
         console.error('❌ Failed to create custom icons:', iconError);
@@ -545,7 +545,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     // Check if L.latLngBounds is available (Vercel compatibility)
     let bounds: any = null;
     let hasValidPoints = false;
-    
+
     if (L.latLngBounds && typeof L.latLngBounds === 'function') {
       bounds = L.latLngBounds([]);
       console.log('✅ L.latLngBounds is available');
@@ -561,60 +561,82 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     // Create separate markers for attendance (green) and departure (red)
     // We'll process each attendance record and create markers based on timeIn and timeOut locations
     const markerData: Array<{
-      point: AttendanceViewModel;
+      point: any;
       lat: number;
       lng: number;
       type: 'attendance' | 'departure';
     }> = [];
-    
+
     this.attendancePoints.forEach(point => {
-      // Add green marker for attendance (timeIn) if location exists
-      const attendanceLat = point.checkInLat || point.latitude;
-      const attendanceLng = point.checkInLng || point.longitude;
-      
-      if (point.timeIn && attendanceLat && attendanceLng) {
-        markerData.push({
-          point: point,
-          lat: attendanceLat,
-          lng: attendanceLng,
-          type: 'attendance'
+      // Handle both AttendanceViewModel and GroupedAttendanceViewModel
+      if ('sessions' in point && point.sessions && point.sessions.length > 0) {
+        // GroupedAttendanceViewModel: iterate through all sessions
+        point.sessions.forEach((session: AttendanceSession) => {
+          if (session.timeIn && session.latitude && session.longitude) {
+            markerData.push({
+              point: { ...point, timeIn: session.timeIn, timeOut: session.timeOut, latitude: session.latitude, longitude: session.longitude } as any,
+              lat: session.latitude,
+              lng: session.longitude,
+              type: 'attendance'
+            });
+          }
+          if (session.timeOut && session.outLatitude && session.outLongitude) {
+            markerData.push({
+              point: { ...point, timeIn: session.timeIn, timeOut: session.timeOut, latitude: session.latitude, longitude: session.longitude } as any,
+              lat: session.outLatitude,
+              lng: session.outLongitude,
+              type: 'departure'
+            });
+          }
         });
-      }
-      
-      // Add red marker for departure (timeOut) if location exists
-      const departureLat = point.checkOutLat || point.outLatitude;
-      const departureLng = point.checkOutLng || point.outLongitude;
-      
-      if (point.timeOut && departureLat && departureLng) {
-        markerData.push({
-          point: point,
-          lat: departureLat,
-          lng: departureLng,
-          type: 'departure'
-        });
+      } else {
+        // Single AttendanceViewModel or legacy data
+        const attendanceLat = point.checkInLat || point.latitude;
+        const attendanceLng = point.checkInLng || point.longitude;
+
+        if (point.timeIn && attendanceLat && attendanceLng) {
+          markerData.push({
+            point: point,
+            lat: attendanceLat,
+            lng: attendanceLng,
+            type: 'attendance'
+          });
+        }
+
+        const departureLat = point.checkOutLat || point.outLatitude;
+        const departureLng = point.checkOutLng || point.outLongitude;
+
+        if (point.timeOut && departureLat && departureLng) {
+          markerData.push({
+            point: point,
+            lat: departureLat,
+            lng: departureLng,
+            type: 'departure'
+          });
+        }
       }
     });
 
     console.log(`Created ${markerData.length} markers from ${this.attendancePoints.length} attendance records`);
-    
+
     // Create markers for each attendance/departure record
     let markerCount = 0;
     markerData.forEach((markerInfo, index) => {
       const { point, lat, lng, type } = markerInfo;
-      
+
       hasValidPoints = true;
       if (bounds && bounds.extend) {
         bounds.extend([lat, lng]);
       }
-      
+
       // Use green icon for attendance, red icon for departure
       let icon = type === 'attendance' ? checkInIcon : checkOutIcon;
       const typeLabel = type === 'attendance' ? 'Attendance' : 'Departure';
       const timeValue = type === 'attendance' ? point.timeIn : point.timeOut;
       const typeColor = type === 'attendance' ? '#4CAF50' : '#f44336';
-      
+
       console.log(`Creating ${type} marker for ${point.employeeName} at ${lat}, ${lng}`);
-      
+
       // Create popup content
       const popupContent = `
         <div style="min-width: ${popupWidth}; font-size: ${fontSize};">
@@ -637,16 +659,16 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
           <small style="color: #6c757d; font-size: ${this.isMobile ? '0.6rem' : '0.8rem'};">ID: ${point.employeeId}</small>
         </div>
       `;
-      
+
       // Create marker with custom icon
       const markerOptions: any = {};
       if (icon) {
         markerOptions.icon = icon;
       }
-      
+
       const marker = L.marker([lat, lng], markerOptions)
         .bindPopup(popupContent);
-      
+
       this.markers.addLayer(marker);
       markerCount++;
       console.log(`✅ Added ${type} marker ${markerCount} (${point.employeeName}) - ${typeColor}`);
@@ -658,11 +680,11 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       console.log('Fitting bounds to attendance points to show all markers');
       // Use different padding for mobile vs desktop
       const padding = this.isMobile ? [30, 30] : [50, 50];
-      
+
       // Use a small delay to ensure map is fully rendered
       setTimeout(() => {
         if (this.map && bounds.isValid()) {
-          this.map.fitBounds(bounds, { 
+          this.map.fitBounds(bounds, {
             padding: padding,
             maxZoom: 18 // Don't zoom in too close
           });
@@ -674,7 +696,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       // Set a default view if we have points but no bounds
       const firstMarker = markerData[0];
       const fallbackZoom = this.isMobile ? 15 : 13; // Zoom out more to show more area
-      
+
       // Use a small delay to ensure map is fully rendered
       setTimeout(() => {
         if (this.map) {
@@ -689,7 +711,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
 
   getAttendanceData(employeeId?: number, date?: string): void {
     console.log('getAttendanceData called with:', { employeeId, date });
-    
+
     if (employeeId && date) {
       console.log('Loading employee attendance history...');
       const request: GetEmployeeAttendanceHistoryDto = {
@@ -736,7 +758,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       self.findIndex(emp => emp.employeeId === value.employeeId) === index
     );
     this.totalEmployees = this.allEmployees.length;
-    this.presentCount = this.allEmployees.filter(emp => emp.status === 'Present' || emp.status === 'checked_in').length;
+    this.presentCount = this.allEmployees.filter(emp => emp.status === 'Present' || emp.status === 'checked_in' || emp.firstCheckIn).length;
     this.absentCount = this.totalEmployees - this.presentCount;
     this.attendancePercent = this.totalEmployees > 0 ? Math.round((this.presentCount * 100) / this.totalEmployees) : 0;
 
@@ -748,7 +770,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       }
       const stats = departmentMap.get(deptName)!;
       stats.totalCount++;
-      if (emp.status === 'Present' || emp.status === 'checked_in') {
+      if (emp.status === 'Present' || emp.status === 'checked_in' || emp.firstCheckIn) {
         stats.presentCount++;
       }
     });
@@ -761,7 +783,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
     }));
 
     this.departments = Array.from(new Set(this.allEmployees.map(emp => emp.department || 'Unknown')));
-    
+
     // Update map markers with new data
     // Delay to ensure data is fully processed and marker cluster plugin is loaded
     setTimeout(() => {
@@ -846,7 +868,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
 
   private saveMapState(): void {
     if (!this.map) return;
-    
+
     const center = this.map.getCenter();
     const zoom = this.map.getZoom();
     const mapState = {
@@ -854,7 +876,7 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       lng: center.lng,
       zoom: zoom
     };
-    
+
     console.log('Saving map state:', mapState);
     localStorage.setItem('attendance-map-state', JSON.stringify(mapState));
   }
@@ -877,13 +899,13 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
 
   handleZoomLevelChange(): void {
     if (!this.map || !this.markers) return;
-    
+
     const currentZoom = this.map.getZoom();
     console.log(`🔍 Zoom level changed to: ${currentZoom}`);
-    
+
     // Dynamic cluster radius based on zoom level
     let newRadius = 80; // Default radius
-    
+
     if (currentZoom >= 16) {
       // Very close zoom - no clustering
       newRadius = 0;
@@ -901,18 +923,18 @@ export class AttendanceMapComponent implements OnInit, AfterViewInit {
       newRadius = 100;
       console.log('🔍 At far zoom level - large clusters');
     }
-    
+
     // Update cluster options if the marker cluster group supports it
     if (this.markers.options && this.markers.options.maxClusterRadius !== newRadius) {
       this.markers.options.maxClusterRadius = newRadius;
       console.log(`🔍 Updated cluster radius to: ${newRadius}`);
-      
+
       // Force refresh clustering
       if (this.markers.refreshClusters) {
         this.markers.refreshClusters();
       }
     }
-    
+
     // Trigger a re-clustering after a short delay to ensure smooth transition
     setTimeout(() => {
       if (this.markers && this.markers.refreshClusters) {

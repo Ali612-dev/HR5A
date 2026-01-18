@@ -391,6 +391,12 @@
   "Processing": "جاري المعالجة",
   "Success": "نجح",
   "Close": "إغلاق",
+  "Create": "إنشاء",
+  "EmployeeAlreadyHasSalary": "هذا الموظف لديه راتب بالفعل.",
+  "CalculateMonthlyHours": "حساب الساعات الشهرية",
+  "MonthlyWorkedHours": "ساعات العمل الشهرية",
+  "CalculatingHours": "جاري حساب الساعات الشهرية",
+  "CalculationComplete": "تم اكتمال الحساب",
   "ADMIN_DASHBOARD": {
     "TITLE": "لوحة تحكم المسؤول"
   },
@@ -528,7 +534,20 @@
     "UNASSIGN_SHIFT_FROM_WORK_RULE_FAILED": "فشل في إلغاء تعيين الوردية من قاعدة العمل.",
     "FAILED_TO_LOAD_SHIFT": "فشل في تحميل الوردية.",
     "FAILED_TO_ASSIGN_SHIFT_TO_WORK_RULE": "فشل في تعيين الوردية لقاعدة العمل.",
-    "CREATE_SALARY_FAILED": "فشل في إنشاء إعداد الراتب للموظف."
+    "CREATE_SALARY_FAILED": "فشل في إنشاء إعداد الراتب للموظف.",
+    "FAILED_TO_LOAD_ATTENDANCES": "فشل في تحميل سجلات الحضور.",
+    "FETCH_ATTENDANCES_ERROR": "حدث خطأ أثناء جلب سجلات الحضور.",
+    "ADD_ATTENDANCE_FAILED": "فشل في إضافة سجل الحضور.",
+    "ADD_ATTENDANCE_ERROR": "حدث خطأ أثناء إضافة سجل الحضور.",
+    "UPDATE_ATTENDANCE_FAILED": "فشل في تحديث سجل الحضور.",
+    "UPDATE_ATTENDANCE_ERROR": "حدث خطأ أثناء تحديث سجل الحضور.",
+    "DELETE_ATTENDANCE_FAILED": "فشل في حذف سجل الحضور.",
+    "DELETE_ATTENDANCE_ERROR": "حدث خطأ أثناء حذف سجل الحضور.",
+    "DELETE_EMPLOYEE_ERROR": "حدث خطأ أثناء حذف الموظف.",
+    "LOAD_ATTENDANCE_FAILED": "فشل في تحميل تفاصيل سجل الحضور.",
+    "LOAD_ATTENDANCE_ERROR": "حدث خطأ أثناء تحميل تفاصيل سجل الحضور.",
+    "FETCH_MONTHLY_HOURS_FAILED": "فشل في جلب ساعات العمل الشهرية.",
+    "FETCH_MONTHLY_HOURS_ERROR": "حدث خطأ أثناء جلب ساعات العمل الشهرية."
   },
   "RejectConfirmation_pre": "هل أنت متأكد أنك تريد رفض طلب",
   "RejectConfirmation_post": "؟",
@@ -894,5 +913,10 @@
     "TITLE": "جاري التحميل",
     "UPDATE_EMPLOYEE": "جاري تحديث بيانات الموظف...",
     "CREATE_SALARY_REPORT": "جاري إنشاء تقرير الراتب..."
-  }
+  },
+  "AttendanceSessions": "جلسات الحضور",
+  "Session": "جلسة",
+  "Sessions": "جلسات",
+  "TotalSessions": "إجمالي الجلسات",
+  "TotalHours": "إجمالي الساعات"
 }

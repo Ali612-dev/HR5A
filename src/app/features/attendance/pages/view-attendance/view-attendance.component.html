@@ -24,7 +24,7 @@
           </div>
         </div>
 
-        <div class="details-grid">
+        <div class="details-grid" *ngIf="!attendance.sessions || attendance.sessions.length <= 1">
           <div class="detail-item">
             <fa-icon [icon]="faCalendarAlt" class="detail-icon"></fa-icon>
             <div class="detail-content">
@@ -36,14 +36,14 @@
             <fa-icon [icon]="faClock" class="detail-icon"></fa-icon>
             <div class="detail-content">
               <span class="label">{{ 'TimeIn' | translate }}</span>
-              <span class="value">{{ attendance.timeIn | date: 'shortTime' }}</span>
+              <span class="value">{{ (attendance.timeIn || attendance.firstCheckIn) | date: 'shortTime' }}</span>
             </div>
           </div>
           <div class="detail-item">
             <fa-icon [icon]="faClock" class="detail-icon"></fa-icon>
             <div class="detail-content">
               <span class="label">{{ 'TimeOut' | translate }}</span>
-              <span class="value">{{ attendance.timeOut | date: 'shortTime' }}</span>
+              <span class="value">{{ (attendance.timeOut || attendance.lastCheckOut) | date: 'shortTime' }}</span>
             </div>
           </div>
           <div class="detail-item" *ngIf="attendance.locationName">
@@ -57,7 +57,46 @@
             <fa-icon [icon]="faIdCard" class="detail-icon"></fa-icon>
             <div class="detail-content">
               <span class="label">{{ 'AttendanceType' | translate }}</span>
-              <span class="value">{{ attendance.attType }}</span>
+              <span class="value">{{ attendance.attType || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grouped Sessions View -->
+        <div class="grouped-sessions-view" *ngIf="attendance.sessions && attendance.sessions.length > 1">
+          <div class="section-header mb-3">
+            <h3>{{ 'AttendanceSessions' | translate }}</h3>
+            <span class="sessions-count">{{ attendance.sessions.length }} {{ 'Sessions' | translate }}</span>
+          </div>
+
+          <div class="sessions-list-view">
+            <div *ngFor="let session of attendance.sessions; let i = index" class="session-card-horizontal">
+              <div class="session-index">#{{ i + 1 }}</div>
+              <div class="session-details-horizontal">
+                <div class="time-box">
+                  <div class="time-label">{{ 'TimeIn' | translate }}</div>
+                  <div class="time-value">{{ session.timeIn | date: 'hh:mm:ss a' }}</div>
+                </div>
+                <div class="time-box">
+                  <div class="time-label">{{ 'TimeOut' | translate }}</div>
+                  <div class="time-value">{{ (session.timeOut | date: 'hh:mm:ss a') || '-' }}</div>
+                </div>
+                <div class="time-box">
+                  <div class="time-label">{{ 'Hours' | translate }}</div>
+                  <div class="time-value">{{ session.hours | number: '1.2-2' }}</div>
+                </div>
+                <div class="location-box" *ngIf="session.locationName">
+                  <fa-icon [icon]="faLocationDot"></fa-icon>
+                  <span>{{ session.locationName }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="total-summary-horizontal mt-4">
+            <div class="summary-box">
+              <span class="label">{{ 'TotalHours' | translate }}:</span>
+              <span class="value">{{ attendance.totalWorkedHours | number: '1.2-2' }}</span>
             </div>
           </div>
         </div>

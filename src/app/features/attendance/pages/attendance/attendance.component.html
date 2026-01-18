@@ -52,8 +52,12 @@
 
       <!-- Templates for custom cell rendering -->
       <ng-template #employeeNameTemplate let-row>
-        <div class="d-flex align-items-center justify-content-center">
-          <span>{{ row.employeeName }}</span>
+        <div class="employee-name-cell d-flex align-items-center justify-content-center flex-nowrap gap-2">
+          <button class="btn-calc-hours" (click)="viewMonthlyHours(row, $event)"
+            [title]="'CalculateMonthlyHours' | translate">
+            <fa-icon [icon]="faCalculator"></fa-icon>
+          </button>
+          <span class="text-truncate">{{ row.employeeName }}</span>
         </div>
       </ng-template>
 
@@ -77,13 +81,13 @@
 
       <ng-template #timeInTemplate let-row>
         <div class="d-flex align-items-center justify-content-center">
-          <span>{{ row.timeIn | date: 'shortTime' }}</span>
+          <span>{{ row.firstCheckIn | date: 'shortTime' }}</span>
         </div>
       </ng-template>
 
       <ng-template #timeOutTemplate let-row>
         <div class="d-flex align-items-center justify-content-center">
-          <span>{{ row.timeOut | date: 'shortTime' }}</span>
+          <span>{{ row.lastCheckOut | date: 'shortTime' }}</span>
         </div>
       </ng-template>
 
@@ -94,7 +98,86 @@
           </span>
         </div>
       </ng-template>
+
+      <ng-template #sessionsTemplate let-row>
+        <div class="d-flex align-items-center justify-content-center">
+          <button *ngIf="row.sessionsCount > 1" class="btn btn-sm btn-info sessions-badge"
+            (click)="viewSessions(row, $event)">
+            {{ row.sessionsCount }} {{ 'Sessions' | translate }}
+          </button>
+          <span *ngIf="row.sessionsCount === 1" class="session-count-single">
+            1 {{ 'Session' | translate }}
+          </span>
+          <span *ngIf="row.sessionsCount === 0" class="text-muted">-</span>
+        </div>
+      </ng-template>
     </app-material-data-table>
+
+    <!-- Sessions Detail Dialog Template -->
+    <ng-template #sessionsDialogTemplate let-data>
+      <div class="sessions-dialog">
+        <div class="dialog-header">
+          <h3>
+            <mat-icon>history</mat-icon>
+            {{ 'AttendanceSessions' | translate }} - {{ data.employeeName }}
+          </h3>
+          <p class="subtitle">{{ data.date | date: 'fullDate':undefined:translate.currentLang }}</p>
+        </div>
+
+        <div class="dialog-content">
+          <div class="sessions-list">
+            <div *ngFor="let session of data.sessions; let i = index" class="session-item glass-card">
+              <div class="session-num">#{{ i + 1 }}</div>
+              <div class="session-info">
+                <div class="info-row">
+                  <div class="info-group">
+                    <label>{{ 'TimeIn' | translate }}</label>
+                    <span>{{ session.timeIn | date: 'hh:mm:ss a':undefined:translate.currentLang }}</span>
+                  </div>
+                  <div class="info-group">
+                    <label>{{ 'TimeOut' | translate }}</label>
+                    <span>{{ (session.timeOut | date: 'hh:mm:ss a':undefined:translate.currentLang) || '-' }}</span>
+                  </div>
+                  <div class="info-group">
+                    <label>{{ 'Hours' | translate }}</label>
+                    <span>{{ session.hours | number: '1.2-2' }}</span>
+                  </div>
+                </div>
+                <div class="location-info" *ngIf="session.locationName">
+                  <mat-icon>location_on</mat-icon>
+                  <span>{{ session.locationName }}</span>
+                </div>
+              </div>
+              <div class="session-actions">
+                <button mat-icon-button color="primary" (click)="onEditSession(session, data)"
+                  [title]="'Edit' | translate">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="onDeleteSession(session, data)"
+                  [title]="'Delete' | translate">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="total-summary glass-card mt-3">
+            <div class="summary-item">
+              <label>{{ 'TotalSessions' | translate }}:</label>
+              <span>{{ data.sessionsCount }}</span>
+            </div>
+            <div class="summary-item">
+              <label>{{ 'TotalHours' | translate }}:</label>
+              <span>{{ data.totalWorkedHours | number: '1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-footer">
+          <button mat-button mat-dialog-close class="btn btn-secondary">{{ 'Close' | translate }}</button>
+        </div>
+      </div>
+    </ng-template>
 
     <!-- Pagination -->
     <app-pagination *ngIf="!store.isLoading() && !store.error() && filteredAttendances().length > 0"
@@ -146,4 +229,64 @@
       </div>
     </div>
   </div>
+
+  <!-- Monthly Worked Hours Dialog Template -->
+  <ng-template #monthlyHoursDialogTemplate let-data>
+    <div class="monthly-hours-dialog">
+      <div class="dialog-header">
+        <h3>
+          <mat-icon>calculate</mat-icon>
+          {{ 'MonthlyWorkedHours' | translate }}
+        </h3>
+        <p class="subtitle">{{ data.employeeName }}</p>
+      </div>
+
+      <div class="dialog-content">
+        <!-- Loading State -->
+        <div *ngIf="monthlyHoursStore.isLoading()" class="state-container loading-state">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p>{{ 'CalculatingHours' | translate }}...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="monthlyHoursStore.error()" class="state-container error-state">
+          <mat-icon class="error-icon">error_outline</mat-icon>
+          <p class="error-msg">{{ monthlyHoursStore.error() }}</p>
+          <button class="btn btn-outline-primary btn-sm mt-2"
+            (click)="monthlyHoursStore.loadMonthlyHours(data.employeeId)">
+            {{ 'Retry' | translate }}
+          </button>
+        </div>
+
+        <!-- Success State -->
+        <div *ngIf="monthlyHoursStore.isSuccess() && monthlyHoursStore.data()" class="state-container success-state">
+          <div class="hours-display glass-card">
+            <div class="hours-value">
+              {{ formatHoursToHHMM(monthlyHoursStore.data()?.totalWorkedHours || 0) }}
+            </div>
+            <div class="hours-label">{{ 'Hours' | translate }}</div>
+          </div>
+
+          <div class="period-info mt-3">
+            <span class="badge bg-light text-dark">
+              {{ monthlyHoursStore.data()?.month }}/{{ monthlyHoursStore.data()?.year }}
+            </span>
+          </div>
+
+          <p class="success-msg mt-3 text-success">
+            <mat-icon inline>check_circle</mat-icon>
+            {{ 'CalculationComplete' | translate }}
+          </p>
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button mat-button mat-dialog-close class="btn btn-secondary" (click)="monthlyHoursStore.resetState()">
+          {{ 'Close' | translate }}
+        </button>
+      </div>
+    </div>
+  </ng-template>
 </div>

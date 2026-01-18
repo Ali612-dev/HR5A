@@ -6,7 +6,7 @@ import { tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface ViewAttendanceState {
-  attendance: AttendanceViewModel | null;
+  attendance: any | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -25,6 +25,9 @@ export const ViewAttendanceStore = signalStore(
     const translate = inject(TranslateService);
 
     return {
+      setAttendance(attendance: any) {
+        patchState(store, { attendance, isLoading: false, error: null });
+      },
       loadAttendance(id: number) {
         patchState(store, { isLoading: true, error: null });
 

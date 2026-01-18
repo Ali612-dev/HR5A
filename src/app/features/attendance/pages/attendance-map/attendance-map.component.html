@@ -24,11 +24,10 @@
 
   <!-- Main Content -->
   <div class="main-content" [class.mobile-view]="isMobile">
-    
+
     <!-- Side Panel (Desktop Only) -->
-    <div *ngIf="!isMobile" class="side-panel" 
-         [class.expanded]="isPanelExpanded">
-      
+    <div *ngIf="!isMobile" class="side-panel" [class.expanded]="isPanelExpanded">
+
 
       <div class="panel-content">
         <!-- Statistics Cards (Desktop Only) -->
@@ -71,8 +70,7 @@
             <span class="percentage-value">{{ attendancePercent }}%</span>
           </div>
           <div class="progress-bar">
-            <div class="progress-fill" 
-                 [style.width]="attendancePercent + '%'">
+            <div class="progress-fill" [style.width]="attendancePercent + '%'">
             </div>
           </div>
         </div>
@@ -82,8 +80,7 @@
           <div class="filter-header" (click)="toggleFilter()">
             <fa-icon [icon]="faFilter"></fa-icon>
             {{ 'Filters' | translate }}
-            <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" 
-                     class="toggle-icon"></fa-icon>
+            <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" class="toggle-icon"></fa-icon>
           </div>
 
           <div class="filter-content" [class.expanded]="isFilterExpanded">
@@ -93,9 +90,7 @@
                   <fa-icon [icon]="faCalendar"></fa-icon>
                   {{ 'Date' | translate }}
                 </label>
-                <input type="date" 
-                       class="form-control" 
-                       formControlName="date">
+                <input type="date" class="form-control" formControlName="date">
               </div>
 
               <div class="form-group">
@@ -116,10 +111,8 @@
                   <fa-icon [icon]="faSearch"></fa-icon>
                   {{ 'EmployeeSearch' | translate }}
                 </label>
-                <input type="text" 
-                       class="form-control" 
-                       formControlName="employeeId"
-                       [placeholder]="'SearchByIdOrName' | translate">
+                <input type="text" class="form-control" formControlName="employeeId"
+                  [placeholder]="'SearchByIdOrName' | translate">
               </div>
             </form>
           </div>
@@ -135,14 +128,13 @@
                 <span class="dept-percentage">{{ getDepartmentPercentage(dept) }}%</span>
               </div>
               <div class="dept-progress">
-                <div class="dept-progress-fill" 
-                     [style.width]="getDepartmentProgressWidth(dept)">
+                <div class="dept-progress-fill" [style.width]="getDepartmentProgressWidth(dept)">
                 </div>
               </div>
               <div class="dept-details">
                 <small>
-                  {{ getDepartmentPresentCount(dept) }} / 
-                  {{ getDepartmentTotalCount(dept) }} 
+                  {{ getDepartmentPresentCount(dept) }} /
+                  {{ getDepartmentTotalCount(dept) }}
                   {{ 'Present' | translate }}
                 </small>
               </div>
@@ -156,16 +148,14 @@
             <h4>{{ 'PresentEmployees' | translate }} ({{ uniqueEmployees.length }})</h4>
             <div class="search-box">
               <fa-icon [icon]="faSearch"></fa-icon>
-              <input type="text" 
-                     [placeholder]="'SearchEmployees' | translate"
-                     (input)="onSearchChange($any($event.target).value)">
+              <input type="text" [placeholder]="'SearchEmployees' | translate"
+                (input)="onSearchChange($any($event.target).value)">
             </div>
           </div>
 
           <div class="employee-items" *ngIf="!isLoading">
-            <div class="employee-item" 
-                 *ngFor="let employee of uniqueEmployees" 
-                 (click)="focusOnEmployee(employee.employeeId)">
+            <div class="employee-item" *ngFor="let employee of uniqueEmployees"
+              (click)="focusOnEmployee(employee.employeeId)">
               <div class="employee-info">
                 <div class="employee-name">{{ employee.employeeName }}</div>
                 <div class="employee-details">
@@ -173,17 +163,17 @@
                   <span class="employee-dept">{{ employee.department }}</span>
                 </div>
                 <div class="employee-times">
-                  <small *ngIf="employee.timeIn">
-                    In: {{ employee.timeIn | date:'short' }}
+                  <small *ngIf="employee.timeIn || employee.firstCheckIn">
+                    In: {{ (employee.timeIn || employee.firstCheckIn) | date:'short' }}
                   </small>
-                  <small *ngIf="employee.timeOut">
-                    Out: {{ employee.timeOut | date:'short' }}
+                  <small *ngIf="employee.timeOut || employee.lastCheckOut">
+                    Out: {{ (employee.timeOut || employee.lastCheckOut) | date:'short' }}
                   </small>
                 </div>
               </div>
               <div class="employee-status">
-                <span class="status-indicator checkin" *ngIf="employee.timeIn"></span>
-                <span class="status-indicator checkout" *ngIf="employee.timeOut"></span>
+                <span class="status-indicator checkin" *ngIf="employee.timeIn || employee.firstCheckIn"></span>
+                <span class="status-indicator checkout" *ngIf="employee.timeOut || employee.lastCheckOut"></span>
               </div>
             </div>
           </div>
@@ -207,33 +197,33 @@
     <div class="map-wrapper">
       <div class="map-container-wrapper">
         <div #mapContainer class="map-container"></div>
-        
+
         <!-- Loading Overlay -->
         <div class="map-loading" *ngIf="isLoading">
           <div class="spinner"></div>
           <p>{{ 'LoadingMap' | translate }}</p>
         </div>
-        
+
         <!-- Map Legend -->
         <div class="map-legend" (click)="toggleLegendDetails()" [class.active]="isLegendDetailsOpen">
           <div class="legend-item">
             <div class="legend-marker check-in">
               <svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="2" cy="2" r="2" fill="#4CAF50"/>
+                <circle cx="2" cy="2" r="2" fill="#4CAF50" />
               </svg>
             </div>
           </div>
           <div class="legend-item">
             <div class="legend-marker check-out">
               <svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="2" cy="2" r="2" fill="#f44336"/>
+                <circle cx="2" cy="2" r="2" fill="#f44336" />
               </svg>
             </div>
           </div>
           <div class="legend-item">
             <div class="legend-marker mixed">
               <svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="2" cy="2" r="2" fill="#9C27B0"/>
+                <circle cx="2" cy="2" r="2" fill="#9C27B0" />
               </svg>
             </div>
           </div>
@@ -244,7 +234,7 @@
           <div class="legend-detail-item">
             <div class="legend-detail-marker check-in">
               <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="6" cy="6" r="6" fill="#4CAF50"/>
+                <circle cx="6" cy="6" r="6" fill="#4CAF50" />
               </svg>
             </div>
             <span class="legend-detail-text">{{ 'CheckIn' | translate }} - {{ 'Attendance' | translate }}</span>
@@ -252,7 +242,7 @@
           <div class="legend-detail-item">
             <div class="legend-detail-marker check-out">
               <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="6" cy="6" r="6" fill="#f44336"/>
+                <circle cx="6" cy="6" r="6" fill="#f44336" />
               </svg>
             </div>
             <span class="legend-detail-text">{{ 'CheckOut' | translate }} - {{ 'Departure' | translate }}</span>
@@ -260,7 +250,7 @@
           <div class="legend-detail-item">
             <div class="legend-detail-marker mixed">
               <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="6" cy="6" r="6" fill="#9C27B0"/>
+                <circle cx="6" cy="6" r="6" fill="#9C27B0" />
               </svg>
             </div>
             <span class="legend-detail-text">{{ 'Multiple' | translate }} - {{ 'MultipleRecords' | translate }}</span>
@@ -286,12 +276,12 @@
   <div *ngIf="isMobile" class="mobile-stats-sheet" [class.open]="isStatsPanelExpanded">
     <!-- Backdrop -->
     <div class="stats-sheet-backdrop" (click)="closeStatsPanel()"></div>
-    
+
     <!-- Bottom Sheet Content -->
     <div class="stats-sheet-content">
       <!-- Handle Bar -->
       <div class="stats-sheet-handle" (click)="toggleStatsPanel()"></div>
-      
+
       <!-- Statistics Header -->
       <div class="stats-sheet-header">
         <h5>{{ 'Statistics' | translate }}</h5>
@@ -299,58 +289,53 @@
           <fa-icon [icon]="faUsers"></fa-icon>
         </button>
       </div>
-      
-        <!-- Statistics Content -->
-        <div class="stats-sheet-body">
-          <!-- Filters Section -->
-          <div class="mobile-filters-section">
-            <div class="mobile-filter-header" (click)="toggleFilter()">
-              <fa-icon [icon]="faFilter"></fa-icon>
-              {{ 'Filters' | translate }}
-              <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" 
-                       class="toggle-icon"></fa-icon>
-            </div>
 
-            <div class="mobile-filter-content" [class.expanded]="isFilterExpanded">
-              <form [formGroup]="filterForm" class="mobile-filter-form">
-                <div class="mobile-form-group">
-                  <label>
-                    <fa-icon [icon]="faCalendar"></fa-icon>
-                    {{ 'Date' | translate }}
-                  </label>
-                  <input type="date" 
-                         class="mobile-form-control" 
-                         formControlName="date">
-                </div>
-
-                <div class="mobile-form-group">
-                  <label>
-                    <fa-icon [icon]="faBuilding"></fa-icon>
-                    {{ 'Department' | translate }}
-                  </label>
-                  <select class="mobile-form-control" formControlName="department">
-                    <option value="">{{ 'AllDepartments' | translate }}</option>
-                    <option *ngFor="let dept of departments" [value]="dept">
-                      {{ dept }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="mobile-form-group">
-                  <label>
-                    <fa-icon [icon]="faSearch"></fa-icon>
-                    {{ 'EmployeeSearch' | translate }}
-                  </label>
-                  <input type="text" 
-                         class="mobile-form-control" 
-                         formControlName="employeeId"
-                         [placeholder]="'SearchByIdOrName' | translate">
-                </div>
-              </form>
-            </div>
+      <!-- Statistics Content -->
+      <div class="stats-sheet-body">
+        <!-- Filters Section -->
+        <div class="mobile-filters-section">
+          <div class="mobile-filter-header" (click)="toggleFilter()">
+            <fa-icon [icon]="faFilter"></fa-icon>
+            {{ 'Filters' | translate }}
+            <fa-icon [icon]="isFilterExpanded ? faChevronUp : faChevronDown" class="toggle-icon"></fa-icon>
           </div>
 
-          <!-- Statistics Cards -->
+          <div class="mobile-filter-content" [class.expanded]="isFilterExpanded">
+            <form [formGroup]="filterForm" class="mobile-filter-form">
+              <div class="mobile-form-group">
+                <label>
+                  <fa-icon [icon]="faCalendar"></fa-icon>
+                  {{ 'Date' | translate }}
+                </label>
+                <input type="date" class="mobile-form-control" formControlName="date">
+              </div>
+
+              <div class="mobile-form-group">
+                <label>
+                  <fa-icon [icon]="faBuilding"></fa-icon>
+                  {{ 'Department' | translate }}
+                </label>
+                <select class="mobile-form-control" formControlName="department">
+                  <option value="">{{ 'AllDepartments' | translate }}</option>
+                  <option *ngFor="let dept of departments" [value]="dept">
+                    {{ dept }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="mobile-form-group">
+                <label>
+                  <fa-icon [icon]="faSearch"></fa-icon>
+                  {{ 'EmployeeSearch' | translate }}
+                </label>
+                <input type="text" class="mobile-form-control" formControlName="employeeId"
+                  [placeholder]="'SearchByIdOrName' | translate">
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
         <div class="mobile-stats-grid">
           <div class="mobile-stat-card total">
             <div class="mobile-stat-icon">
@@ -390,8 +375,7 @@
             <span class="mobile-percentage-value">{{ attendancePercent }}%</span>
           </div>
           <div class="mobile-progress-bar">
-            <div class="mobile-progress-fill" 
-                 [style.width]="attendancePercent + '%'">
+            <div class="mobile-progress-fill" [style.width]="attendancePercent + '%'">
             </div>
           </div>
         </div>
@@ -406,14 +390,13 @@
                 <span class="mobile-dept-percentage">{{ getDepartmentPercentage(dept) }}%</span>
               </div>
               <div class="mobile-dept-progress">
-                <div class="mobile-dept-progress-fill" 
-                     [style.width]="getDepartmentProgressWidth(dept)">
+                <div class="mobile-dept-progress-fill" [style.width]="getDepartmentProgressWidth(dept)">
                 </div>
               </div>
               <div class="mobile-dept-details">
                 <small>
-                  {{ getDepartmentPresentCount(dept) }} / 
-                  {{ getDepartmentTotalCount(dept) }} 
+                  {{ getDepartmentPresentCount(dept) }} /
+                  {{ getDepartmentTotalCount(dept) }}
                   {{ 'Present' | translate }}
                 </small>
               </div>
@@ -428,9 +411,8 @@
           </div>
 
           <div class="mobile-employee-items" *ngIf="!isLoading">
-            <div class="mobile-employee-item" 
-                 *ngFor="let employee of uniqueEmployees" 
-                 (click)="focusOnEmployee(employee.employeeId)">
+            <div class="mobile-employee-item" *ngFor="let employee of uniqueEmployees"
+              (click)="focusOnEmployee(employee.employeeId)">
               <div class="mobile-employee-info">
                 <div class="mobile-employee-name">{{ employee.employeeName }}</div>
                 <div class="mobile-employee-details">
@@ -438,17 +420,17 @@
                   <span class="mobile-employee-dept">{{ employee.department }}</span>
                 </div>
                 <div class="mobile-employee-times">
-                  <small *ngIf="employee.timeIn">
-                    In: {{ employee.timeIn | date:'short' }}
+                  <small *ngIf="employee.timeIn || employee.firstCheckIn">
+                    In: {{ (employee.timeIn || employee.firstCheckIn) | date:'short' }}
                   </small>
-                  <small *ngIf="employee.timeOut">
-                    Out: {{ employee.timeOut | date:'short' }}
+                  <small *ngIf="employee.timeOut || employee.lastCheckOut">
+                    Out: {{ (employee.timeOut || employee.lastCheckOut) | date:'short' }}
                   </small>
                 </div>
               </div>
               <div class="mobile-employee-status">
-                <span class="mobile-status-indicator checkin" *ngIf="employee.timeIn"></span>
-                <span class="mobile-status-indicator checkout" *ngIf="employee.timeOut"></span>
+                <span class="mobile-status-indicator checkin" *ngIf="employee.timeIn || employee.firstCheckIn"></span>
+                <span class="mobile-status-indicator checkout" *ngIf="employee.timeOut || employee.lastCheckOut"></span>
               </div>
             </div>
           </div>

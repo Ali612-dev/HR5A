@@ -1,12 +1,12 @@
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
-import { AttendanceViewModel, GetDailyAttendanceDto, PaginatedAttendanceResponseDto } from '../core/interfaces/attendance.interface';
+import { GroupedAttendanceViewModel, GetDailyAttendanceDto, PaginatedAttendanceResponseDto } from '../core/interfaces/attendance.interface';
 import { AttendanceService } from '../core/attendance.service';
 import { inject } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface AttendanceState {
-  attendances: AttendanceViewModel[];
+  attendances: GroupedAttendanceViewModel[];
   totalCount: number;
   isLoading: boolean;
   error: string | null;
@@ -39,32 +39,69 @@ export const AttendanceStore = signalStore(
       attendanceService.getDailyAttendance(store.request()).pipe(
         tap({
           next: (response) => {
-            console.log('📥 AttendanceStore: API Response received:', {
-              isSuccess: response.isSuccess,
-              dataExists: !!response.data,
-              attendanceCount: response.data?.attendances?.length,
-              totalCount: response.data?.totalCount,
-              message: response.message
-            });
-            
             if (response.isSuccess && response.data) {
-              // Handle successful response with data (even if empty)
+              const data = response.data as any;
+
+              // Handle various response structures (array vs object with nested array)
+              const rawAttendances = Array.isArray(data) ? data : (data.groupedAttendances || data.attendances || data.items || []);
+
+              // Manually group/merge records by employeeId and date to ensure one row per day
+              const mergedAttendances = rawAttendances.reduce((acc: any[], current: any) => {
+                if (!current) return acc;
+
+                // Use employeeId and date part as the grouping key
+                const dateKey = current.date?.split('T')[0] || 'no-date';
+                const key = `${current.employeeId}-${dateKey}`;
+
+                const existingIndex = acc.findIndex(a => {
+                  const aDateKey = a.date?.split('T')[0] || 'no-date';
+                  return `${a.employeeId}-${aDateKey}` === key;
+                });
+
+                if (existingIndex > -1) {
+                  const existing = acc[existingIndex];
+                  // Merge sessions and ensure uniqueness by session ID
+                  const allSessions = [...(existing.sessions || []), ...(current.sessions || [])];
+                  existing.sessions = Array.from(new Map(allSessions.map(s => [s.id, s])).values());
+                  existing.sessionsCount = existing.sessions.length;
+
+                  // Update stats
+                  if (current.firstCheckIn && (!existing.firstCheckIn || new Date(current.firstCheckIn) < new Date(existing.firstCheckIn))) {
+                    existing.firstCheckIn = current.firstCheckIn;
+                  }
+                  if (current.lastCheckOut && (!existing.lastCheckOut || new Date(current.lastCheckOut) > new Date(existing.lastCheckOut))) {
+                    existing.lastCheckOut = current.lastCheckOut;
+                  }
+
+                  if (current.status === 'Present' || existing.status === 'Present') {
+                    existing.status = 'Present';
+                  }
+
+                  existing.totalWorkedHours = existing.sessions.reduce((sum: number, s: any) => sum + (s.hours || 0), 0);
+
+                  acc[existingIndex] = existing;
+                } else {
+                  acc.push({ ...current });
+                }
+                return acc;
+              }, []);
+
+              const totalCount = data.totalItemCount || data.totalCount || data.count || mergedAttendances.length;
+
               patchState(store, {
-                attendances: response.data.attendances || [],
-                totalCount: response.data.totalCount || 0,
+                attendances: mergedAttendances as GroupedAttendanceViewModel[],
+                totalCount: totalCount,
                 isLoading: false,
-                error: null, // Clear any previous errors
+                error: null,
               });
             } else if (response.isSuccess && !response.data) {
-              // Handle successful response with no data (empty result)
               patchState(store, {
                 attendances: [],
                 totalCount: 0,
                 isLoading: false,
-                error: null, // No error, just empty data
+                error: null,
               });
             } else {
-              // Handle actual error response
               console.error('❌ AttendanceStore: API failed with response:', response);
               patchState(store, { error: 'ERROR.FAILED_TO_LOAD_ATTENDANCES', isLoading: false });
             }
@@ -83,7 +120,7 @@ export const AttendanceStore = signalStore(
         partialUpdate: request,
         newRequest: newRequest
       });
-      
+
       patchState(store, { request: newRequest });
       this.loadDailyAttendances();
     },

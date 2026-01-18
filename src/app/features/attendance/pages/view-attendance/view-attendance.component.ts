@@ -10,6 +10,7 @@ import { ViewAttendanceStore } from '../../../../store/view-attendance.store';
 import { AttendanceViewModel } from '../../../../core/interfaces/attendance.interface';
 
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
+import { AttendanceDataService } from '../../../../core/attendance-data.service';
 
 @Component({
   selector: 'app-view-attendance',
@@ -38,10 +39,19 @@ export class ViewAttendanceComponent implements OnInit {
   faLocationDot = faLocationDot;
 
   private route = inject(ActivatedRoute);
+  private attendanceDataService = inject(AttendanceDataService);
 
   ngOnInit(): void {
+    // Check if data was passed via service first
+    const passedData = this.attendanceDataService.getAttendanceData();
+    if (passedData) {
+      this.store.setAttendance(passedData);
+      return;
+    }
+
+    // Otherwise load by ID
     const attendanceId = this.route.snapshot.paramMap.get('id');
-    if (attendanceId) {
+    if (attendanceId && attendanceId !== '0') {
       this.store.loadAttendance(Number(attendanceId));
     }
   }

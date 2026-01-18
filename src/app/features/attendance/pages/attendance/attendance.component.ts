@@ -4,11 +4,14 @@ import { RouterLink, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faFilter, faMapMarkerAlt, faArrowLeft, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faFilter, faMapMarkerAlt, faArrowLeft, faClock, faCalculator } from '@fortawesome/free-solid-svg-icons';
 
 import { AttendanceStore } from '../../../../store/attendance.store';
-import { AttendanceViewModel } from '../../../../core/interfaces/attendance.interface';
-import { MatDialog } from '@angular/material/dialog';
+import { MonthlyWorkedHoursStore } from '../../../../store/monthly-worked-hours.store';
+import { GroupedAttendanceViewModel, AttendanceSession } from '../../../../core/interfaces/attendance.interface';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { ConfirmationDialogComponent } from '../../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
@@ -32,7 +35,10 @@ import { TemplateRef, ViewChild, AfterViewInit } from '@angular/core';
     FontAwesomeModule,
     RouterLink,
     MaterialDataTableComponent,
-    PaginationComponent
+    PaginationComponent,
+    MatIconModule,
+    MatButtonModule,
+    MatDialogModule
   ],
   templateUrl: './attendance.component.html',
   styleUrls: ['./attendance.component.css']
@@ -47,9 +53,12 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
   faMapMarkerAlt = faMapMarkerAlt;
   faArrowLeft = faArrowLeft;
   faClock = faClock;
+  faCalculator = faCalculator;
 
   isFilterCollapsed: boolean = true;
   isMobile: boolean = false;
+
+  readonly monthlyHoursStore = inject(MonthlyWorkedHoursStore);
 
   private loadingDialogRef: any; // Declare loadingDialogRef
 
@@ -61,7 +70,7 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
   private fb = inject(FormBuilder);
   private datePipe = inject(DatePipe);
   private destroy$ = new Subject<void>();
-  private translate = inject(TranslateService);
+  public translate = inject(TranslateService);
 
   // Material Data Table
   tableColumns: TableColumn[] = [];
@@ -72,6 +81,9 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('timeInTemplate') timeInTemplate!: TemplateRef<any>;
   @ViewChild('timeOutTemplate') timeOutTemplate!: TemplateRef<any>;
   @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
+  @ViewChild('sessionsTemplate') sessionsTemplate!: TemplateRef<any>;
+  @ViewChild('sessionsDialogTemplate') sessionsDialogTemplate!: TemplateRef<any>;
+  @ViewChild('monthlyHoursDialogTemplate') monthlyHoursDialogTemplate!: TemplateRef<any>;
 
   filteredAttendances = computed(() => {
     const attendances = this.store.attendances();
@@ -178,9 +190,10 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
     // Restore filter collapsed state
     this.isFilterCollapsed = defaultIsFilterCollapsed;
 
-    // Update store with the default date
-    this.store.updateRequest({ date: defaultDate });
-    this.store.loadDailyAttendances();
+    // Update store with the default date - use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+    setTimeout(() => {
+      this.store.updateRequest({ date: defaultDate });
+    }, 0);
 
     this.filterForm.get('employeeName')?.valueChanges.pipe(
       debounceTime(300), // Wait for 300ms after the last keystroke
@@ -241,6 +254,13 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
         sortable: true,
         align: 'center',
         cellTemplate: this.statusTemplate
+      },
+      {
+        key: 'sessionsCount',
+        label: 'Sessions',
+        sortable: true,
+        align: 'center',
+        cellTemplate: this.sessionsTemplate
       }
     ];
   }
@@ -251,37 +271,55 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
         label: 'ViewAttendance',
         icon: 'visibility',
         color: 'primary',
-        action: (row: AttendanceViewModel) => {
-          this.router.navigate(['/attendance/view', row.id]);
-        }
+        action: (row: GroupedAttendanceViewModel) => {
+          this.attendanceDataService.setAttendanceData(row);
+          const id = row.sessionsCount > 0 ? row.sessions[0].id : 0;
+          this.router.navigate(['/attendance/view', id]);
+        },
+        show: (row: GroupedAttendanceViewModel) => row.sessionsCount > 0
       },
       {
         label: 'EditAttendance',
         icon: 'edit',
         color: 'primary',
-        action: (row: AttendanceViewModel) => {
-          this.attendanceDataService.setAttendanceData(row);
-          this.router.navigate(['/attendance/update', row.id]);
-        }
+        action: (row: GroupedAttendanceViewModel) => {
+          const session = row.sessionsCount === 1 ? row.sessions[0] : null;
+          if (session) {
+            this.attendanceDataService.setAttendanceData({
+              ...row,
+              id: session.id,
+              timeIn: session.timeIn,
+              timeOut: session.timeOut,
+              latitude: session.latitude,
+              longitude: session.longitude,
+              outLatitude: session.outLatitude,
+              outLongitude: session.outLongitude,
+              locationName: session.locationName
+            } as any);
+            this.router.navigate(['/attendance/update', session.id]);
+          }
+        },
+        show: (row: GroupedAttendanceViewModel) => row.sessionsCount === 1
       },
       {
         label: 'ViewOnMap',
         icon: 'location_on',
         color: 'accent',
-        action: (row: AttendanceViewModel) => {
+        action: (row: GroupedAttendanceViewModel) => {
           this.router.navigate(['/attendance/map'], {
             queryParams: { employeeId: row.employeeId, date: row.date }
           });
         },
-        show: (row: AttendanceViewModel) => !!(row.latitude && row.longitude)
+        show: (row: GroupedAttendanceViewModel) => row.sessionsCount > 0
       },
       {
         label: 'DeleteAttendance',
         icon: 'delete',
         color: 'warn',
-        action: (row: AttendanceViewModel) => {
+        action: (row: GroupedAttendanceViewModel) => {
           this.onDelete(row);
-        }
+        },
+        show: (row: GroupedAttendanceViewModel) => row.sessionsCount === 1
       }
     ];
   }
@@ -355,7 +393,10 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
     this.saveAttendanceState(); // Save sorting state to memory
   }
 
-  onDelete(attendance: AttendanceViewModel): void {
+  onDelete(attendance: GroupedAttendanceViewModel): void {
+    const session = attendance.sessions[0];
+    if (!session) return;
+
     const formattedDate = this.datePipe.transform(attendance.date, 'shortDate');
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
@@ -367,11 +408,10 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
         cancelButtonText: this.translate.instant('Cancel')
       }
     });
-    console.log('Confirmation Dialog Message:', this.translate.instant('DeleteConfirmation', { employeeName: attendance.employeeName, date: formattedDate }));
 
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.deleteStore.deleteAttendance(attendance.id);
+        this.deleteStore.deleteAttendance(session.id);
       }
     });
   }
@@ -438,23 +478,23 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(['/admin-dashboard']);
   }
 
-  isMultipleDates(attendance: AttendanceViewModel): boolean {
-    if (!attendance.timeIn || !attendance.timeOut) return false;
+  isMultipleDates(attendance: GroupedAttendanceViewModel): boolean {
+    if (!attendance.firstCheckIn || !attendance.lastCheckOut) return false;
 
-    const timeInDate = new Date(attendance.timeIn);
-    const timeOutDate = new Date(attendance.timeOut);
+    const timeInDate = new Date(attendance.firstCheckIn);
+    const timeOutDate = new Date(attendance.lastCheckOut);
 
     // Compare dates ignoring time
     return timeInDate.toDateString() !== timeOutDate.toDateString();
   }
 
-  getDateRangeDisplay(attendance: AttendanceViewModel): string {
+  getDateRangeDisplay(attendance: GroupedAttendanceViewModel): string {
     if (!this.isMultipleDates(attendance)) {
       return '';
     }
 
-    const timeInDate = new Date(attendance.timeIn!);
-    const timeOutDate = new Date(attendance.timeOut!);
+    const timeInDate = new Date(attendance.firstCheckIn!);
+    const timeOutDate = new Date(attendance.lastCheckOut!);
 
     // Format both dates
     const formatDate = (date: Date) => {
@@ -467,21 +507,92 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
     return `${formatDate(timeInDate)} - ${formatDate(timeOutDate)}`;
   }
 
-  getCheckInDate(attendance: AttendanceViewModel): string {
-    if (!attendance.timeIn) return '';
-    const timeInDate = new Date(attendance.timeIn);
+  getCheckInDate(attendance: GroupedAttendanceViewModel): string {
+    if (!attendance.firstCheckIn) return '';
+    const timeInDate = new Date(attendance.firstCheckIn);
     const day = timeInDate.getDate().toString().padStart(2, '0');
     const month = (timeInDate.getMonth() + 1).toString().padStart(2, '0');
     const year = timeInDate.getFullYear();
     return `${day}/${month}/${year}`;
   }
 
-  getCheckOutDate(attendance: AttendanceViewModel): string {
-    if (!attendance.timeOut) return '';
-    const timeOutDate = new Date(attendance.timeOut);
+  getCheckOutDate(attendance: GroupedAttendanceViewModel): string {
+    if (!attendance.lastCheckOut) return '';
+    const timeOutDate = new Date(attendance.lastCheckOut);
     const day = timeOutDate.getDate().toString().padStart(2, '0');
     const month = (timeOutDate.getMonth() + 1).toString().padStart(2, '0');
     const year = timeOutDate.getFullYear();
     return `${day}/${month}/${year}`;
+  }
+
+  viewSessions(row: GroupedAttendanceViewModel, event: Event): void {
+    event.stopPropagation();
+    this.dialog.open(this.sessionsDialogTemplate, {
+      width: '700px',
+      maxWidth: '95vw',
+      panelClass: 'glass-dialog-panel',
+      data: row
+    });
+  }
+
+  onEditSession(session: AttendanceSession, row: GroupedAttendanceViewModel): void {
+    // Close the sessions dialog first
+    this.dialog.closeAll();
+
+    this.attendanceDataService.setAttendanceData({
+      ...row,
+      id: session.id,
+      timeIn: session.timeIn,
+      timeOut: session.timeOut,
+      latitude: session.latitude,
+      longitude: session.longitude,
+      outLatitude: session.outLatitude,
+      outLongitude: session.outLongitude,
+      locationName: session.locationName
+    } as any);
+    this.router.navigate(['/attendance/update', session.id]);
+  }
+
+  onDeleteSession(session: AttendanceSession, row: GroupedAttendanceViewModel): void {
+    const formattedDate = this.datePipe.transform(row.date, 'shortDate');
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
+      data: {
+        title: this.translate.instant('ConfirmDeletion'),
+        message: this.translate.instant('DeleteConfirmation', { employeeName: row.employeeName, date: formattedDate }),
+        confirmButtonText: this.translate.instant('Delete'),
+        cancelButtonText: this.translate.instant('Cancel')
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.deleteStore.deleteAttendance(session.id);
+      }
+    });
+  }
+
+  viewMonthlyHours(row: GroupedAttendanceViewModel, event: Event): void {
+    event.stopPropagation();
+    this.monthlyHoursStore.loadMonthlyHours(row.employeeId);
+    this.dialog.open(this.monthlyHoursDialogTemplate, {
+      width: '450px',
+      maxWidth: '90vw',
+      panelClass: 'glass-dialog-panel',
+      data: row
+    });
+  }
+
+  formatHoursToHHMM(totalHours: number): string {
+    if (!totalHours) return '00:00';
+
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours - hours) * 60);
+
+    if (minutes === 60) {
+      return `${(hours + 1).toString().padStart(2, '0')}:00`;
+    }
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 }

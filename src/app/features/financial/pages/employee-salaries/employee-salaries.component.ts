@@ -598,13 +598,41 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
             this.closeDialog();
             this.loadSalaries();
           } else {
-            this.showErrorMessage(response.message || this.translate.instant('CreationFailed'));
+            console.error('❌ EmployeeSalaries: Response failed:', response);
+            const msg = response.message || '';
+            if (msg.includes('already has') || msg.includes('exists') || msg.includes('Conflict')) {
+              this.showErrorMessage(this.translate.instant('EmployeeAlreadyHasSalary'));
+            } else {
+              this.showErrorMessage(msg || this.translate.instant('CreationFailed'));
+            }
           }
         },
         error: (error) => {
           this.saving = false;
           console.error('Error creating salary:', error);
-          this.showErrorMessage(this.translate.instant('CreationFailed'));
+
+          let isDuplicate = false;
+
+          // Check status code (409 Conflict is standard for duplicates)
+          if (error.status === 409) {
+            isDuplicate = true;
+          }
+
+          // Check error message content
+          if (!isDuplicate) {
+            const errorBody = error.error;
+            const errorMsg = (typeof errorBody === 'string' ? errorBody : errorBody?.message) || error.message || '';
+
+            if (errorMsg.includes('already has') || errorMsg.includes('exists') || errorMsg.includes('Conflict')) {
+              isDuplicate = true;
+            }
+          }
+
+          if (isDuplicate) {
+            this.showErrorMessage(this.translate.instant('EmployeeAlreadyHasSalary'));
+          } else {
+            this.showErrorMessage(this.translate.instant('CreationFailed'));
+          }
         }
       });
     }

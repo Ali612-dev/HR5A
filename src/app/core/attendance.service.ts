@@ -11,7 +11,8 @@ import {
   GetEmployeeAttendanceHistoryDto,
   PaginatedAttendanceResponseDto,
   PaginatedEmployeeAttendanceHistoryResponseDto,
-  UpdateAttendanceDto
+  UpdateAttendanceDto,
+  MonthlyWorkedHoursResponse
 } from './interfaces/attendance.interface';
 
 @Injectable({
@@ -23,7 +24,7 @@ export class AttendanceService {
   constructor() { }
 
   getDailyAttendance(request: GetDailyAttendanceDto): Observable<ApiResponse<PaginatedAttendanceResponseDto>> {
-    const url = `${API_BASE_URL}${API_ENDPOINTS.AllEmployeesAttendances}`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.DailyGroupedAttendances}`;
     let params = new HttpParams();
 
     if (request.date) {
@@ -90,5 +91,10 @@ export class AttendanceService {
   deleteAttendance(id: number): Observable<ApiResponse<any>> {
     const url = `${API_BASE_URL}${API_ENDPOINTS.DeleteEmployeeAttendance}/${id}`;
     return this.http.delete<ApiResponse<any>>(url);
+  }
+
+  getMonthlyWorkedHours(employeeId: number): Observable<ApiResponse<MonthlyWorkedHoursResponse>> {
+    const url = `${API_BASE_URL}/api/Attendance/monthly-worked-hours/${employeeId}`;
+    return this.http.get<ApiResponse<MonthlyWorkedHoursResponse>>(url);
   }
 }
