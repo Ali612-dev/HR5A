@@ -28,8 +28,8 @@ import { AttendanceDataService } from '../../../../core/attendance-data.service'
     FontAwesomeModule,
     CustomDropdownComponent
   ],
-  providers: [TranslateService],
-  
+  providers: [],
+
   templateUrl: './update-attendance.component.html',
   styleUrls: ['./update-attendance.component.css']
 })
@@ -75,12 +75,6 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
   private attendanceDataService = inject(AttendanceDataService);
 
   constructor() {
-    effect(() => {
-      if (this.store.isSuccess()) {
-        this.navigateToAttendanceList();
-        this.resetForm();
-      }
-    });
 
     effect(() => {
       if (this.store.isLoading()) {
@@ -94,7 +88,8 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
           data: {
             title: this.translate.instant('LOADING.TITLE'),
             message: this.attendanceId ? this.translate.instant('LOADING.UPDATE_ATTENDANCE') : this.translate.instant('LOADING.ADD_ATTENDANCE'),
-            isSuccess: true // Use true for loading state to show spinner if implemented
+            isSuccess: true,
+            isLoading: true
           },
           disableClose: true // Prevent closing by clicking outside
         });
@@ -111,15 +106,16 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
               message: this.attendanceId ? this.translate.instant('SUCCESS.UPDATE_ATTENDANCE') : this.translate.instant('SUCCESS.ADD_ATTENDANCE'),
               isSuccess: true
             }
+          }).afterClosed().subscribe(() => {
+            this.store.resetState();
+            this.router.navigate(['/attendance']);
           });
-          this.store.resetState();
-          this.navigateToAttendanceList(); // Navigate after success notification
         } else if (this.store.error()) {
           this.dialog.open(ErrorDialogComponent, {
             panelClass: 'glass-dialog-panel',
             data: {
               title: this.translate.instant('ERROR.TITLE'),
-              message: this.store.error()
+              message: this.translate.instant(this.store.error()!)
             }
           });
           this.store.resetState();
@@ -140,9 +136,9 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       this.activatedRoute.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
         const attendanceId = params['id'];
         if (attendanceId) {
-          this.attendanceId = attendanceId;
+          this.attendanceId = Number(attendanceId);
           // Fetch attendance data by ID and populate the form
-          this.attendanceService.getAttendanceById(attendanceId).pipe(takeUntil(this.destroy$)).subscribe((response: ApiResponse<AttendanceViewModel>) => {
+          this.attendanceService.getAttendanceById(this.attendanceId).pipe(takeUntil(this.destroy$)).subscribe((response: ApiResponse<AttendanceViewModel>) => {
             if (response.isSuccess && response.data) {
               this.populateForm(response.data);
             } else {
@@ -156,8 +152,18 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
   }
 
   private populateForm(attendance: AttendanceViewModel): void {
+    // Fetch employee to get phone number for validation
+    this.employeeService.getEmployeeById(attendance.employeeId).pipe(takeUntil(this.destroy$)).subscribe(response => {
+      if (response.isSuccess && response.data) {
+        this.selectedEmployeePhone = response.data.phone;
+        this.attendanceForm.patchValue({
+          phoneNumber: response.data.phone
+        });
+        this.cdr.detectChanges();
+      }
+    });
+
     this.attendanceForm.patchValue({
-      employeeId: attendance.employeeId,
       date: attendance.date ? attendance.date.split('T')[0] : null,
       timeIn: attendance.timeIn ? new Date(attendance.timeIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : null,
       timeOut: attendance.timeOut ? new Date(attendance.timeOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : null,
@@ -170,13 +176,13 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       status: attendance.status,
       attType: attendance.attType
     });
+    this.attendanceId = attendance.id;
     this.selectedEmployeeId = attendance.employeeId;
-    // For update, we'll need to get the phone from the employee service
-    // For now, set a placeholder that will be updated when employee is selected
-    this.selectedEmployeePhone = ''; // Will be updated when employee is selected
     this.employeeSearchTerm.setValue(attendance.employeeName, { emitEvent: false });
     this.cdr.detectChanges();
-    this.onAttTypeChange(attendance.attType); // Call after patching attType
+
+    // Ensure the time controls are correctly enabled/disabled based on attType
+    this.onAttTypeChange(attendance.attType);
   }
 
   ngOnDestroy(): void {
@@ -212,8 +218,7 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       longitude: [0],
       outLatitude: [0],
       outLongitude: [0],
-      locationName: [''],
-      time: [new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }), Validators.required],
+      locationName: ['', Validators.maxLength(500)],
       status: [''],
       attType: [null, Validators.required]
     }, { validators: this.timeInTimeOutValidator });
@@ -251,7 +256,7 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(response => {
       this.suggestions = response.data?.employees || [];
-      
+
       // If there's a search term and no suggestions, set employeeNotFound error
       if (this.employeeSearchTerm.value && this.employeeSearchTerm.value.length >= 2 && this.suggestions.length === 0) {
         this.employeeSearchTerm.setErrors({ employeeNotFound: true });
@@ -286,13 +291,20 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     // Mark the form as submitted
-    this.attendanceForm.submitted = true;
-    
+    // this.attendanceForm.submitted = true; // This property does not exist on FormGroup
+
     // Mark all controls as touched to trigger validation
     this.markFormGroupTouched();
-    
+
     // If form is invalid, don't submit
     if (this.attendanceForm.invalid) {
+      console.error('Form is invalid:', this.attendanceForm.errors);
+      Object.keys(this.attendanceForm.controls).forEach(key => {
+        const control = this.attendanceForm.get(key);
+        if (control?.invalid) {
+          console.error(`Control ${key} is invalid:`, JSON.stringify(control.errors));
+        }
+      });
       this.cdr.detectChanges();
       return;
     }
@@ -301,30 +313,24 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
     let timeInIso: string | null = null;
     if (formValue.timeIn && formValue.timeIn !== '') {
-      timeInIso = `${formValue.date}T${formValue.timeIn}:00Z`;
+      timeInIso = `${formValue.date}T${formValue.timeIn}:00.000Z`;
     }
 
     let timeOutIso: string | null = null;
     if (formValue.timeOut && formValue.timeOut !== '') {
-      timeOutIso = `${formValue.date}T${formValue.timeOut}:00Z`;
+      timeOutIso = `${formValue.date}T${formValue.timeOut}:00.000Z`;
     }
 
     const updatedAttendance: UpdateAttendanceDto = {
-      id: this.attendanceId!,
-      phoneNumber: this.selectedEmployeePhone || '',
+      id: Number(this.attendanceId!),
+      employeeId: this.selectedEmployeeId ? Number(this.selectedEmployeeId) : null,
       date: formValue.date,
-      timeIn: timeInIso ?? undefined,
-      timeOut: timeOutIso ?? undefined,
-      latitude: formValue.latitude,
-      longitude: formValue.longitude,
-      outLatitude: formValue.outLatitude,
-      outLongitude: formValue.outLongitude,
+      timeIn: timeInIso,
+      timeOut: timeOutIso,
       locationName: formValue.locationName,
       status: formValue.status,
-      attType: formValue.attType,
     };
-    console.log('Payload being sent:', updatedAttendance);
-    console.log('Payload being sent:', updatedAttendance);
+    console.log('Payload being sent (Update):', JSON.stringify(updatedAttendance, null, 2));
     this.store.updateAttendance(updatedAttendance);
   }
 
@@ -375,7 +381,8 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
         phoneNumber: employee.phone
       });
       // Set the value without emitting an event to prevent re-triggering the search
-      this.employeeSearchTerm.setValue(employee.name, { emitEvent: false });
+      const formattedName = `${employee.name} (${employee.phone})`;
+      this.employeeSearchTerm.setValue(formattedName, { emitEvent: false });
       // Clear all errors and mark as valid
       this.employeeSearchTerm.setErrors(null);
       this.employeeSearchTerm.markAsPristine();
@@ -394,10 +401,10 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
   onEmployeeSearchBlur(): void {
     if (!this.employeeSearchTerm) return;
-    
+
     // Mark the control as touched to trigger validation
     this.employeeSearchTerm.markAsTouched();
-    
+
     // If the field is empty, set required error
     if (!this.employeeSearchTerm.value || this.employeeSearchTerm.value.trim() === '') {
       this.employeeSearchTerm.setErrors({ required: true });
@@ -409,10 +416,10 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       // If an employee is selected, clear any errors
       this.employeeSearchTerm.setErrors(null);
     }
-    
+
     // Update the control's validity
     this.employeeSearchTerm.updateValueAndValidity();
-    
+
     // Trigger change detection
     this.cdr.detectChanges();
   }
@@ -436,16 +443,12 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
       // Handle required validation
       if (searchControl.hasError('required')) {
-        const errorKey = 'ERROR.EMPLOYEE_ID_REQUIRED';
-        const translatedMessage = this.translate.instant(errorKey);
-        errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage('employeeId', 'required'));
+        errorMessages.push(this.translate.instant('ERROR.EMPLOYEE_ID_REQUIRED'));
       }
 
       // Handle not found validation - only show if we've searched and got no results
       if (searchControl.hasError('employeeNotFound')) {
-        const errorKey = 'ERROR.EMPLOYEE_NOT_FOUND';
-        const translatedMessage = this.translate.instant(errorKey);
-        errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage('employeeId', 'employeeNotFound'));
+        errorMessages.push(this.translate.instant('ERROR.EMPLOYEE_NOT_FOUND'));
       }
 
       return errorMessages;
@@ -458,13 +461,13 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
     }
 
     if (control.hasError('required')) {
-      const errorKey = this.getRequiredErrorKey(controlName);
-      const translatedMessage = this.translate.instant(errorKey);
-      errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage(controlName, 'required'));
+      errorMessages.push(this.translate.instant(this.getRequiredErrorKey(controlName)));
     } else if (control.hasError('notAllowed')) {
-      const errorKey = this.getNotAllowedErrorKey(controlName);
-      const translatedMessage = this.translate.instant(errorKey);
-      errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage(controlName, 'notAllowed'));
+      errorMessages.push(this.translate.instant(this.getNotAllowedErrorKey(controlName)));
+    } else if (control.hasError('invalidSequence')) {
+      errorMessages.push(this.translate.instant('ERROR.INVALID_TIME_SEQUENCE'));
+    } else if (control.hasError('maxlength')) {
+      errorMessages.push(this.translate.instant('ERROR.MAX_LENGTH_EXCEEDED', { length: 500 }));
     }
 
     return errorMessages;
@@ -481,20 +484,11 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       'timeOut': 'ERROR.TIME_OUT_REQUIRED_FOR_DEPARTURE',
       'attType': 'ERROR.ATTTYPE_REQUIRED',
       'status': 'ERROR.STATUS_REQUIRED',
-      'notes': 'ERROR.NOTES_REQUIRED'
+      'notes': 'ERROR.NOTES_REQUIRED',
+      'phoneNumber': 'ERROR.PHONE_REQUIRED'
     };
-    
-    // Return the specific key if found, otherwise generate a default one
-    if (fieldKeyMap[controlName]) {
-      return fieldKeyMap[controlName];
-    }
-    
-    // Try to find a matching key in the translation file
-    const possibleKey = `ERROR.${controlName.toUpperCase()}_REQUIRED`;
-    const translated = this.translate.instant(possibleKey);
-    
-    // If the key exists in translations, return it, otherwise return a default message
-    return translated !== possibleKey ? possibleKey : `ERROR.${controlName.toUpperCase()}_REQUIRED`;
+
+    return fieldKeyMap[controlName] || `ERROR.${controlName.toUpperCase()}_REQUIRED`;
   }
 
   private getNotAllowedErrorKey(controlName: string): string {
@@ -502,46 +496,12 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       'timeIn': 'ERROR.TIME_IN_NOT_ALLOWED_FOR_DEPARTURE',
       'timeOut': 'ERROR.TIME_OUT_NOT_ALLOWED_FOR_ATTENDANCE'
     };
-    
-    if (fieldKeyMap[controlName]) {
-      return fieldKeyMap[controlName];
-    }
-    
-    const possibleKey = `ERROR.${controlName.toUpperCase()}_NOT_ALLOWED`;
-    const translated = this.translate.instant(possibleKey);
-    
-    return translated !== possibleKey ? possibleKey : `ERROR.${controlName.toUpperCase()}_NOT_ALLOWED`;
+
+    return fieldKeyMap[controlName] || `ERROR.${controlName.toUpperCase()}_NOT_ALLOWED`;
   }
 
-  
 
-  private getDefaultErrorMessage(controlName: string, errorType: string): string {
-    const defaultMessages: { [key: string]: { [key: string]: string } } = {
-      'phoneNumber': {
-        'required': 'Employee phone number is required',
-        'employeeNotFound': 'Employee not found.'
-      },
-      'date': {
-        'required': 'Date is required'
-      },
-      'time': {
-        'required': 'Time is required'
-      },
-      'attType': {
-        'required': 'Attendance Type is required'
-      },
-      'timeIn': {
-        'required': 'Time In is required for Attendance.',
-        'notAllowed': 'Time In is not allowed for Departure.'
-      },
-      'timeOut': {
-        'required': 'Time Out is required for Departure.',
-        'notAllowed': 'Time Out is not allowed for Attendance.'
-      }
-    };
 
-    return defaultMessages[controlName]?.[errorType] || `${controlName} is invalid`;
-  }
 
   private timeInTimeOutValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
     const attType = control.get('attType');
@@ -552,21 +512,14 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       return null; // Return if controls are not yet initialized
     }
 
-    // Clear previous errors to avoid stale validation
-    timeIn.setErrors(null);
-    timeOut.setErrors(null);
-
-    if (attType.value === 0) { // Attendance
-      if (!timeIn.value) {
-        timeIn.setErrors({ required: true });
-      }
-    } else if (attType.value === 1) { // Departure
-      if (!timeOut.value) {
-        timeOut.setErrors({ required: true });
+    // If both exist, timeOut must be later than timeIn
+    if (timeIn.value && timeOut.value) {
+      if (timeOut.value <= timeIn.value) {
+        timeOut.setErrors({ invalidSequence: true });
       }
     }
 
-    return null; // No form-level error
+    return null;
   };
 
   hasFieldError(controlName: string): boolean {

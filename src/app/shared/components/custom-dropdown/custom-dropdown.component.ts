@@ -25,8 +25,8 @@ export class CustomDropdownComponent {
   private overlayRef!: OverlayRef;
 
   private translate = inject(TranslateService);
-  
-  constructor(private overlay: Overlay, private viewContainerRef: ViewContainerRef) {}
+
+  constructor(private overlay: Overlay, private viewContainerRef: ViewContainerRef) { }
 
   toggleDropdown() {
     if (this.overlayRef && this.overlayRef.hasAttached()) {
@@ -43,7 +43,7 @@ export class CustomDropdownComponent {
 
       const scrollStrategy = this.overlay.scrollStrategies.reposition();
 
-      this.overlayRef = this.overlay.create({ 
+      this.overlayRef = this.overlay.create({
         positionStrategy,
         hasBackdrop: true,
         backdropClass: 'cdk-overlay-transparent-backdrop',
@@ -70,6 +70,6 @@ export class CustomDropdownComponent {
 
   getSelectedLabel() {
     const selectedOption = this.options.find(option => option.value === this.selectedValue);
-    return selectedOption ? selectedOption.label : this.translate.instant('Select');
+    return selectedOption ? this.translate.instant(selectedOption.label) : this.translate.instant('Select');
   }
 }

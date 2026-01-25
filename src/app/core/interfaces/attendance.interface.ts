@@ -1,16 +1,10 @@
 export interface AddAttendanceDto {
-  phoneNumber: string;
+  employeeId: number;
   date: string; // ISO date string
-  timeIn?: string; // ISO datetime string
-  timeOut?: string; // ISO datetime string
-  latitude?: number;
-  longitude?: number;
-  outLatitude?: number;
-  outLongitude?: number;
-  locationName?: string;
-  time: string; // TimeSpan as string (e.g., "08:00:00")
-  status?: string;
-  attType: number;
+  timeIn: string; // ISO datetime string
+  timeOut?: string | null; // ISO datetime string
+  locationName?: string | null;
+  status?: string | null; // e.g., "Present"
 }
 
 export interface AttendanceViewModel {
@@ -38,6 +32,7 @@ export interface AttendanceViewModel {
 
 export interface GetDailyAttendanceDto {
   date?: string; // ISO date string
+  searchName?: string;
   pageNumber?: number;
   pageSize?: number;
   sortField?: string;
@@ -91,7 +86,15 @@ export interface PaginatedEmployeeAttendanceHistoryResponseDto {
   totalCount: number;
 }
 
-export type UpdateAttendanceDto = Partial<AddAttendanceDto> & { id: number };
+export interface UpdateAttendanceDto {
+  id: number;
+  employeeId?: number | null;
+  date?: string | null;
+  timeIn?: string | null;
+  timeOut?: string | null;
+  locationName?: string | null;
+  status?: string | null;
+}
 
 export interface MonthlyWorkedHoursResponse {
   employeeId: number;

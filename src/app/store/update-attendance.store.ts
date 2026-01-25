@@ -40,15 +40,18 @@ export const UpdateAttendanceStore = signalStore(
               }
             },
             error: (err) => {
-              console.error('Error updating attendance:', err);
-              let errorMessage = translate.instant('ERROR.UPDATE_ATTENDANCE_ERROR'); // Default generic error
+              console.error('Error updating attendance. Full response:', err);
+              let errorMessage = 'ERROR.UPDATE_ATTENDANCE_ERROR';
 
-              if (err.status === 500) {
-                errorMessage = translate.instant('ERROR.SERVER_ERROR');
+              if (err.status === 400) {
+                errorMessage = 'ERROR.BAD_REQUEST';
+                if (err.error && err.error.errors) {
+                  console.error('Validation errors from server:', JSON.stringify(err.error.errors, null, 2));
+                }
+              } else if (err.status === 500) {
+                errorMessage = 'ERROR.SERVER_ERROR';
               } else if (err.error && err.error.message) {
                 errorMessage = err.error.message;
-              } else if (err.message) {
-                errorMessage = err.message;
               }
               patchState(store, { error: errorMessage, isLoading: false, isSuccess: false });
             },

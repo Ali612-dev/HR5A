@@ -85,15 +85,9 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('sessionsDialogTemplate') sessionsDialogTemplate!: TemplateRef<any>;
   @ViewChild('monthlyHoursDialogTemplate') monthlyHoursDialogTemplate!: TemplateRef<any>;
 
+  // No longer needed: client-side filtering removed in favor of server-side SearchName
   filteredAttendances = computed(() => {
-    const attendances = this.store.attendances();
-    const employeeNameFilter = this.filterForm.get('employeeName')?.value?.toLowerCase();
-
-    if (employeeNameFilter) {
-      return attendances.filter(att => att.employeeName.toLowerCase().includes(employeeNameFilter));
-    }
-
-    return attendances;
+    return this.store.attendances();
   });
 
   constructor() {
@@ -196,12 +190,12 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 0);
 
     this.filterForm.get('employeeName')?.valueChanges.pipe(
-      debounceTime(300), // Wait for 300ms after the last keystroke
-      distinctUntilChanged(), // Only emit if the value has changed
+      debounceTime(500), // Slightly longer debounce for server-side search
+      distinctUntilChanged(),
       takeUntil(this.destroy$)
-    ).subscribe(() => {
-      // The computed signal `filteredAttendances` will automatically react to changes
-      // Save state to memory when employee name filter changes
+    ).subscribe((searchValue) => {
+      // Trigger server-side search
+      this.store.updateRequest({ searchName: searchValue || '', pageNumber: 1 });
       this.saveAttendanceState();
     });
 
@@ -342,11 +336,13 @@ export class AttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onFilter(): void {
     const dateValue = this.filterForm.get('date')?.value;
-    this.store.updateRequest({ date: dateValue ? new Date(dateValue).toISOString().split('T')[0] : undefined, pageNumber: 1 });
+    const searchName = this.filterForm.get('employeeName')?.value;
 
-    // Explicitly trigger re-evaluation of employeeName filter
-    const currentEmployeeName = this.filterForm.get('employeeName')?.value;
-    this.filterForm.get('employeeName')?.setValue(currentEmployeeName, { emitEvent: true });
+    this.store.updateRequest({
+      date: dateValue ? new Date(dateValue).toISOString().split('T')[0] : undefined,
+      searchName: searchName || '',
+      pageNumber: 1
+    });
 
     // Save state to memory after filtering
     this.saveAttendanceState();

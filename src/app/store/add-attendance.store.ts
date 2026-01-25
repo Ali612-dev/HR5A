@@ -41,7 +41,18 @@ export const AddAttendanceStore = signalStore(
             },
             error: (err) => {
               console.error('Error adding attendance:', err);
-              patchState(store, { error: err.error.message || 'ERROR.ADD_ATTENDANCE_ERROR', isLoading: false, isSuccess: false });
+              let errorMessage = 'ERROR.ADD_ATTENDANCE_ERROR';
+
+              if (err.status === 400) {
+                errorMessage = 'ERROR.BAD_REQUEST';
+              } else if (err.status === 500) {
+                errorMessage = 'ERROR.SERVER_ERROR';
+              } else if (err.error && err.error.message) {
+                // If it's a known technical message, we could map it here
+                // For now, if it's already a string, we can use it, but prefer localized defaults
+                errorMessage = err.error.message;
+              }
+              patchState(store, { error: errorMessage, isLoading: false, isSuccess: false });
             },
           })
         ).subscribe();

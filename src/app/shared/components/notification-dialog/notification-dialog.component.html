@@ -1,9 +1,9 @@
 <div class="dialog-header">
   <div class="header-content">
-    <fa-icon 
-      [icon]="data.isSuccess ? faCheckCircle : faExclamationCircle" 
-      class="dialog-icon"
+    <fa-icon *ngIf="!data.isLoading" [icon]="data.isSuccess ? faCheckCircle : faExclamationCircle" class="dialog-icon"
       [ngClass]="{'success-icon': data.isSuccess, 'error-icon': !data.isSuccess}">
+    </fa-icon>
+    <fa-icon *ngIf="data.isLoading" [icon]="faSpinner" class="dialog-icon loading-icon fa-spin">
     </fa-icon>
     <h2 class="dialog-title">{{ data.title }}</h2>
   </div>

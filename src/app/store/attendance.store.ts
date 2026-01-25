@@ -20,6 +20,7 @@ const initialState: AttendanceState = {
   error: null,
   request: {
     date: new Date().toISOString().split('T')[0], // Set current date as default
+    searchName: '',
     pageNumber: 1,
     pageSize: 10,
     sortField: 'date',

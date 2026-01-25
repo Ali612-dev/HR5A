@@ -30,6 +30,9 @@ export class AttendanceService {
     if (request.date) {
       params = params.append('date', request.date);
     }
+    if (request.searchName) {
+      params = params.append('SearchName', request.searchName);
+    }
     if (request.pageNumber !== undefined && request.pageNumber !== null) {
       params = params.append('pageNumber', request.pageNumber.toString());
     }

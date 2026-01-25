@@ -11,23 +11,23 @@ declare module '@angular/forms' {
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { 
-  faSave, 
-  faTimes, 
-  faCalendarPlus, 
-  faArrowLeft, 
-  faUser, 
-  faSearch, 
-  faClock, 
-  faCalendarAlt, 
-  faSignInAlt, 
-  faSignOutAlt, 
-  faInfoCircle, 
-  faMapMarkerAlt, 
-  faCheckCircle, 
-  faList, 
-  faExclamationTriangle, 
-  faSpinner 
+import {
+  faSave,
+  faTimes,
+  faCalendarPlus,
+  faArrowLeft,
+  faUser,
+  faSearch,
+  faClock,
+  faCalendarAlt,
+  faSignInAlt,
+  faSignOutAlt,
+  faInfoCircle,
+  faMapMarkerAlt,
+  faCheckCircle,
+  faList,
+  faExclamationTriangle,
+  faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import { AddAttendanceStore } from '../../../../store/add-attendance.store';
 import { CustomDropdownComponent } from '../../../../shared/components/custom-dropdown/custom-dropdown.component';
@@ -48,8 +48,8 @@ import { EmployeeDto } from '../../../../core/interfaces/employee.interface';
     FontAwesomeModule,
     CustomDropdownComponent
   ],
-  providers: [TranslateService],
-  
+  providers: [],
+
   templateUrl: './add-attendance.component.html',
   styleUrls: ['./add-attendance.component.css']
 })
@@ -110,7 +110,8 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
           data: {
             title: this.translate.instant('LOADING.TITLE'),
             message: this.translate.instant('LOADING.ADD_ATTENDANCE'),
-            isSuccess: true // Use true for loading state to show spinner if implemented
+            isSuccess: true,
+            isLoading: true
           },
           disableClose: true // Prevent closing by clicking outside
         });
@@ -132,7 +133,7 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
         } else if (this.store.error()) {
           const errorMessage = this.store.error()!;
           const translatedMessage = this.translate.instant(errorMessage);
-          
+
           this.dialog.open(NotificationDialogComponent, {
             panelClass: ['glass-dialog-panel', 'transparent-backdrop'],
             data: {
@@ -179,7 +180,7 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       longitude: [0],
       outLatitude: [0],
       outLongitude: [0],
-      locationName: [''],
+      locationName: ['', Validators.maxLength(500)],
       time: [new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }), Validators.required],
       status: [''],
       attType: [null, Validators.required]
@@ -213,7 +214,7 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(response => {
       this.suggestions = response.data?.employees || [];
-      
+
       // If there's a search term and no suggestions, set employeeNotFound error
       if (this.employeeSearchTerm.value && this.employeeSearchTerm.value.length >= 2 && this.suggestions.length === 0) {
         this.employeeSearchTerm.setErrors({ employeeNotFound: true });
@@ -249,10 +250,10 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     // Mark the form as submitted
     this.attendanceForm.submitted = true;
-    
+
     // Mark all controls as touched to trigger validation
     this.markFormGroupTouched();
-    
+
     // If form is invalid, don't submit
     if (this.attendanceForm.invalid) {
       this.cdr.detectChanges();
@@ -272,12 +273,14 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
     }
 
     const newAttendance: AddAttendanceDto = {
-      ...formValue,
-      phoneNumber: this.selectedEmployeePhone || '', // Use selectedEmployeePhone
-      timeIn: timeInIso,
+      employeeId: this.selectedEmployeeId!,
+      date: formValue.date,
+      timeIn: timeInIso!,
       timeOut: timeOutIso,
+      locationName: formValue.locationName,
+      status: formValue.status || 'Present',
     };
-    console.log('Payload being sent:', newAttendance);
+    console.log('Payload being sent (Add):', newAttendance);
     this.store.addAttendance(newAttendance);
   }
 
@@ -355,10 +358,10 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
 
   onEmployeeSearchBlur(): void {
     if (!this.employeeSearchTerm) return;
-    
+
     // Mark the control as touched to trigger validation
     this.employeeSearchTerm.markAsTouched();
-    
+
     // If the field is empty, set required error
     if (!this.employeeSearchTerm.value || this.employeeSearchTerm.value.trim() === '') {
       this.employeeSearchTerm.setErrors({ required: true });
@@ -370,10 +373,10 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       // If an employee is selected, clear any errors
       this.employeeSearchTerm.setErrors(null);
     }
-    
+
     // Update the control's validity
     this.employeeSearchTerm.updateValueAndValidity();
-    
+
     // Trigger change detection
     this.cdr.detectChanges();
   }
@@ -419,13 +422,13 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
     }
 
     if (control.hasError('required')) {
-      const errorKey = this.getRequiredErrorKey(controlName);
-      const translatedMessage = this.translate.instant(errorKey);
-      errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage(controlName, 'required'));
+      errorMessages.push(this.translate.instant(this.getRequiredErrorKey(controlName)));
     } else if (control.hasError('notAllowed')) {
-      const errorKey = this.getNotAllowedErrorKey(controlName);
-      const translatedMessage = this.translate.instant(errorKey);
-      errorMessages.push(translatedMessage !== errorKey ? translatedMessage : this.getDefaultErrorMessage(controlName, 'notAllowed'));
+      errorMessages.push(this.translate.instant(this.getNotAllowedErrorKey(controlName)));
+    } else if (control.hasError('invalidSequence')) {
+      errorMessages.push(this.translate.instant('ERROR.INVALID_TIME_SEQUENCE'));
+    } else if (control.hasError('maxlength')) {
+      errorMessages.push(this.translate.instant('ERROR.MAX_LENGTH_EXCEEDED', { length: 500 }));
     }
 
     return errorMessages;
@@ -444,16 +447,16 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       'status': 'ERROR.STATUS_REQUIRED',
       'notes': 'ERROR.NOTES_REQUIRED'
     };
-    
+
     // Return the specific key if found, otherwise generate a default one
     if (fieldKeyMap[controlName]) {
       return fieldKeyMap[controlName];
     }
-    
+
     // Try to find a matching key in the translation file
     const possibleKey = `ERROR.${controlName.toUpperCase()}_REQUIRED`;
     const translated = this.translate.instant(possibleKey);
-    
+
     // If the key exists in translations, return it, otherwise return a default message
     return translated !== possibleKey ? possibleKey : `ERROR.${controlName.toUpperCase()}_REQUIRED`;
   }
@@ -463,18 +466,18 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       'timeIn': 'ERROR.TIME_IN_NOT_ALLOWED_FOR_DEPARTURE',
       'timeOut': 'ERROR.TIME_OUT_NOT_ALLOWED_FOR_ATTENDANCE'
     };
-    
+
     if (fieldKeyMap[controlName]) {
       return fieldKeyMap[controlName];
     }
-    
+
     const possibleKey = `ERROR.${controlName.toUpperCase()}_NOT_ALLOWED`;
     const translated = this.translate.instant(possibleKey);
-    
+
     return translated !== possibleKey ? possibleKey : `ERROR.${controlName.toUpperCase()}_NOT_ALLOWED`;
   }
 
-  
+
 
   private getDefaultErrorMessage(controlName: string, errorType: string): string {
     const defaultMessages: { [key: string]: { [key: string]: string } } = {
@@ -513,27 +516,19 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       return null; // Return if controls are not yet initialized
     }
 
-    // Clear previous errors to avoid stale validation
-    timeIn.setErrors(null);
-    timeOut.setErrors(null);
+    // For adding a new record, timeIn is ALWAYS required as per documentation
+    if (!timeIn.value) {
+      timeIn.setErrors({ required: true });
+    }
 
-    if (attType.value === 0) { // Attendance
-      if (!timeIn.value) {
-        timeIn.setErrors({ required: true });
-      }
-      if (timeOut.value) {
-        timeOut.setErrors({ notAllowed: true });
-      }
-    } else if (attType.value === 1) { // Departure
-      if (!timeOut.value) {
-        timeOut.setErrors({ required: true });
-      }
-      if (timeIn.value) {
-        timeIn.setErrors({ notAllowed: true });
+    // If timeOut is provided, it must be later than timeIn
+    if (timeIn.value && timeOut.value) {
+      if (timeOut.value <= timeIn.value) {
+        timeOut.setErrors({ invalidSequence: true });
       }
     }
 
-    return null; // No form-level error
+    return null;
   };
 
   hasFieldError(controlName: string): boolean {
