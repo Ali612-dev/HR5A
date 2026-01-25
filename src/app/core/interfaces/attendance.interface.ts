@@ -5,6 +5,8 @@ export interface AddAttendanceDto {
   timeOut?: string | null; // ISO datetime string
   locationName?: string | null;
   status?: string | null; // e.g., "Present"
+  attType?: number;
+  type?: number;
 }
 
 export interface AttendanceViewModel {
@@ -94,6 +96,8 @@ export interface UpdateAttendanceDto {
   timeOut?: string | null;
   locationName?: string | null;
   status?: string | null;
+  attType?: number | null;
+  type?: number | null;
 }
 
 export interface MonthlyWorkedHoursResponse {

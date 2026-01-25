@@ -146,23 +146,6 @@
                 </div>
               </div>
             </div>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="attType" class="field-label">
-                  <fa-icon [icon]="faList" class="label-icon"></fa-icon>
-                  {{ 'AttType' | translate }}
-                </label>
-                <div class="input-container">
-                  <app-custom-dropdown [options]="attTypeOptions" [selectedValue]="attendanceForm.get('attType')?.value"
-                    (selectionChange)="onAttTypeChange($event)" class="modern-dropdown">
-                  </app-custom-dropdown>
-                  <div *ngIf="getValidationErrors('attType').length > 0" class="error-message">
-                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
-                    <span *ngFor="let error of getValidationErrors('attType')">{{ error }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           <!-- Action Buttons -->

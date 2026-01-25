@@ -6,7 +6,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSave, faTimes, faArrowLeft, faEdit, faSpinner, faUser, faSearch, faClock, faCalendarAlt, faSignInAlt, faSignOutAlt, faInfoCircle, faMapMarkerAlt, faCheckCircle, faList, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { UpdateAttendanceStore } from '../../../../store/update-attendance.store';
-import { CustomDropdownComponent } from '../../../../shared/components/custom-dropdown/custom-dropdown.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
@@ -26,7 +25,6 @@ import { AttendanceDataService } from '../../../../core/attendance-data.service'
     ReactiveFormsModule,
     TranslateModule,
     FontAwesomeModule,
-    CustomDropdownComponent
   ],
   providers: [],
 
@@ -41,7 +39,6 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
   suggestions: EmployeeDto[] = [];
   selectedEmployeeId: number | null = null;
   selectedEmployeePhone: string | null = null;
-  attTypeOptions: { value: number | null; label: string }[] = [];
 
   // FontAwesome Icons
   faSave = faSave;
@@ -126,7 +123,6 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeForm();
-    this.initializeAttTypeOptions();
     this.store.resetState();
 
     const attendanceData = this.attendanceDataService.getAttendanceData();
@@ -172,17 +168,12 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       outLatitude: attendance.outLatitude,
       outLongitude: attendance.outLongitude,
       locationName: attendance.locationName,
-      time: attendance.time,
       status: attendance.status,
-      attType: attendance.attType
     });
     this.attendanceId = attendance.id;
     this.selectedEmployeeId = attendance.employeeId;
     this.employeeSearchTerm.setValue(attendance.employeeName, { emitEvent: false });
     this.cdr.detectChanges();
-
-    // Ensure the time controls are correctly enabled/disabled based on attType
-    this.onAttTypeChange(attendance.attType);
   }
 
   ngOnDestroy(): void {
@@ -190,20 +181,7 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private initializeAttTypeOptions(): void {
-    this.attTypeOptions = [
-      { value: null, label: this.translate.instant('SelectAttType') },
-      { value: 0, label: this.translate.instant('Attendance') },
-      { value: 1, label: this.translate.instant('Departure') }
-    ];
-  }
 
-  onAttTypeChange(value: number): void {
-    this.attendanceForm.get('attType')?.setValue(value);
-    this.attendanceForm.get('attType')?.markAsTouched();
-    this.attendanceForm.get('attType')?.updateValueAndValidity();
-    this.attendanceForm.updateValueAndValidity(); // Trigger form-level validation
-  }
 
   private initializeForm(): void {
     // Initialize the search term with required validation
@@ -220,14 +198,8 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       outLongitude: [0],
       locationName: ['', Validators.maxLength(500)],
       status: [''],
-      attType: [null, Validators.required]
     }, { validators: this.timeInTimeOutValidator });
 
-    // Initial call to set correct state based on default attType (if any)
-    const initialAttType = this.attendanceForm.get('attType')?.value;
-    if (initialAttType !== null) {
-      this.onAttTypeChange(initialAttType);
-    }
 
     this.employeeSearchTerm.valueChanges.pipe(
       debounceTime(2000), // User requested 2 seconds
@@ -329,6 +301,8 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       timeOut: timeOutIso,
       locationName: formValue.locationName,
       status: formValue.status,
+      attType: timeOutIso ? 2 : 1,
+      type: timeOutIso ? 2 : 1
     };
     console.log('Payload being sent (Update):', JSON.stringify(updatedAttendance, null, 2));
     this.store.updateAttendance(updatedAttendance);
@@ -365,12 +339,10 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       locationName: null,
       time: null,
       status: null,
-      attType: null
     });
     this.employeeSearchTerm.reset();
     this.suggestions = [];
     this.selectedEmployeeId = null;
-    this.initializeAttTypeOptions(); // Re-initialize options to reset selected value in custom dropdown
   }
 
   public selectEmployee(employee: EmployeeDto): void {
@@ -480,9 +452,6 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
       'employeeSearchTerm': 'ERROR.EMPLOYEE_ID_REQUIRED',
       'date': 'ERROR.DATE_REQUIRED',
       'time': 'ERROR.TIME_REQUIRED',
-      'timeIn': 'ERROR.TIME_IN_REQUIRED_FOR_ATTENDANCE',
-      'timeOut': 'ERROR.TIME_OUT_REQUIRED_FOR_DEPARTURE',
-      'attType': 'ERROR.ATTTYPE_REQUIRED',
       'status': 'ERROR.STATUS_REQUIRED',
       'notes': 'ERROR.NOTES_REQUIRED',
       'phoneNumber': 'ERROR.PHONE_REQUIRED'
@@ -504,11 +473,10 @@ export class UpdateAttendanceComponent implements OnInit, OnDestroy {
 
 
   private timeInTimeOutValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-    const attType = control.get('attType');
     const timeIn = control.get('timeIn');
     const timeOut = control.get('timeOut');
 
-    if (!attType || !timeIn || !timeOut) {
+    if (!timeIn || !timeOut) {
       return null; // Return if controls are not yet initialized
     }
 

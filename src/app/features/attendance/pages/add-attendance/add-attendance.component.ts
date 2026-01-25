@@ -30,7 +30,6 @@ import {
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import { AddAttendanceStore } from '../../../../store/add-attendance.store';
-import { CustomDropdownComponent } from '../../../../shared/components/custom-dropdown/custom-dropdown.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from '../../../../shared/components/notification-dialog/notification-dialog.component';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
@@ -46,7 +45,6 @@ import { EmployeeDto } from '../../../../core/interfaces/employee.interface';
     ReactiveFormsModule,
     TranslateModule,
     FontAwesomeModule,
-    CustomDropdownComponent
   ],
   providers: [],
 
@@ -60,7 +58,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
   suggestions: EmployeeDto[] = [];
   selectedEmployeeId: number | null = null;
   selectedEmployeePhone: string | null = null;
-  attTypeOptions: { value: number | null; label: string }[] = [];
 
   // FontAwesome Icons
   faSave = faSave;
@@ -150,7 +147,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeForm();
-    this.initializeAttTypeOptions();
     this.store.resetState();
   }
 
@@ -159,13 +155,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private initializeAttTypeOptions(): void {
-    this.attTypeOptions = [
-      { value: null, label: this.translate.instant('SelectAttType') },
-      { value: 0, label: this.translate.instant('Attendance') },
-      { value: 1, label: this.translate.instant('Departure') }
-    ];
-  }
 
   private initializeForm(): void {
     // Initialize the search term with required validation
@@ -183,7 +172,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       locationName: ['', Validators.maxLength(500)],
       time: [new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }), Validators.required],
       status: [''],
-      attType: [null, Validators.required]
     }, { validators: this.timeInTimeOutValidator });
 
     this.employeeSearchTerm.valueChanges.pipe(
@@ -279,6 +267,8 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       timeOut: timeOutIso,
       locationName: formValue.locationName,
       status: formValue.status || 'Present',
+      attType: timeOutIso ? 2 : 1,
+      type: timeOutIso ? 2 : 1
     };
     console.log('Payload being sent (Add):', newAttendance);
     this.store.addAttendance(newAttendance);
@@ -315,13 +305,11 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       locationName: null,
       time: null,
       status: null,
-      attType: null
     });
     this.employeeSearchTerm.reset();
     this.suggestions = [];
     this.selectedEmployeeId = null;
     this.selectedEmployeePhone = null;
-    this.initializeAttTypeOptions(); // Re-initialize options to reset selected value in custom dropdown
   }
 
   public selectEmployee(employee: EmployeeDto): void {
@@ -349,12 +337,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  onAttTypeChange(value: number): void {
-    this.attendanceForm.get('attType')?.setValue(value);
-    this.attendanceForm.get('attType')?.markAsTouched();
-    this.attendanceForm.get('attType')?.updateValueAndValidity();
-    this.attendanceForm.updateValueAndValidity(); // Trigger form-level validation
-  }
 
   onEmployeeSearchBlur(): void {
     if (!this.employeeSearchTerm) return;
@@ -426,9 +408,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
     } else if (control.hasError('notAllowed')) {
       errorMessages.push(this.translate.instant(this.getNotAllowedErrorKey(controlName)));
     } else if (control.hasError('invalidSequence')) {
-      errorMessages.push(this.translate.instant('ERROR.INVALID_TIME_SEQUENCE'));
-    } else if (control.hasError('maxlength')) {
-      errorMessages.push(this.translate.instant('ERROR.MAX_LENGTH_EXCEEDED', { length: 500 }));
     }
 
     return errorMessages;
@@ -443,7 +422,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       'time': 'ERROR.TIME_REQUIRED',
       'timeIn': 'ERROR.TIME_IN_REQUIRED_FOR_ATTENDANCE',
       'timeOut': 'ERROR.TIME_OUT_REQUIRED_FOR_DEPARTURE',
-      'attType': 'ERROR.ATTTYPE_REQUIRED',
       'status': 'ERROR.STATUS_REQUIRED',
       'notes': 'ERROR.NOTES_REQUIRED'
     };
@@ -491,9 +469,6 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
       'time': {
         'required': 'Time is required'
       },
-      'attType': {
-        'required': 'Attendance Type is required'
-      },
       'timeIn': {
         'required': 'Time In is required for Attendance.',
         'notAllowed': 'Time In is not allowed for Departure.'
@@ -508,11 +483,10 @@ export class AddAttendanceComponent implements OnInit, OnDestroy {
   }
 
   private timeInTimeOutValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-    const attType = control.get('attType');
     const timeIn = control.get('timeIn');
     const timeOut = control.get('timeOut');
 
-    if (!attType || !timeIn || !timeOut) {
+    if (!timeIn || !timeOut) {
       return null; // Return if controls are not yet initialized
     }
 

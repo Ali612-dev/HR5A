@@ -29,7 +29,7 @@
 
       <div *ngIf="!store.isLoading()" class="form-content">
         <form [formGroup]="attendanceForm" (ngSubmit)="onSubmit()" class="attendance-form">
-          
+
           <!-- Employee Search Section -->
           <div class="form-section">
             <div class="section-header">
@@ -45,23 +45,19 @@
                   {{ 'EmployeeNameOrPhone' | translate }}
                 </label>
                 <div class="input-container">
-                  <input 
-                    type="text" 
-                    class="modern-input" 
-                    id="employeeSearch" 
-                    [formControl]="employeeSearchTerm" 
-                    placeholder="{{ 'SearchEmployee' | translate }}"
-                    (blur)="onEmployeeSearchBlur()"
-                  >
+                  <input type="text" class="modern-input" id="employeeSearch" [formControl]="employeeSearchTerm"
+                    placeholder="{{ 'SearchEmployee' | translate }}" (blur)="onEmployeeSearchBlur()">
                   <div *ngIf="suggestions.length > 0" class="autocomplete-dropdown">
-                    <div *ngFor="let suggestion of suggestions" class="suggestion-item" (click)="selectEmployee(suggestion)">
+                    <div *ngFor="let suggestion of suggestions" class="suggestion-item"
+                      (click)="selectEmployee(suggestion)">
                       <div class="suggestion-info">
                         <span class="suggestion-name">{{ suggestion.name }}</span>
                         <span class="suggestion-phone">{{ suggestion.phone }}</span>
                       </div>
                     </div>
                   </div>
-                  <div *ngIf="getValidationErrors('employeeSearchTerm').length > 0 && !selectedEmployeeId" class="error-message">
+                  <div *ngIf="getValidationErrors('employeeSearchTerm').length > 0 && !selectedEmployeeId"
+                    class="error-message">
                     <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
                     <span *ngFor="let error of getValidationErrors('employeeSearchTerm')">{{ error }}</span>
                   </div>
@@ -136,7 +132,8 @@
                   {{ 'LocationName' | translate }}
                 </label>
                 <div class="input-container">
-                  <input type="text" class="modern-input" id="locationName" formControlName="locationName" placeholder="{{ 'EnterLocation' | translate }}">
+                  <input type="text" class="modern-input" id="locationName" formControlName="locationName"
+                    placeholder="{{ 'EnterLocation' | translate }}">
                 </div>
               </div>
               <div class="form-field">
@@ -145,24 +142,8 @@
                   {{ 'Status' | translate }}
                 </label>
                 <div class="input-container">
-                  <input type="text" class="modern-input" id="status" formControlName="status" placeholder="{{ 'EnterStatus' | translate }}">
-                </div>
-              </div>
-              <div class="form-field">
-                <label for="attType" class="field-label">
-                  <fa-icon [icon]="faList" class="label-icon"></fa-icon>
-                  {{ 'AttType' | translate }}
-                </label>
-                <div class="input-container">
-                  <app-custom-dropdown
-                    [options]="attTypeOptions"
-                    [selectedValue]="attendanceForm.get('attType')?.value"
-                    (selectionChange)="onAttTypeChange($event)"
-                  ></app-custom-dropdown>
-                  <div *ngIf="getValidationErrors('attType').length > 0" class="error-message">
-                    <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
-                    <span *ngFor="let error of getValidationErrors('attType')">{{ error }}</span>
-                  </div>
+                  <input type="text" class="modern-input" id="status" formControlName="status"
+                    placeholder="{{ 'EnterStatus' | translate }}">
                 </div>
               </div>
               <div class="form-field">
