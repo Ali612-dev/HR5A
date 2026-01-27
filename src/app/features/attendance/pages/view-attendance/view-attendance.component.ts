@@ -62,4 +62,17 @@ export class ViewAttendanceComponent implements OnInit {
       this.store.loadAttendance(Number(attendanceId));
     }
   }
+
+  formatHoursToHHMM(totalHours: number | undefined | null): string {
+    if (!totalHours) return '00:00';
+
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours - hours) * 60);
+
+    if (minutes === 60) {
+      return `${(hours + 1).toString().padStart(2, '0')}:00`;
+    }
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
 }

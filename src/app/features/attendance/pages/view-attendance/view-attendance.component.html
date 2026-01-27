@@ -60,6 +60,13 @@
               <span class="value">{{ attendance.attType || '-' }}</span>
             </div>
           </div>
+          <div class="detail-item" *ngIf="attendance.totalWorkedHours">
+            <fa-icon [icon]="faClock" class="detail-icon"></fa-icon>
+            <div class="detail-content">
+              <span class="label">{{ 'TotalHours' | translate }}</span>
+              <span class="value success-value">{{ formatHoursToHHMM(attendance.totalWorkedHours) }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- Grouped Sessions View -->
@@ -83,7 +90,7 @@
                 </div>
                 <div class="time-box">
                   <div class="time-label">{{ 'Hours' | translate }}</div>
-                  <div class="time-value">{{ session.hours | number: '1.2-2' }}</div>
+                  <div class="time-value">{{ formatHoursToHHMM(session.hours) }}</div>
                 </div>
                 <div class="location-box" *ngIf="session.locationName">
                   <fa-icon [icon]="faLocationDot"></fa-icon>
@@ -96,7 +103,7 @@
           <div class="total-summary-horizontal mt-4">
             <div class="summary-box">
               <span class="label">{{ 'TotalHours' | translate }}:</span>
-              <span class="value">{{ attendance.totalWorkedHours | number: '1.2-2' }}</span>
+              <span class="value">{{ formatHoursToHHMM(attendance.totalWorkedHours) }}</span>
             </div>
           </div>
         </div>
