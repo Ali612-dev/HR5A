@@ -270,6 +270,44 @@ interface DailyReportRow {
     .report-table tr {
       min-height: 60px;
     }
+
+    @media print {
+      .report-details-container {
+        padding: 0;
+        min-height: auto;
+        background: white;
+      }
+      
+      .page-header button, 
+      .header-actions {
+        display: none !important;
+      }
+      
+      .glass-card {
+        box-shadow: none;
+        border: none;
+        overflow: visible !important;
+      }
+      
+      .table-responsive {
+        overflow: visible !important;
+      }
+      
+      .report-table th {
+        background-color: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      .report-table tr {
+        page-break-inside: avoid;
+      }
+      
+      /* Ensure total row sticks together if possible, or just standard row behavior */
+      .report-table tfoot tr {
+        page-break-inside: avoid;
+      }
+    }
   `]
 })
 export class SalaryReportDetailsComponent implements OnInit {

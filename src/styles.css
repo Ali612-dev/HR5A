@@ -32,12 +32,12 @@ html {
   --shadow-medium: rgba(0, 0, 0, 0.15);
   --shadow-strong: rgba(0, 0, 0, 0.25);
   --shadow-primary-gradient: rgba(142, 45, 226, 0.25);
-  --color-white-transparent-10: rgba(255,255,255,.1);
-  --color-white-transparent-20: rgba(255,255,255,.2);
-  --color-white-transparent-40: rgba(255,255,255,.4);
+  --color-white-transparent-10: rgba(255, 255, 255, .1);
+  --color-white-transparent-20: rgba(255, 255, 255, .2);
+  --color-white-transparent-40: rgba(255, 255, 255, .4);
   --shadow-primary-gradient-strong: rgba(142, 45, 226, 0.5);
-  --shadow-text: rgba(0,0,0,.4);
-  --shadow-stronger: rgba(0,0,0,.35);
+  --shadow-text: rgba(0, 0, 0, .4);
+  --shadow-stronger: rgba(0, 0, 0, .35);
   --shadow-primary-gradient-hover: rgba(142, 45, 226, 0.4);
   --font-family-base: "Inter", "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-weight-light: 300;
@@ -53,7 +53,7 @@ html {
   --spacing-lg: 2rem;
   --spacing-xl: 3rem;
   --transition-ease: all .3s ease;
-  
+
   /* Consistent font size variables for cross-platform compatibility */
   --font-size-xs: clamp(0.75rem, 2vw, 0.875rem);
   --font-size-sm: clamp(0.875rem, 2.5vw, 1rem);
@@ -65,7 +65,8 @@ html {
   --font-size-4xl: clamp(2.5rem, 7vw, 3.5rem);
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -75,7 +76,7 @@ html, body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-attachment: fixed;
   min-height: 100vh;
-  
+
   /* Font rendering optimizations */
   font-family: var(--font-family-base);
   font-size: var(--font-size-base);
@@ -84,11 +85,11 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  
+
   /* Fix overscroll bounce background */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-  
+
   /* Prevent unwanted zoom on input focus (iOS) */
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
@@ -119,16 +120,22 @@ body {
 
 /* Fix for webkit browsers overscroll bounce */
 @supports (-webkit-overflow-scrolling: touch) {
-  html, body {
-    background-color: #667eea; /* Fallback color for overscroll */
+
+  html,
+  body {
+    background-color: #667eea;
+    /* Fallback color for overscroll */
     background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
 }
 
 /* Fix for Firefox overscroll bounce */
 @-moz-document url-prefix() {
-  html, body {
-    background-color: #667eea; /* Fallback color for overscroll */
+
+  html,
+  body {
+    background-color: #667eea;
+    /* Fallback color for overscroll */
     background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
 }
@@ -229,7 +236,8 @@ input[type="search"],
 select,
 textarea {
   font-size: var(--font-size-base);
-  min-height: 44px; /* Minimum touch target size */
+  min-height: 44px;
+  /* Minimum touch target size */
 }
 
 /* Ensure consistent button sizing */
@@ -255,20 +263,41 @@ textarea {
 }
 
 /* Responsive text scaling */
-h1 { font-size: var(--font-size-4xl); }
-h2 { font-size: var(--font-size-3xl); }
-h3 { font-size: var(--font-size-2xl); }
-h4 { font-size: var(--font-size-xl); }
-h5 { font-size: var(--font-size-lg); }
-h6 { font-size: var(--font-size-base); }
+h1 {
+  font-size: var(--font-size-4xl);
+}
 
-p, span, div, a {
+h2 {
+  font-size: var(--font-size-3xl);
+}
+
+h3 {
+  font-size: var(--font-size-2xl);
+}
+
+h4 {
+  font-size: var(--font-size-xl);
+}
+
+h5 {
+  font-size: var(--font-size-lg);
+}
+
+h6 {
+  font-size: var(--font-size-base);
+}
+
+p,
+span,
+div,
+a {
   font-size: var(--font-size-base);
 }
 
 small {
   font-size: var(--font-size-sm);
 }
+
 /* Add this to the end of your src/styles.css file */
 
 /* Critical fix for Angular Material + Leaflet conflict */
@@ -325,5 +354,17 @@ small {
 /*.leaflet-container {
   transform: none !important;
   position: relative !important;
-  background: #f0f2f5 !important; */ /* You already have this */
+  background: #f0f2f5 !important; */
+/* You already have this */
 /*}*/
+
+@media print {
+
+  html,
+  body {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+}
