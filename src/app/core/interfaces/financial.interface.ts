@@ -294,6 +294,8 @@ export interface CreateSalaryReportDto {
   employeeId: number; // Required
   reportMonth: number; // Required, 1-12
   reportYear: number; // Required, 2020-2030
+  fromDate?: string; // Optional, ISO 8601 date string
+  toDate?: string; // Optional, ISO 8601 date string
   notes?: string; // Max 500 chars
 }
 

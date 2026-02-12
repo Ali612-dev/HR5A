@@ -1617,7 +1617,7 @@ export class WorkRuleDetailsComponent implements OnInit {
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(amount);
   }
 

@@ -91,7 +91,7 @@ export class ResponsiveSalaryReportsTableComponent implements OnInit, AfterViewI
       .subscribe(isMobile => {
         this.isMobile = isMobile;
       });
-    
+
     // Update data source when reports change
     this.dataSource.data = this.reports;
   }
@@ -136,7 +136,7 @@ export class ResponsiveSalaryReportsTableComponent implements OnInit, AfterViewI
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EGP',
+      currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     }).format(amount);
@@ -150,15 +150,15 @@ export class ResponsiveSalaryReportsTableComponent implements OnInit, AfterViewI
     const date = new Date(dateString);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
-    
+
     if (isToday) {
-      return date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: '2-digit'
       });

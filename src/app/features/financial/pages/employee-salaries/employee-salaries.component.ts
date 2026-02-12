@@ -132,10 +132,14 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
   createReportForm: {
     reportMonth: number | null;
     reportYear: number | null;
+    fromDate: string;
+    toDate: string;
     notes: string;
   } = {
       reportMonth: null,
       reportYear: null,
+      fromDate: '',
+      toDate: '',
       notes: ''
     };
 
@@ -703,6 +707,8 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
     this.createReportForm = {
       reportMonth: currentDate.getMonth() + 1,
       reportYear: currentDate.getFullYear(),
+      fromDate: '',
+      toDate: '',
       notes: ''
     };
   }
@@ -727,6 +733,8 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
       employeeId: this.selectedEmployee.employeeId,
       reportMonth: this.createReportForm.reportMonth,
       reportYear: this.createReportForm.reportYear,
+      fromDate: this.createReportForm.fromDate ? new Date(this.createReportForm.fromDate).toISOString() : undefined,
+      toDate: this.createReportForm.toDate ? new Date(this.createReportForm.toDate).toISOString() : undefined,
       notes: this.createReportForm.notes || undefined
     };
 

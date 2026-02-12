@@ -125,8 +125,9 @@ interface DailyReportRow {
                 <!-- Footer with Totals -->
                 <tfoot>
                   <tr class="total-row">
-                    <td colspan="5" class="text-end font-weight-bold">{{ 'Total' | translate }}</td>
+                    <td colspan="4" class="text-end font-weight-bold">{{ 'Total' | translate }}</td>
                     <td dir="ltr" class="text-start font-weight-bold">{{ formatHoursToTime(report.totalWorkedHours) }}</td>
+                    <td></td>
                     <td class="text-end font-weight-bold highlight-value">{{ formatCurrency(report.netCalculatedSalary) }}</td>
                   </tr>
                 </tfoot>

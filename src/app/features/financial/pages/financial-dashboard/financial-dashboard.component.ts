@@ -72,7 +72,7 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
   @ViewChild('monthlyTrendsChart') monthlyTrendsChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('salaryDistributionChart') salaryDistributionChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('reportsStatusChart') reportsStatusChartRef!: ElementRef<HTMLCanvasElement>;
-  
+
   private charts: Chart[] = [];
   private financialService = inject(FinancialService);
   private translate = inject(TranslateService);
@@ -106,36 +106,40 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
   recentSalaries: EmployeeSalaryDto[] = [];
   recentReports: SalaryReportDto[] = [];
   recentShifts: ShiftDto[] = [];
-  
+
   // Loading states
   isLoadingStats = true;
   isLoadingWorkRules = true;
   isLoadingSalaries = true;
   isLoadingReports = true;
   isLoadingShifts = true;
-  
+
   // Error states
   statsError: string | null = null;
   workRulesError: string | null = null;
   salariesError: string | null = null;
   reportsError: string | null = null;
   shiftsError: string | null = null;
-  
+
   // Create Report Dialog
   showCreateReportDialog = false;
   selectedEmployee: EmployeeSalaryDto | null = null;
   creatingReport = false;
-  
+
   createReportForm: {
     reportMonth: number | null;
     reportYear: number | null;
+    fromDate: string;
+    toDate: string;
     notes: string;
   } = {
-    reportMonth: null,
-    reportYear: null,
-    notes: ''
-  };
-  
+      reportMonth: null,
+      reportYear: null,
+      fromDate: '',
+      toDate: '',
+      notes: ''
+    };
+
   monthOptions: { value: number; label: string }[] = [];
   yearOptions: number[] = [];
 
@@ -143,14 +147,14 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
     this.initializeOptions();
     this.loadDashboardData();
   }
-  
+
   initializeOptions(): void {
     // Initialize month options
     this.monthOptions = this.financialService.getMonthOptions();
-    
+
     // Initialize year options
     this.yearOptions = this.financialService.getYearOptions();
-    
+
     // Set default values to current month and year
     const currentDate = new Date();
     this.createReportForm.reportMonth = currentDate.getMonth() + 1;
@@ -259,7 +263,7 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(amount);
   }
 
@@ -279,7 +283,7 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
         default: typeString = 'PerMonth';
       }
     }
-    
+
     const typeMap: { [key: string]: string } = {
       'PerDay': 'Per Day',
       'PerMonth': 'Per Month',
@@ -317,37 +321,39 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
   goBack(): void {
     this.router.navigate(['/admin-dashboard']);
   }
-  
+
   // Create Report Dialog Methods
   openCreateReportDialog(salary: EmployeeSalaryDto): void {
     this.selectedEmployee = salary;
     this.resetCreateReportForm();
     this.showCreateReportDialog = true;
   }
-  
+
   closeCreateReportDialog(): void {
     this.showCreateReportDialog = false;
     this.selectedEmployee = null;
     this.creatingReport = false;
     this.resetCreateReportForm();
   }
-  
+
   resetCreateReportForm(): void {
     const currentDate = new Date();
     this.createReportForm = {
       reportMonth: currentDate.getMonth() + 1,
       reportYear: currentDate.getFullYear(),
+      fromDate: '',
+      toDate: '',
       notes: ''
     };
   }
-  
+
   createSalaryReport(): void {
     if (!this.selectedEmployee || !this.createReportForm.reportMonth || !this.createReportForm.reportYear) {
       return;
     }
-    
+
     this.creatingReport = true;
-    
+
     // Check if employee has work rule assigned from the salary data
     if (!this.selectedEmployee.workRule) {
       // Employee doesn't have a work rule assigned
@@ -355,7 +361,7 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       this.showWorkRuleRequiredDialog();
       return;
     }
-    
+
     // Employee has work rule, proceed with salary calculation
     this.proceedWithSalaryCalculation();
   }
@@ -367,11 +373,13 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       employeeId: this.selectedEmployee.employeeId,
       reportMonth: this.createReportForm.reportMonth!,
       reportYear: this.createReportForm.reportYear!,
+      fromDate: this.createReportForm.fromDate ? new Date(this.createReportForm.fromDate).toISOString() : undefined,
+      toDate: this.createReportForm.toDate ? new Date(this.createReportForm.toDate).toISOString() : undefined,
       notes: this.createReportForm.notes || undefined
     };
-    
+
     console.log('🔄 FinancialDashboard: Creating salary report:', createReportDto);
-    
+
     this.financialService.calculateSalary(createReportDto).subscribe({
       next: (response) => {
         this.creatingReport = false;
@@ -380,17 +388,17 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
           const employeeName = this.selectedEmployee?.employeeName || `Employee #${this.selectedEmployee?.employeeId}`;
           const successMessage = this.translate.instant('ReportCreatedSuccessfully', { employeeName });
           console.log('✅ FinancialDashboard: Salary report created successfully:', response.data);
-          
+
           // Close dialog
           this.closeCreateReportDialog();
-          
+
           // Navigate to salary report details page
           const reportId = response.data.id;
           console.log('🔄 FinancialDashboard: Navigating to report details with ID:', reportId);
           this.router.navigate(['/admin/financial/salary-reports', reportId]);
         } else {
-          const errorMessage = response.message || this.translate.instant('ReportCreationFailed', { 
-            employeeName: this.selectedEmployee?.employeeName || `Employee #${this.selectedEmployee?.employeeId}` 
+          const errorMessage = response.message || this.translate.instant('ReportCreationFailed', {
+            employeeName: this.selectedEmployee?.employeeName || `Employee #${this.selectedEmployee?.employeeId}`
           });
           console.error('❌ FinancialDashboard: Failed to create salary report:', errorMessage);
           alert(errorMessage);
@@ -399,8 +407,8 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       error: (error) => {
         this.creatingReport = false;
         console.error('❌ FinancialDashboard: Error creating salary report:', error);
-        const errorMessage = this.translate.instant('ReportCreationFailed', { 
-          employeeName: this.selectedEmployee?.employeeName || `Employee #${this.selectedEmployee?.employeeId}` 
+        const errorMessage = this.translate.instant('ReportCreationFailed', {
+          employeeName: this.selectedEmployee?.employeeName || `Employee #${this.selectedEmployee?.employeeId}`
         });
         alert(errorMessage);
       }
@@ -410,7 +418,7 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
   private showWorkRuleRequiredDialog(): void {
     const employeeName = this.selectedEmployee?.employeeName || `Employee #${this.selectedEmployee?.employeeId}`;
     const message = this.translate.instant('WorkRuleRequiredMessage', { employeeName });
-    
+
     // Show a dialog or alert asking admin to assign work rule
     if (confirm(message + '\n\n' + this.translate.instant('AssignWorkRuleQuestion'))) {
       // Navigate to work rules page or employee management
@@ -452,12 +460,12 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
     const maxAttempts = 10;
     const tryInit = () => {
       attempts++;
-      if (this.workRulesChartRef?.nativeElement && 
-          this.salaryReportsChartRef?.nativeElement &&
-          this.employeeSalariesChartRef?.nativeElement &&
-          this.monthlyTrendsChartRef?.nativeElement &&
-          this.salaryDistributionChartRef?.nativeElement &&
-          this.reportsStatusChartRef?.nativeElement) {
+      if (this.workRulesChartRef?.nativeElement &&
+        this.salaryReportsChartRef?.nativeElement &&
+        this.employeeSalariesChartRef?.nativeElement &&
+        this.monthlyTrendsChartRef?.nativeElement &&
+        this.salaryDistributionChartRef?.nativeElement &&
+        this.reportsStatusChartRef?.nativeElement) {
         this.initializeCharts();
       } else if (attempts < maxAttempts) {
         setTimeout(tryInit, 150);
@@ -500,13 +508,13 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       console.warn('Work Rules Chart canvas not found');
       return;
     }
-    
+
     // Check if chart already exists on this canvas
     const existingChart = Chart.getChart(this.workRulesChartRef.nativeElement);
     if (existingChart) {
       existingChart.destroy();
     }
-    
+
     const ctx = this.workRulesChartRef.nativeElement.getContext('2d');
     if (!ctx) {
       console.warn('Could not get 2d context for Work Rules Chart');
@@ -553,13 +561,13 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       console.warn('Salary Reports Chart canvas not found');
       return;
     }
-    
+
     // Check if chart already exists on this canvas
     const existingChart = Chart.getChart(this.salaryReportsChartRef.nativeElement);
     if (existingChart) {
       existingChart.destroy();
     }
-    
+
     const ctx = this.salaryReportsChartRef.nativeElement.getContext('2d');
     if (!ctx) {
       console.warn('Could not get 2d context for Salary Reports Chart');
@@ -568,34 +576,34 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
 
     try {
       const chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: [
-          this.translate.instant('New'),
-          this.translate.instant('InProgress'),
-          this.translate.instant('Completed'),
-          this.translate.instant('Cancelled')
-        ],
-        datasets: [{
-          data: [15, 20, 45, 5],
-          backgroundColor: [
-            '#f97316',
-            '#ea580c',
-            '#fb923c',
-            '#fdba74'
-          ]
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'left'
+        type: 'doughnut',
+        data: {
+          labels: [
+            this.translate.instant('New'),
+            this.translate.instant('InProgress'),
+            this.translate.instant('Completed'),
+            this.translate.instant('Cancelled')
+          ],
+          datasets: [{
+            data: [15, 20, 45, 5],
+            backgroundColor: [
+              '#f97316',
+              '#ea580c',
+              '#fb923c',
+              '#fdba74'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'left'
+            }
           }
         }
-      }
-    });
+      });
       this.charts.push(chart);
     } catch (error) {
       console.error('Error creating Salary Reports Chart:', error);
@@ -607,13 +615,13 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       console.warn('Employee Salaries Chart canvas not found');
       return;
     }
-    
+
     // Check if chart already exists on this canvas
     const existingChart = Chart.getChart(this.employeeSalariesChartRef.nativeElement);
     if (existingChart) {
       existingChart.destroy();
     }
-    
+
     const ctx = this.employeeSalariesChartRef.nativeElement.getContext('2d');
     if (!ctx) {
       console.warn('Could not get 2d context for Employee Salaries Chart');
@@ -622,37 +630,37 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
 
     try {
       const chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Dept A', 'Dept B', 'Dept C', 'Dept D', 'Dept E', 'Dept F'],
-        datasets: [{
-          label: this.translate.instant('EmployeeSalaries'),
-          data: [450, 520, 480, 600, 550, 580],
-          backgroundColor: [
-            '#f97316',
-            '#ea580c',
-            '#fb923c',
-            '#fdba74',
-            '#fed7aa',
-            '#ffedd5'
-          ]
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
+        type: 'bar',
+        data: {
+          labels: ['Dept A', 'Dept B', 'Dept C', 'Dept D', 'Dept E', 'Dept F'],
+          datasets: [{
+            label: this.translate.instant('EmployeeSalaries'),
+            data: [450, 520, 480, 600, 550, 580],
+            backgroundColor: [
+              '#f97316',
+              '#ea580c',
+              '#fb923c',
+              '#fdba74',
+              '#fed7aa',
+              '#ffedd5'
+            ]
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: true
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
           }
         }
-      }
-    });
+      });
       this.charts.push(chart);
     } catch (error) {
       console.error('Error creating Employee Salaries Chart:', error);
@@ -664,13 +672,13 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       console.warn('Monthly Trends Chart canvas not found');
       return;
     }
-    
+
     // Check if chart already exists on this canvas
     const existingChart = Chart.getChart(this.monthlyTrendsChartRef.nativeElement);
     if (existingChart) {
       existingChart.destroy();
     }
-    
+
     const ctx = this.monthlyTrendsChartRef.nativeElement.getContext('2d');
     if (!ctx) {
       console.warn('Could not get 2d context for Monthly Trends Chart');
@@ -679,32 +687,32 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
 
     try {
       const chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: [
-          this.translate.instant('Review'),
-          this.translate.instant('InProcess'),
-          this.translate.instant('Completed')
-        ],
-        datasets: [{
-          data: [30, 50, 20],
-          backgroundColor: [
-            '#f97316',
-            '#ea580c',
-            '#fb923c'
-          ]
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom'
+        type: 'doughnut',
+        data: {
+          labels: [
+            this.translate.instant('Review'),
+            this.translate.instant('InProcess'),
+            this.translate.instant('Completed')
+          ],
+          datasets: [{
+            data: [30, 50, 20],
+            backgroundColor: [
+              '#f97316',
+              '#ea580c',
+              '#fb923c'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
           }
         }
-      }
-    });
+      });
       this.charts.push(chart);
     } catch (error) {
       console.error('Error creating Monthly Trends Chart:', error);
@@ -716,13 +724,13 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       console.warn('Salary Distribution Chart canvas not found');
       return;
     }
-    
+
     // Check if chart already exists on this canvas
     const existingChart = Chart.getChart(this.salaryDistributionChartRef.nativeElement);
     if (existingChart) {
       existingChart.destroy();
     }
-    
+
     const ctx = this.salaryDistributionChartRef.nativeElement.getContext('2d');
     if (!ctx) {
       console.warn('Could not get 2d context for Salary Distribution Chart');
@@ -731,42 +739,42 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
 
     try {
       const chart = new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels: [
-          this.translate.instant('PerDay'),
-          this.translate.instant('PerMonth'),
-          this.translate.instant('PerHour'),
-          this.translate.instant('Custom'),
-          this.translate.instant('Other')
-        ],
-        datasets: [{
-          label: this.translate.instant('Distribution'),
-          data: [65, 80, 70, 60, 75],
-          backgroundColor: 'rgba(249, 115, 22, 0.15)',
-          borderColor: '#f97316',
-          borderWidth: 2,
-          pointBackgroundColor: '#f97316',
-          pointBorderColor: '#ffffff',
-          pointHoverBackgroundColor: '#ea580c',
-          pointHoverBorderColor: '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
+        type: 'radar',
+        data: {
+          labels: [
+            this.translate.instant('PerDay'),
+            this.translate.instant('PerMonth'),
+            this.translate.instant('PerHour'),
+            this.translate.instant('Custom'),
+            this.translate.instant('Other')
+          ],
+          datasets: [{
+            label: this.translate.instant('Distribution'),
+            data: [65, 80, 70, 60, 75],
+            backgroundColor: 'rgba(249, 115, 22, 0.15)',
+            borderColor: '#f97316',
+            borderWidth: 2,
+            pointBackgroundColor: '#f97316',
+            pointBorderColor: '#ffffff',
+            pointHoverBackgroundColor: '#ea580c',
+            pointHoverBorderColor: '#ffffff'
+          }]
         },
-        scales: {
-          r: {
-            beginAtZero: true
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            r: {
+              beginAtZero: true
+            }
           }
         }
-      }
-    });
+      });
       this.charts.push(chart);
     } catch (error) {
       console.error('Error creating Salary Distribution Chart:', error);
@@ -778,13 +786,13 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
       console.warn('Reports Status Chart canvas not found');
       return;
     }
-    
+
     // Check if chart already exists on this canvas
     const existingChart = Chart.getChart(this.reportsStatusChartRef.nativeElement);
     if (existingChart) {
       existingChart.destroy();
     }
-    
+
     const ctx = this.reportsStatusChartRef.nativeElement.getContext('2d');
     if (!ctx) {
       console.warn('Could not get 2d context for Reports Status Chart');
@@ -793,41 +801,41 @@ export class FinancialDashboardComponent implements OnInit, AfterViewInit, OnDes
 
     try {
       const chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [
-          this.translate.instant('Registered'),
-          this.translate.instant('FromMinistry'),
-          this.translate.instant('Returned'),
-          this.translate.instant('Other')
-        ],
-        datasets: [{
-          label: this.translate.instant('SalaryReports'),
-          data: [1200, 800, 600, 250],
-          backgroundColor: [
-            '#f97316',
-            '#ea580c',
-            '#fb923c',
-            '#fdba74'
-          ]
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
+        type: 'bar',
+        data: {
+          labels: [
+            this.translate.instant('Registered'),
+            this.translate.instant('FromMinistry'),
+            this.translate.instant('Returned'),
+            this.translate.instant('Other')
+          ],
+          datasets: [{
+            label: this.translate.instant('SalaryReports'),
+            data: [1200, 800, 600, 250],
+            backgroundColor: [
+              '#f97316',
+              '#ea580c',
+              '#fb923c',
+              '#fdba74'
+            ]
+          }]
         },
-        scales: {
-          x: {
-            beginAtZero: true
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true
+            }
           }
         }
-      }
-    });
+      });
       this.charts.push(chart);
     } catch (error) {
       console.error('Error creating Reports Status Chart:', error);

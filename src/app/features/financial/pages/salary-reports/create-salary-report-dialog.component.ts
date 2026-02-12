@@ -77,6 +77,23 @@ import { MatDialog } from '@angular/material/dialog';
                <small class="text-muted">{{ (notes || '').length }}/500 {{ 'CharactersMax' | translate }}</small>
           </div>
         </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">
+                <strong>{{ 'FromDate' | translate }}</strong>
+                <small class="text-muted">({{ 'Optional' | translate }})</small>
+              </label>
+              <input type="date" class="form-control" [(ngModel)]="fromDate" [disabled]="isCreating">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">
+                <strong>{{ 'ToDate' | translate }}</strong>
+                <small class="text-muted">({{ 'Optional' | translate }})</small>
+              </label>
+              <input type="date" class="form-control" [(ngModel)]="toDate" [disabled]="isCreating">
+            </div>
+          </div>
       </div>
 
       <div class="dialog-actions">
@@ -229,6 +246,8 @@ export class CreateSalaryReportDialogComponent implements OnInit {
   reportMonth: number = new Date().getMonth() + 1;
   reportYear: number = new Date().getFullYear();
   notes: string = '';
+  fromDate: string = '';
+  toDate: string = '';
   isCreating: boolean = false;
 
   monthOptions = [
@@ -299,6 +318,8 @@ export class CreateSalaryReportDialogComponent implements OnInit {
       employeeId: this.selectedEmployee.id,
       reportMonth: this.reportMonth,
       reportYear: this.reportYear,
+      fromDate: this.fromDate ? new Date(this.fromDate).toISOString() : undefined,
+      toDate: this.toDate ? new Date(this.toDate).toISOString() : undefined,
       notes: this.notes?.trim() || undefined
     };
 
