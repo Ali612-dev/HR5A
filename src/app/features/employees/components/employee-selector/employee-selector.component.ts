@@ -355,16 +355,29 @@ export class EmployeeSelectorComponent implements OnInit {
     }).subscribe(res => {
       if (res.isSuccess && res.data) {
         const payload: any = res.data as any;
-        // API shape: { employees: EmployeeDto[], totalCount }
-        this.employees = payload.employees || payload.data || [];
-        const totalCount = payload.totalCount || (Array.isArray(this.employees) ? this.employees.length : 0);
+
+        // Handle various possible API response structures
+        let loadedEmployees: any[] = [];
+        if (Array.isArray(payload)) {
+          loadedEmployees = payload;
+        } else if (payload.employees && Array.isArray(payload.employees)) {
+          loadedEmployees = payload.employees;
+        } else if (payload.items && Array.isArray(payload.items)) {
+          loadedEmployees = payload.items;
+        } else if (payload.data && Array.isArray(payload.data)) {
+          loadedEmployees = payload.data;
+        }
+
+        this.employees = loadedEmployees;
+
+        const totalCount = payload.totalCount || this.employees.length;
         this.totalPages = Math.max(1, Math.ceil(totalCount / this.pageSize));
         this.syncAllSelected();
       }
     });
   }
 
-  onStatusChange(value: 'all'|'true'|'false'): void {
+  onStatusChange(value: 'all' | 'true' | 'false'): void {
     this.isActiveString = value;
     this.isActive = value === 'all' ? null : value === 'true';
     this.page = 1;
@@ -419,8 +432,8 @@ export class EmployeeSelectorComponent implements OnInit {
     this.selectedEmployeesChange.emit(selectedEmployees);
   }
 
-  syncAllSelected(): void { this.allSelected = this.employees.length>0 && this.employees.every(e => this.selected.has(e.id)); }
-  prev(): void { if (this.page>1) { this.page--; this.load(); } }
-  next(): void { if (this.page<this.totalPages) { this.page++; this.load(); } }
+  syncAllSelected(): void { this.allSelected = this.employees.length > 0 && this.employees.every(e => this.selected.has(e.id)); }
+  prev(): void { if (this.page > 1) { this.page--; this.load(); } }
+  next(): void { if (this.page < this.totalPages) { this.page++; this.load(); } }
 }
 

@@ -79,6 +79,9 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
   // Data
   salaries: EmployeeSalaryDto[] = [];
   employees: any[] = [];
+  filteredEmployees: any[] = [];
+  employeeSearchText: string = '';
+  showEmployeeDropdown = false;
 
   // State
   loading = false;
@@ -185,22 +188,79 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadEmployees(): void {
-    this.employeeService.getAllEmployees({ pageNumber: 1, pageSize: 1000 }).subscribe({
+  loadEmployees(page: number = 1): void {
+    const pageSize = 50; // Use max allowed page size
+
+    this.employeeService.getAllEmployees({ pageNumber: page, pageSize: pageSize }).subscribe({
       next: (response) => {
         if (response.isSuccess && response.data) {
           const employeeData: any = response.data;
+          let loadedPage: any[] = [];
+
+          // Handle various possible API response structures
           if (Array.isArray(employeeData)) {
-            this.employees = employeeData.filter((emp: any) => emp.isActive);
+            loadedPage = employeeData;
           } else if (employeeData.employees && Array.isArray(employeeData.employees)) {
-            this.employees = employeeData.employees.filter((emp: any) => emp.isActive);
+            loadedPage = employeeData.employees;
+          } else if (employeeData.items && Array.isArray(employeeData.items)) {
+            loadedPage = employeeData.items;
+          } else if (employeeData.data && Array.isArray(employeeData.data)) {
+            loadedPage = employeeData.data;
+          }
+
+          if (page === 1) {
+            this.employees = [...loadedPage];
+          } else {
+            this.employees = [...this.employees, ...loadedPage];
+          }
+
+          // Check if we need to load more pages
+          const totalCount = employeeData.totalCount || this.employees.length;
+          const totalPages = Math.ceil(totalCount / pageSize);
+
+          if (page < totalPages) {
+            this.loadEmployees(page + 1);
+          } else {
+            // Done loading all pages
+            this.filteredEmployees = [...this.employees];
           }
         }
       },
       error: (error) => {
-        console.error('Error loading employees:', error);
+        console.error('Error loading employees page ' + page + ':', error);
       }
     });
+  }
+
+  onSearchEmployee(): void {
+    if (!this.employeeSearchText) {
+      this.filteredEmployees = [...this.employees];
+    } else {
+      const search = this.employeeSearchText.toLowerCase();
+      this.filteredEmployees = this.employees.filter((emp: any) => {
+        const empName = emp.name || emp.fullName || '';
+        return empName.toLowerCase().includes(search);
+      });
+    }
+  }
+
+  selectDropdownEmployee(emp: any): void {
+    this.form.employeeId = emp.id;
+    this.employeeSearchText = emp.name || emp.fullName || '';
+    this.showEmployeeDropdown = false;
+  }
+
+  hideEmployeeDropdown(): void {
+    setTimeout(() => {
+      this.showEmployeeDropdown = false;
+      const selectedEmp = this.employees.find(e => e.id === this.form.employeeId);
+      if (selectedEmp) {
+        this.employeeSearchText = selectedEmp.name || selectedEmp.fullName || '';
+      } else {
+        this.employeeSearchText = '';
+        this.form.employeeId = null;
+      }
+    }, 200);
   }
 
   loadSalaries(): void {
@@ -424,6 +484,9 @@ export class EmployeeSalariesComponent implements OnInit, OnDestroy {
       hourlyRate: null,
       overtimeRate: null
     };
+    this.employeeSearchText = '';
+    this.showEmployeeDropdown = false;
+    this.filteredEmployees = [...this.employees];
   }
 
   onSalaryTypeChange(): void {

@@ -211,10 +211,28 @@
         <!-- Employee Selection -->
         <div class="form-group" *ngIf="!isEditMode">
           <label class="form-label required">{{ 'Employee' | translate }}</label>
-          <select class="form-control" [(ngModel)]="form.employeeId" name="employeeId" required>
-            <option [ngValue]="null">{{ 'SelectEmployee' | translate }}</option>
-            <option *ngFor="let emp of employees" [ngValue]="emp.id">{{ emp.name }}</option>
-          </select>
+          <div class="custom-dropdown-container" style="position: relative;">
+            <div class="input-with-icon">
+              <fa-icon [icon]="faSearch" class="input-icon"></fa-icon>
+              <input type="text" class="form-control" [(ngModel)]="employeeSearchText" name="employeeSearchText"
+                (input)="onSearchEmployee()" (focus)="showEmployeeDropdown = true" (blur)="hideEmployeeDropdown()"
+                [placeholder]="'SelectEmployee' | translate" autocomplete="off" required />
+            </div>
+
+            <div class="custom-dropdown-list shadow-sm" *ngIf="showEmployeeDropdown"
+              style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 200px; overflow-y: auto; background-color: #fff; border: 1px solid #ced4da; border-radius: 4px; border-top-left-radius: 0; border-top-right-radius: 0; margin-top: -1px;">
+              <div class="dropdown-item" *ngFor="let emp of filteredEmployees"
+                (mousedown)="selectDropdownEmployee(emp); $event.preventDefault();"
+                style="padding: 8px 15px; cursor: pointer; transition: background-color 0.2s;"
+                onmouseover="this.style.backgroundColor='#f8f9fa'"
+                onmouseout="this.style.backgroundColor='transparent'">
+                {{ emp.name || emp.fullName || ('Unknown ID: ' + emp.id) }}
+              </div>
+              <div class="dropdown-item text-muted" *ngIf="filteredEmployees.length === 0" style="padding: 8px 15px;">
+                {{ 'NoEmployeesFound' | translate }}
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Employee Name (Read-only in edit mode) -->
